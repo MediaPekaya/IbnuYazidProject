@@ -9,3 +9,5 @@ Extra BM video skills: `video-script-bm`, `video-hook-library`, `video-remotion-
 - Use the matching skill whenever the user's request fits; adapt it to context rather than copying it rigidly.
 - Reply in the user's language (Bahasa Melayu / English).
 - When creating a NEW repo, run `.claude/scripts/sync-skills.sh <new-repo-path>` to copy these skills into it.
+
+Also included: 52 marketing skills from marketingskills (start with `product-marketing`; upstream `marketing-plan` is `marketing-plan-corey`) and `free-llm-apis`. Sources: `.claude/skills/SOURCES.md`.
