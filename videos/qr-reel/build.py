@@ -65,10 +65,11 @@ add(t=T('design','warna'), kind='swatch', title='Pilih warna', sub='Teks, kotak 
     sw=['#6D4AFF', '#E8368F', '#12B5B0'])
 add(t=T('link','link'), kind='chips', title='Letak apa-apa link', count=True,
     chips=[('Affiliate', T('link','affiliate')), ('Media Sosial', T('link','media')), ('Apps', T('link','apps')), ('Website', T('link','website'))])
+add(t=round(next(e for e in EDL if e['label']=='size')['at']+0.5,3), kind='icon', icon='bolt', title='Contoh QR siap', sub='Terus boleh guna')
 add(t=T('size','size'),  kind='icon', icon='ruler', title='Pilih saiz', sub='Ikut kegunaan kau')
-add(t=T('format','jpeg'), kind='chips', title='Format', count=True,
-    chips=[('JPEG', T('format','jpeg')), ('PNG', T('format','png')), ('PDF', T('format','pdf'))])
-add(t=T('download','muat'), kind='icon', icon='download', title='Muat turun terus', sub='Satu klik je')
+add(t=T('format','k-pad'), kind='chips', title='Format', count=True,
+    chips=[('JPEG', T('format','k-pad')), ('PNG', T('format','png')), ('PDF', T('format','pdf'))])
+add(t=T('download','buat'), kind='icon', icon='download', title='Muat turun terus', sub='Satu klik je')
 add(t=T('download','dashboard'), kind='icon', icon='save', title='Simpan ke dashboard', sub='Boleh edit bila-bila')
 add(t=T('scan','scan'), kind='icon', icon='scan', title='Bila scan...', sub='Tiada iklan tengah-tengah')
 add(t=T('scan','link', 0), kind='icon', icon='link', title='Terus ke link kau', sub='Ikut link yang kau letak')
@@ -90,7 +91,7 @@ for i, p in enumerate(P):
 TQ = round(TEND + 0.4, 3)          # QR card pops in
 HOLD = 5.4                          # fully static QR time (>= 5 s)
 TOTAL = round(TQ + 0.7 + HOLD, 2)
-RISER_LEN = 3.67
+RISER_LEN = 3.4
 
 # ---- HTML ----------------------------------------------------------------------------------------
 def card_html(p):
@@ -129,33 +130,35 @@ def js(s): JS.append(s)
 
 for p in P:
     i, t, ex, pid = P.index(p), p['t'], p['exit'], p['id']
-    js(f'tl.fromTo("#{pid}-c",{{scale:.5,y:70,opacity:0,transformOrigin:"50% 100%"}},{{scale:1,y:0,opacity:1,duration:.6,ease:"back.out(2.4)"}},{t});')
-    if p['kind'] in ('icon', 'swatch'):
-        js(f'tl.fromTo("#{pid}-b",{{scale:0,rotation:-28}},{{scale:1,rotation:0,duration:.55,ease:"back.out(3.2)"}},{t+.1:.3f});')
-    js(f'tl.fromTo("#{pid}-t",{{x:44,opacity:0}},{{x:0,opacity:1,duration:.42,ease:"power3.out"}},{t+.16:.3f});')
+    if t > 0:   # the opening card is already fully on screen at frame 0 (thumbnail)
+        js(f'tl.fromTo("#{pid}-c",{{scale:.84,y:46,opacity:0,transformOrigin:"50% 100%"}},{{scale:1,y:0,opacity:1,duration:.75,ease:"expo.out"}},{t});')
+        if p['kind'] in ('icon', 'swatch'):
+            js(f'tl.fromTo("#{pid}-b",{{scale:.2,rotation:-14}},{{scale:1,rotation:0,duration:.8,ease:"back.out(1.5)"}},{t+.1:.3f});')
+        js(f'tl.fromTo("#{pid}-t",{{x:34,opacity:0}},{{x:0,opacity:1,duration:.65,ease:"expo.out"}},{t+.16:.3f});')
     pop_at(t, 0.5 if i else 0.0)   # first card is on screen at frame 0: no sound
     if p['kind'] == 'swatch':
         for j in range(len(p['sw'])):
             ts = t + .35 + j * .22
-            js(f'tl.fromTo("#{pid}-s{j}",{{scale:0}},{{scale:1,duration:.4,ease:"back.out(3)"}},{ts:.3f});')
+            js(f'tl.fromTo("#{pid}-s{j}",{{scale:.3}},{{scale:1,duration:.6,ease:"back.out(1.5)"}},{ts:.3f});')
             pop_at(ts, 0.22)
     if p['kind'] == 'stat':
         n = p['num']
         if n:
             js(f'(function(){{var o={{v:0}},el=document.getElementById("{pid}-n");'
-               f'tl.to(o,{{v:{n},duration:.9,ease:"power2.out",onUpdate:function(){{el.textContent=Math.round(o.v)+"{p["suffix"]}";}}}},{t+.2:.3f});}})();')
+               f'tl.to(o,{{v:{n},duration:1.1,ease:"expo.out",onUpdate:function(){{el.textContent=Math.round(o.v)+"{p["suffix"]}";}}}},{t+.2:.3f});}})();')
             k = p.get('ticks', 5)
             for j in range(k):
                 tick_at(t + .2 + 0.9 * (1 - (1 - (j + 1) / k) ** 0.5) , 0.32)
-        js(f'tl.fromTo("#{pid}-n",{{scale:.4}},{{scale:1,duration:.5,ease:"back.out(3)"}},{t+.1:.3f});')
+        js(f'tl.fromTo("#{pid}-n",{{scale:.7}},{{scale:1,duration:.7,ease:"expo.out"}},{t+.1:.3f});')
     if p['kind'] == 'chips':
         for j, (name, tc) in enumerate(p['chips']):
             tc = max(tc, t + 0.3)
-            js(f'tl.fromTo("#{pid}-h{j}",{{scale:.2,y:20,opacity:0}},{{scale:1,y:0,opacity:1,duration:.42,ease:"back.out(3.2)"}},{tc:.3f});')
+            js(f'tl.fromTo("#{pid}-h{j}",{{scale:.7,y:22,opacity:0}},{{scale:1,y:0,opacity:1,duration:.6,ease:"back.out(1.4)"}},{tc:.3f});')
+            first = 'opacity:0,' if j == 0 else ''
             js(f'(function(){{var el=document.getElementById("{pid}-n");tl.set(el,{{textContent:"{j+1}"}},{tc:.3f});'
-               f'tl.fromTo(el,{{scale:1.5}},{{scale:1,duration:.3,ease:"back.out(3)"}},{tc:.3f});}})();')
+               f'tl.fromTo(el,{{{first}scale:1.25}},{{{"opacity:1," if j == 0 else ""}scale:1,duration:.5,ease:"expo.out"}},{tc:.3f});}})();')
             tick_at(tc, 0.4)
-    js(f'tl.fromTo("#{pid}-c",{{scale:1,y:0,opacity:1}},{{scale:.45,y:-46,opacity:0,duration:.3,ease:"power2.in",immediateRender:false}},{ex:.3f});')
+    js(f'tl.fromTo("#{pid}-c",{{scale:1,y:0,opacity:1}},{{scale:.9,y:-34,opacity:0,duration:.4,ease:"power2.inOut",immediateRender:false}},{ex:.3f});')
     whoosh_at(ex, 0.22)
 
 # link pill: arrows bob, pill breathes (explicit loops, no repeat:-1)
@@ -173,30 +176,34 @@ while k + 1.0 <= TEND:
     k += 1.0
 
 # end card
-js(f'tl.fromTo("#vcard",{{scale:1,opacity:1}},{{scale:.88,opacity:0,duration:.4,ease:"power2.in",immediateRender:false}},{TEND:.3f});')
+js(f'tl.fromTo("#vcard",{{scale:1,opacity:1}},{{scale:.92,opacity:0,duration:.5,ease:"power2.inOut",immediateRender:false}},{TEND:.3f});')
 whoosh_at(TEND + 0.05, 0.25)
-js(f'tl.fromTo("#scan-h",{{y:30,opacity:0}},{{y:0,opacity:1,duration:.45,ease:"power3.out"}},{TEND+.15:.3f});')
-js(f'tl.fromTo("#qrcard",{{scale:.55,y:80,opacity:0,transformOrigin:"50% 100%"}},{{scale:1,y:0,opacity:1,duration:.7,ease:"back.out(2)"}},{TQ});')
+js(f'tl.fromTo("#scan-h",{{y:24,opacity:0}},{{y:0,opacity:1,duration:.7,ease:"expo.out"}},{TEND+.15:.3f});')
+js(f'tl.fromTo("#qrcard",{{scale:.86,y:60,opacity:0,transformOrigin:"50% 100%"}},{{scale:1,y:0,opacity:1,duration:.85,ease:"expo.out"}},{TQ});')
 pop_at(TQ + 0.05, 0.5)
-A.append(('riser', TQ - RISER_LEN + 0.28, RISER_LEN, 0.34))
+A.append(('riser', TQ - RISER_LEN + 0.55, RISER_LEN, 0.34))
 for j in range(3):
     pass
 # stop the bobbing arrows during the static QR hold
 js(f'tl.set(".arr",{{y:0}},{TEND+0.1:.2f});')
 
 SRC = {'pop': 'assets/sfx/pop.mp3', 'tick': 'assets/sfx/click-soft.mp3', 'whoosh': 'assets/sfx/whoosh-short.mp3', 'riser': 'assets/sfx/riser-short.mp3'}
-lane = {'pop': 5, 'tick': 6, 'whoosh': 7, 'riser': 8}
 audio = []
+lane_end = {}   # lane -> end time of last clip
 for n, (kd, st, du, vol) in enumerate(sorted(A, key=lambda a: a[1])):
     if vol <= 0: continue
-    audio.append(f'    <audio id="sfx{n:02d}-{kd}" class="clip" src="{SRC[kd]}" data-start="{st:.3f}" data-duration="{du}" data-volume="{vol}" data-track-index="{lane[kd]}"></audio>')
+    if kd == 'tick': du = 0.2
+    ln = 10
+    while lane_end.get(ln, -1) > st + 0.001: ln += 1
+    lane_end[ln] = st + du
+    audio.append(f'    <audio id="sfx{n:02d}-{kd}" class="clip" src="{SRC[kd]}" data-start="{st:.3f}" data-duration="{du}" data-volume="{vol}" data-track-index="{ln}"></audio>')
 audio = '\n'.join(audio)
 
-html = open(os.path.join(HERE, 'template.html')).read()
+html = open(os.path.join(HERE, 'template.html.tpl')).read()
 html = (html.replace('{{TOTAL}}', str(TOTAL)).replace('{{VIDEOS}}', videos).replace('{{POPUPS}}', pops)
             .replace('{{AUDIO}}', audio).replace('{{JS}}', '\n      '.join(JS)).replace('{{TEND}}', str(TEND))
             .replace('{{TQ}}', str(TQ)).replace('{{ICON_SEARCH}}', svg('search', 'ic search')).replace('{{ICON_DOWN}}', svg('down', 'ic arr'))
-            .replace('{{MUSIC_DUR}}', str(TOTAL)))
+            .replace('{{MUSIC_DUR}}', str(TOTAL)).replace('{{HOLD_SCAN}}', str(round(TOTAL-TEND,3))).replace('{{HOLD_QR}}', str(round(TOTAL-TQ,3))))
 open(os.path.join(HERE, 'index.html'), 'w').write(html)
 print('popups', len(P), 'sfx', len(audio.splitlines()), 'TEND', TEND, 'TOTAL', TOTAL)
 for p in P: print(f'{p["t"]:7.2f} -> {p["exit"]:7.2f}  {p["id"]} {p["kind"]:6} {p.get("title","")}')

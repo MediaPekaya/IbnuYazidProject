@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms" data-resolution="portrait">
+<html lang="ms" data-resolution="portrait" data-fps="60">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
@@ -45,7 +45,7 @@
 
       /* ---- popups ---- */
       .pk { position: absolute; left: 120px; top: 1150px; width: 840px; height: 280px; z-index: 30; }
-      .card { position: absolute; inset: 0; display: flex; align-items: center; gap: 30px; padding: 0 44px; border-radius: 44px;
+      .card { position: absolute; left: 0; top: 0; width: 840px; height: 280px; display: flex; align-items: center; gap: 30px; padding: 0 44px; border-radius: 44px;
         background: #fff; box-shadow: 0 24px 60px rgba(60, 40, 160, 0.26); border: 3px solid #ece8ff; }
       .bubble { flex: none; width: 150px; height: 150px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
         background: linear-gradient(140deg, var(--purple), var(--pink)); color: #fff; box-shadow: 0 12px 28px rgba(109, 74, 255, 0.4); }
@@ -95,8 +95,8 @@
 {{POPUPS}}
 
       <!-- end card: QR held static -->
-      <div id="scan-h" class="clip" data-start="{{TEND}}" data-duration="{{MUSIC_DUR}}" data-track-index="4">Scan <b>QR</b> ni sekarang</div>
-      <div id="qrcard" class="clip" data-start="{{TQ}}" data-duration="{{MUSIC_DUR}}" data-track-index="4"><img src="assets/img/qr-card.jpg" alt="QR ke qr-me-generator.web.app" /></div>
+      <div id="scan-h" class="clip" data-start="{{TEND}}" data-duration="{{HOLD_SCAN}}" data-track-index="4">Scan <b>QR</b> ni sekarang</div>
+      <div id="qrcard" class="clip" data-start="{{TQ}}" data-duration="{{HOLD_QR}}" data-track-index="4"><img src="assets/img/qr-card.jpg" alt="QR ke qr-me-generator.web.app" /></div>
 
       <!-- sound -->
       <audio id="music" src="assets/music/bed.wav" data-start="0" data-duration="{{MUSIC_DUR}}" data-volume="1" data-fade-in="1.2" data-fade-out="2.5" data-track-index="9"></audio>
