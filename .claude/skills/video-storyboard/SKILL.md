@@ -1,19 +1,16 @@
 ---
 name: video-storyboard
-description: Tukar skrip atau transkrip suara user kepada storyboard beat demi beat (visual, teks skrin, animasi, transition, bunyi) sebelum dibina dalam Remotion. Guna selepas ada skrip/suara.
+description: Turn a video script or voiceover into a beat-by-beat storyboard (visual, on-screen text, transition, duration per scene). Use when the user wants a storyboard, scene plan or visual breakdown for a video (BM/EN).
 ---
 
-# Storyboard
+# Video Storyboard
 
-1. Pecahkan transkrip (dengan cap masa perkataan jika ada) kepada beat 3-8 saat.
-2. Untuk setiap beat isi jadual dalam `templates/video/docs/storyboard-template.md`:
-   beat | masa | ayat | metafora visual | teks skrin | animasi | transition | bunyi.
-3. Padankan jenis visual dengan isi ayat (pilih yang sesuai sahaja):
-   - nombor/peratus -> `Counter`
-   - langkah/proses -> `StepsDiagram`
-   - perbandingan -> `Comparison`
-   - ayat emosi/penegasan -> `KineticText`
-   - kata nama konkrit -> ikon/objek (2D atau 3D)
-4. Hadkan 1-2 jenis transition sepanjang video; ulang gaya yang sama untuk konsisten.
-5. Pastikan ada "ruang bernafas" (beat ringkas tanpa kesan berat) setiap 3-4 beat.
-6. Simpan output sebagai `beats.json` (lihat `templates/video/remotion/beats.example.json`).
+## Base prompt
+> Turn this script into a scene-by-scene storyboard: for each beat give duration, visual, on-screen text, voiceover line, transition and sound cue. Script: [script]
+
+## How to apply
+- Split the script into beats of one idea each (3-8 s). Output as a table using `templates/video/storyboard.md`.
+- One visual metaphor per beat; keep 1-2 transition types per video.
+- Specify the aspect ratio (9:16 short-form, 16:9 YouTube) and keep text inside safe zones.
+- Reply in the user's language (Bahasa Melayu or English). Finish with a concrete next step (assets list or build in Remotion/Canva).
+- For Remotion builds, also save the storyboard as `beats.json` (see `templates/video/remotion/beats.example.json`) and continue with `video-remotion-builder`.

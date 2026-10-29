@@ -1,4 +1,4 @@
-# Skill Index (18 Claude Code prompts)
+# Skill Index (18 Claude Code prompts + video skills)
 
 | # | Skill | Use for |
 |---|---|---|
@@ -20,15 +20,22 @@
 | 16 | `customer-personas` | Create 5 detailed customer personas with goals, pain points and buying behaviour. |
 | 17 | `competitor-analysis` | Analyse top 3 competitors and build a comparison table of strengths, weaknesses, opportunities. |
 | 18 | `custom-workflow` | Create a complete step-by-step workflow to reach a goal using the best tools and strategies. |
+| 19 | `video-2d-infographic-style` | Plan and build 2D infographic / explainer videos. |
+| 20 | `video-storyboard` | Turn a script into a beat-by-beat storyboard. |
+| 21 | `shot-list` | Production shot list for filming. |
+| 22 | `short-form-video-script` | 15-60 s TikTok / Reels / Shorts scripts with hooks. |
+| 23 | `voiceover-script` | Spoken-style narration with pacing marks. |
+| 24 | `video-thumbnail-title` | Titles, thumbnail concepts and descriptions. |
+| 25 | `video-content-calendar` | 30-day video posting plan. |
 
-## Video skills (Bahasa Melayu)
+Video templates live in `.claude/templates/video/` (storyboard, shot-list, short-form-script, video-script, content-calendar).
+
+### Tambahan (skill video BM + templat Remotion)
 | Skill | Guna untuk |
 |---|---|
-| `video-2d-infographic-style` | Gaya & teknik video infografik 2D / motion graphic |
 | `video-script-bm` | Skrip video pendek BM |
 | `video-hook-library` | Formula hook 2 saat pertama |
-| `video-storyboard` | Skrip/suara -> storyboard beat demi beat |
-| `video-remotion-builder` | Bina video guna templat Remotion |
+| `video-remotion-builder` | Bina video guna templat Remotion di `templates/video/remotion/` |
 | `video-sound-and-captions` | SFX, muzik, kapsyen BM |
 
-Templat: `templates/video/` (docs: skrip, storyboard, senarai semak; `remotion/`: KineticText, Counter, StepsDiagram, Comparison, Main, beats.example.json).
+Templat tambahan: `templates/video/` (dokumen skrip/storyboard/senarai semak dan komponen Remotion).
