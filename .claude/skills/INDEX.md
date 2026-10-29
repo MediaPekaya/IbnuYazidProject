@@ -29,3 +29,13 @@
 | 25 | `video-content-calendar` | 30-day video posting plan. |
 
 Video templates live in `.claude/templates/video/` (storyboard, shot-list, short-form-script, video-script, content-calendar).
+
+### Tambahan (skill video BM + templat Remotion)
+| Skill | Guna untuk |
+|---|---|
+| `video-script-bm` | Skrip video pendek BM |
+| `video-hook-library` | Formula hook 2 saat pertama |
+| `video-remotion-builder` | Bina video guna templat Remotion di `templates/video/remotion/` |
+| `video-sound-and-captions` | SFX, muzik, kapsyen BM |
+
+Templat tambahan: `templates/video/` (dokumen skrip/storyboard/senarai semak dan komponen Remotion).

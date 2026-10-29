@@ -13,3 +13,4 @@ description: Turn a video script or voiceover into a beat-by-beat storyboard (vi
 - One visual metaphor per beat; keep 1-2 transition types per video.
 - Specify the aspect ratio (9:16 short-form, 16:9 YouTube) and keep text inside safe zones.
 - Reply in the user's language (Bahasa Melayu or English). Finish with a concrete next step (assets list or build in Remotion/Canva).
+- For Remotion builds, also save the storyboard as `beats.json` (see `templates/video/remotion/beats.example.json`) and continue with `video-remotion-builder`.
