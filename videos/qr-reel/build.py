@@ -12,22 +12,27 @@ WAVDIR = sys.argv[2]
 EDL = json.load(open(os.path.join(HERE, 'edl.json')))
 
 # ---- timeline mapping: concatenated-wav time -> composition time -------------------------------
+wavd = {}
+for e in EDL:
+    wavd[e['idx']] = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0',
+                                                    f"{WAVDIR}/s{e['idx']:02d}.wav"]).decode())
 cum = 0.0
-for i, e in enumerate(EDL):
-    wd = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0',
-                                        f'{WAVDIR}/s{i:02d}.wav']).decode())
-    e['wav0'], e['wav1'] = cum, cum + wd
-    cum += wd
+off = {}
+for i in sorted(wavd):
+    off[i] = cum; cum += wavd[i]
+for e in EDL:
+    e['wav0'], e['wav1'] = off[e['idx']], off[e['idx']] + wavd[e['idx']]
 TEND = round(EDL[-1]['at'] + EDL[-1]['vdur'], 3)
 
 def norm(s): return re.sub(r'[^\w-]', '', s.lower())
 
 def T(label, word, nth=0):
     seg = next(e for e in EDL if e['label'] == label)
-    hits = [w for w in TR if seg['wav0'] - 0.05 <= w['start'] < seg['wav1'] and norm(w['text']).startswith(word)]
+    shift = seg['start'] - seg['trt_start']          # seconds trimmed from the head since the transcript was made
+    hits = [w for w in TR if seg['wav0'] + shift - 0.05 <= w['start'] < seg['wav1'] and norm(w['text']).startswith(word)]
     if len(hits) <= nth:
-        raise SystemExit(f'anchor not found: {label}/{word}/{nth} in {[norm(w["text"]) for w in TR if seg["wav0"]<=w["start"]<seg["wav1"]]}')
-    t = seg['at'] + (hits[nth]['start'] - seg['wav0'])
+        raise SystemExit(f'anchor not found: {label}/{word}/{nth}')
+    t = seg['at'] + (hits[nth]['start'] - seg['wav0'] - shift)
     return round(max(seg['at'], min(t, seg['at'] + seg['vdur'] - 0.3)), 3)
 
 # ---- icons ---------------------------------------------------------------------------------------
@@ -54,9 +59,9 @@ def svg(name, cls='ic'):
 P = []
 def add(**k): P.append(k)
 add(t=0.0,  kind='icon', icon='qr',   title='QR Generator<br>Percuma!', sub='Tanpa iklan. Tanpa limit.')
+add(t=T('intro','generate'), kind='icon', icon='qr',   title='Sistem Generate QR', sub='Aku bina sendiri')
 add(t=T('hook','iklan'),     kind='stat', num=0, suffix='', title='Iklan', sub='Langsung tiada')
 add(t=T('hook','limit'),     kind='stat', num=0, suffix='', title='Limit', sub='Scan sepuas hati')
-add(t=T('intro','generate'), kind='icon', icon='qr',   title='Sistem Generate QR', sub='Aku bina sendiri')
 add(t=T('dashboard','dashboard'), kind='icon', icon='grid', title='Dashboard', sub='Tempat cipta &amp; simpan QR')
 add(t=T('dashboard','template'),  kind='stat', num=12, suffix='', title='Template', sub='Pilih design siap pakai', ticks=6)
 add(t=T('design','shop'), kind='chips', title='Butang contoh', count=True,
@@ -106,7 +111,7 @@ def card_html(p):
         sw = ''.join(f'<span class="sw" id="{pid}-s{j}" style="background:{c}"></span>' for j, c in enumerate(p['sw']))
         return (f'<div class="card" id="{pid}-c"><div class="swrow" id="{pid}-b">{sw}</div>'
                 f'<div class="txt" id="{pid}-t"><div class="ttl">{p["title"]}</div><div class="sub">{p["sub"]}</div></div></div>')
-    cols = ['#6D4AFF', '#E8368F', '#12B5B0', '#F59E0B']
+    cols = ['#6D4AFF', '#D6277F', '#0F766E', '#B45309']
     ch = ''.join(f'<span class="chip" id="{pid}-h{j}" style="background:{cols[j%4]}">{n}</span>' for j, (n, _) in enumerate(p['chips']))
     return (f'<div class="card chips" id="{pid}-c"><div class="chead"><div class="ttl small" id="{pid}-t">{p["title"]}</div>'
             f'<div class="badge" id="{pid}-n">0</div></div><div class="chiprow">{ch}</div></div>')
