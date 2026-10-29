@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ms" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #f4f1ff;
+        --ink: #1b1640;
+        --muted: #5b5780;
+        --purple: #6d4aff;
+        --pink: #e8368f;
+        --teal: #12b5b0;
+        --font-display: "Poppins", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ground); }
+      #root {
+        position: relative; width: 1080px; height: 1920px; overflow: hidden;
+        font-family: var(--font-display); color: var(--ink);
+        background: linear-gradient(170deg, #f7f4ff 0%, #e9f0ff 100%);
+      }
+      .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.55; }
+      #b1 { left: -200px; top: 160px; width: 560px; height: 560px; background: #cdbfff; }
+      #b2 { right: -220px; top: 1000px; width: 620px; height: 620px; background: #bfeaf0; }
+      #b3 { left: 200px; bottom: -260px; width: 620px; height: 620px; background: #ffc9e3; }
+
+      /* ---- persistent link block (safe zone: y 220-1440, x 120-960) ---- */
+      #linkblock { position: absolute; left: 120px; top: 232px; width: 840px; z-index: 40; }
+      #linklabel { display: flex; align-items: center; justify-content: center; gap: 22px; height: 60px;
+        font-weight: 800; font-size: 40px; letter-spacing: 0.04em; color: var(--purple); text-transform: uppercase; }
+      #linklabel .arr { width: 46px; height: 46px; color: var(--pink); }
+      #pill { margin-top: 8px; padding: 6px; border-radius: 48px; background: linear-gradient(90deg, var(--purple), var(--pink));
+        box-shadow: 0 18px 44px rgba(109, 74, 255, 0.32); }
+      #pillin { display: flex; align-items: center; justify-content: center; gap: 16px; height: 116px; border-radius: 42px; background: #fff; }
+      #pillin .search { width: 54px; height: 54px; color: var(--purple); flex: none; }
+      #url { font-weight: 800; font-size: 45px; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
+      #caret { display: inline-block; width: 5px; height: 48px; margin-left: 4px; background: var(--pink); vertical-align: -9px; border-radius: 3px; }
+
+      /* ---- screen recording card ---- */
+      #vcard { position: absolute; left: 120px; top: 462px; width: 840px; height: 658px; border-radius: 36px; overflow: hidden;
+        background: #fff; box-shadow: 0 30px 80px rgba(60, 40, 160, 0.28); border: 4px solid #fff; z-index: 10; }
+      .scr { position: absolute; left: 0; top: 0; width: 832px; height: 650px; object-fit: cover; }
+
+      /* ---- popups ---- */
+      .pk { position: absolute; left: 120px; top: 1150px; width: 840px; height: 280px; z-index: 30; }
+      .card { position: absolute; inset: 0; display: flex; align-items: center; gap: 30px; padding: 0 44px; border-radius: 44px;
+        background: #fff; box-shadow: 0 24px 60px rgba(60, 40, 160, 0.26); border: 3px solid #ece8ff; }
+      .bubble { flex: none; width: 150px; height: 150px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(140deg, var(--purple), var(--pink)); color: #fff; box-shadow: 0 12px 28px rgba(109, 74, 255, 0.4); }
+      .bubble .ic { width: 80px; height: 80px; }
+      .txt { flex: 1; min-width: 0; }
+      .ttl { font-weight: 800; font-size: 56px; line-height: 1.04; text-transform: uppercase; letter-spacing: -0.01em; color: var(--ink); }
+      .ttl.small { font-size: 46px; }
+      .sub { margin-top: 12px; font-weight: 600; font-size: 32px; line-height: 1.15; color: var(--muted); }
+      .num { flex: none; min-width: 250px; font-weight: 900; font-size: 168px; line-height: 1; letter-spacing: -0.03em;
+        background: linear-gradient(140deg, var(--purple), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center; }
+      .swrow { flex: none; display: flex; gap: 14px; width: 190px; flex-wrap: wrap; justify-content: center; }
+      .sw { width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2); border: 4px solid #fff; }
+      .card.chips { flex-direction: column; justify-content: center; align-items: stretch; gap: 20px; padding: 0 40px; }
+      .chead { display: flex; align-items: center; justify-content: space-between; }
+      .badge { min-width: 78px; height: 78px; border-radius: 39px; padding: 0 18px; display: flex; align-items: center; justify-content: center;
+        font-weight: 900; font-size: 50px; color: #fff; background: linear-gradient(140deg, var(--purple), var(--pink)); }
+      .chiprow { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+      .chip { padding: 12px 30px; border-radius: 28px; font-weight: 800; font-size: 36px; color: #fff; text-transform: uppercase; letter-spacing: 0.01em; }
+
+      /* ---- end card ---- */
+      #scan-h { position: absolute; left: 120px; top: 460px; width: 840px; text-align: center; z-index: 45;
+        font-weight: 900; font-size: 60px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink); }
+      #scan-h b { color: var(--pink); }
+      #qrcard { position: absolute; left: 201px; top: 556px; width: 677px; height: 880px; z-index: 45; border-radius: 40px; overflow: hidden;
+        box-shadow: 0 30px 70px rgba(60, 40, 160, 0.34); }
+      #qrcard img { display: block; width: 677px; height: 880px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="{{TOTAL}}" data-width="1080" data-height="1920">
+      <div class="blob" id="b1" data-layout-ignore></div>
+      <div class="blob" id="b2" data-layout-ignore></div>
+      <div class="blob" id="b3" data-layout-ignore></div>
+
+      <!-- screen recording (cut segments, voice kept on each clip) -->
+      <div id="vcard">
+{{VIDEOS}}
+      </div>
+
+      <!-- link badge: visible from the first frame to the last -->
+      <div id="linkblock">
+        <div id="linklabel">{{ICON_DOWN}}<span>Cari link ni</span>{{ICON_DOWN}}</div>
+        <div id="pill"><div id="pillin">{{ICON_SEARCH}}<span id="url">qr-me-generator.web.app<span id="caret"></span></span></div></div>
+      </div>
+
+      <!-- point-by-point popups -->
+{{POPUPS}}
+
+      <!-- end card: QR held static -->
+      <div id="scan-h" class="clip" data-start="{{TEND}}" data-duration="{{MUSIC_DUR}}" data-track-index="4">Scan <b>QR</b> ni sekarang</div>
+      <div id="qrcard" class="clip" data-start="{{TQ}}" data-duration="{{MUSIC_DUR}}" data-track-index="4"><img src="assets/img/qr-card.jpg" alt="QR ke qr-me-generator.web.app" /></div>
+
+      <!-- sound -->
+      <audio id="music" src="assets/music/bed.wav" data-start="0" data-duration="{{MUSIC_DUR}}" data-volume="1" data-fade-in="1.2" data-fade-out="2.5" data-track-index="9"></audio>
+{{AUDIO}}
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      {{JS}}
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
