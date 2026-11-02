@@ -7,7 +7,9 @@ from concurrent.futures import ThreadPoolExecutor
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = {1: sys.argv[1], 2: sys.argv[2]}
 OUT = sys.argv[3]
-FPS = 12
+FPS = int(os.environ.get("FPS", 12))
+WID = int(os.environ.get("WIDTH", 360))
+CRF = os.environ.get("CRF", "35")
 cfg = json.load(open(HERE + "/edit.json"))
 words = {n: [w for s in json.load(open(f"{HERE}/words_t{n}.json")) for w in s["w"]] for n in (1, 2)}
 os.makedirs(OUT + "/seg", exist_ok=True)
@@ -60,8 +62,8 @@ for i, (n, a, b, o) in enumerate(offs):
     d = b - a; N = round(d * FPS)
     c = cfg["crop"]
     v, w = f"{OUT}/seg/{i:03d}.mp4", f"{OUT}/seg/{i:03d}.wav"
-    jobs.append((["-ss", a, "-t", d, "-i", SRC[n], "-vf", f'crop={c["w"]}:{c["h"]}:{c["x"]}:{c["y"]},scale=360:-2,fps={FPS}',
-                  "-frames:v", N, "-an", "-c:v", "libx264", "-crf", "35", "-preset", "veryfast", "-g", FPS, "-pix_fmt", "yuv420p", v],
+    jobs.append((["-ss", a, "-t", d, "-i", SRC[n], "-vf", f'crop={c["w"]}:{c["h"]}:{c["x"]}:{c["y"]},scale={WID}:-2,fps={FPS}',
+                  "-frames:v", N, "-an", "-c:v", "libx264", "-crf", CRF, "-preset", "veryfast", "-g", FPS, "-pix_fmt", "yuv420p", v],
                  ["-ss", a, "-t", d, "-i", SRC[n], "-vn", "-af",
                   f"afade=t=in:d=0.02,afade=t=out:st={max(0, d - 0.02):.3f}:d=0.02,apad=whole_dur={d},atrim=duration={d}",
                   "-ar", 44100, "-ac", 1, "-c:a", "pcm_s16le", w]))
