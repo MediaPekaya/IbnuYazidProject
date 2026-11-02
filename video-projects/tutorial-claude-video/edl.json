@@ -1,56 +1,324 @@
 {
-  "title": "Tutorial Claude Video (gabungan tutor 1 + 2)",
-  "canvas": {"w": 1080, "h": 1920, "fps": 30},
-  "crop": {"x": 0, "y": 164, "w": 1440, "h": 3036, "note": "Buang bar status atas termasuk butang rec merah"},
-  "phone": {"width": 560, "note": "Frame telefon dikecilkan, ruang atas untuk tajuk, bawah untuk subtitle"},
-  "colors": {"hook": "#FFD23F", "subtitle": "#FFFFFF", "keyword": "#3DDCFF"},
-  "beats": [
-    {"id": "hook", "label": "Hook", "src": 1, "from": 5, "to": 9, "speed": 1,
-     "hook": "Nak buat *VIDEO* guna *Claude* dari telefon je?",
-     "subs": [], "popup": "Tutorial 5 langkah, 1 minit", "sfx": "hit + muzik naik perlahan", "transition": "cut"},
-    {"id": "bot", "label": "Minta prompt dari bot", "src": 1, "from": 15, "to": 46, "speed": 5,
-     "step": "Langkah 1",
-     "subs": ["Join group Telegram, minta *prompt* dari *bot*", "Taip video apa kau nak, terus *send*"],
-     "popup": "Bot Telegram yang tulis prompt untuk kau", "sfx": "pop (popup), tick masa menaip", "transition": "cut"},
-    {"id": "copy", "label": "Copy prompt", "src": 1, "from": 49, "to": 75, "speed": "49-64@6, 64-75@2",
-     "segs": [[49, 64, 6], [64, 75, 2]],
-     "step": "Langkah 1",
-     "subs": ["Tunggu bot siapkan prompt", "Tekan *COPY CODE*, siap!"],
-     "popup": "Tekan COPY CODE", "sfx": "pop + klik", "transition": "whoosh ke app Claude"},
-    {"id": "session", "label": "Buka Claude, session baru", "src": 1, "from": 80.5, "to": 95, "speed": 2.5,
-     "step": "Langkah 2",
-     "subs": ["Buka app *Claude*, masuk *Code*, buat *session baru*", "Pilih *Default*, tak perlu remote"],
-     "popup": "Default = PC tak perlu hidup 24 jam", "sfx": "whoosh masuk, pop", "transition": "swipe (buang bahagian tersalah buka Screen Recorder)"},
-    {"id": "repo", "label": "Pilih repo", "src": 1, "from": 95, "to": 113, "speed": 3,
-     "step": "Langkah 3",
-     "subs": ["Pilih *repo GitHub* untuk coding video kau"],
-     "popup": "Repo = tempat Claude simpan kerja video", "sfx": "pop", "transition": "cut"},
-    {"id": "paste", "label": "Paste prompt + nama PDF", "src": 1, "from": 113, "to": 150, "speed": 4,
-     "step": "Langkah 4",
-     "subs": ["*Paste* prompt tadi", "Tukar [nama fail] kepada *nama PDF* kau", "Pilih saiz video: *9:16* atau 16:9"],
-     "popup": "PDF mesti ada dalam repo dulu", "sfx": "pop, tick", "transition": "cut"},
-    {"id": "tema", "label": "Tambah arahan sendiri", "src": 1, "from": 160, "to": 204, "speed": 5,
-     "step": "Langkah 4",
-     "subs": ["Nak tambah arahan sendiri?", "Contoh: *tema warna merah*"],
-     "popup": "Tambah baris: 11. Aku nak tema merah.", "sfx": "tick menaip, hit", "transition": "cut"},
-    {"id": "preview", "label": "Preview dulu, Sonnet", "src": 1, "from": 205, "to": 213, "speed": 2,
-     "step": "Langkah 5",
-     "subs": ["Guna *Sonnet* dulu supaya jimat *usage*"],
-     "popup": "Tunjuk preview dulu, jangan render", "sfx": "pop", "transition": "cut"},
-    {"id": "opus", "label": "Tukar Opus, render", "src": 1, "from": 238, "to": 252, "speed": 3,
-     "step": "Langkah 5",
-     "subs": ["Preview dah okay? Tukar ke *Opus*, baru *render*"],
-     "popup": "Render akhir guna Opus = lebih berkualiti", "sfx": "whoosh, hit", "transition": "cut"},
-    {"id": "usage", "label": "Usage & kredit", "src": 2, "from": 10, "to": 36, "speed": 3,
-     "step": "Bonus",
-     "subs": ["Tekan bulatan atas untuk tengok *usage*", "*Current session* reset setiap 5 jam", "*All models* reset hari Jumaat, jaga yang ni!"],
-     "popup": "100% = tak boleh edit lagi", "sfx": "pop, hit pada All models", "transition": "whoosh"},
-    {"id": "model", "label": "Pilih model", "src": 2, "from": 40, "to": 48, "speed": 2,
-     "step": "Bonus",
-     "subs": ["*Sonnet* jimat, *Opus* lagi kuat tapi cepat habis kredit"],
-     "popup": "Sonnet = jimat · Opus = kuat", "sfx": "pop", "transition": "cut"},
-    {"id": "cta", "label": "Penutup", "src": 2, "from": 92, "to": 96, "speed": 1,
-     "hook": "Dah faham? *Cuba sekarang!*",
-     "subs": [], "popup": "Simpan video ni, kongsi pada kawan", "sfx": "hit akhir", "transition": "fade keluar", "end": true}
-  ]
+ "title": "Tutorial Claude Video (gabungan tutor 1 + 2)",
+ "canvas": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "crop": {
+  "x": 0,
+  "y": 164,
+  "w": 1440,
+  "h": 3036,
+  "note": "Buang bar status atas termasuk butang rec merah"
+ },
+ "phone": {
+  "width": 560,
+  "note": "Frame telefon dikecilkan, ruang atas untuk tajuk, bawah untuk subtitle"
+ },
+ "colors": {
+  "hook": "#FFD23F",
+  "subtitle": "#FFFFFF",
+  "keyword": "#3DDCFF"
+ },
+ "beats": [
+  {
+   "id": "hook",
+   "label": "Hook",
+   "src": 1,
+   "from": 5,
+   "to": 12,
+   "speed": "auto",
+   "hook": "Nak buat *VIDEO* guna *Claude*? *Prompt* dari Telegram je!",
+   "subs": [],
+   "popup": "Tutorial 5 langkah",
+   "sfx": "hit + muzik naik perlahan",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     13.7,
+     20.7
+    ]
+   ]
+  },
+  {
+   "id": "bot",
+   "label": "Minta prompt dari bot",
+   "src": 1,
+   "from": 15,
+   "to": 46,
+   "speed": "auto",
+   "step": "Langkah 1",
+   "subs": [
+    "Join group Telegram, minta *prompt* dari *bot*",
+    "Taip video apa kau nak, terus *send*"
+   ],
+   "popup": "Bot Telegram yang tulis prompt untuk kau",
+   "sfx": "pop (popup), tick masa menaip",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     28.7,
+     36.7
+    ]
+   ]
+  },
+  {
+   "id": "copy",
+   "label": "Copy prompt",
+   "src": 1,
+   "from": 49,
+   "to": 75,
+   "speed": "auto",
+   "step": "Langkah 1",
+   "subs": [
+    "Tunggu bot siapkan prompt",
+    "Tekan *COPY CODE*, siap!"
+   ],
+   "popup": "Tekan COPY CODE",
+   "sfx": "pop + klik",
+   "transition": "whoosh ke app Claude",
+   "voice": [
+    [
+     1,
+     54.8,
+     64.2
+    ],
+    [
+     1,
+     68.2,
+     71.2
+    ]
+   ]
+  },
+  {
+   "id": "session",
+   "label": "Buka Claude, session baru",
+   "src": 1,
+   "from": 80.5,
+   "to": 95,
+   "speed": "auto",
+   "step": "Langkah 2",
+   "subs": [
+    "Buka app *Claude*, masuk *Code*, buat *session baru*",
+    "Pilih *Default*, tak perlu remote"
+   ],
+   "popup": "Default = PC tak perlu hidup 24 jam",
+   "sfx": "whoosh masuk, pop",
+   "transition": "swipe (buang bahagian tersalah buka Screen Recorder)",
+   "voice": [
+    [
+     1,
+     78.2,
+     86.2
+    ],
+    [
+     1,
+     93.2,
+     95.2
+    ]
+   ]
+  },
+  {
+   "id": "repo",
+   "label": "Pilih repo",
+   "src": 1,
+   "from": 95,
+   "to": 113,
+   "speed": "auto",
+   "step": "Langkah 3",
+   "subs": [
+    "Pilih *repo GitHub* untuk coding video kau"
+   ],
+   "popup": "Repo = tempat Claude simpan kerja video",
+   "sfx": "pop",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     95.2,
+     103.2
+    ]
+   ]
+  },
+  {
+   "id": "paste",
+   "label": "Paste prompt + nama PDF",
+   "src": 1,
+   "from": 113,
+   "to": 150,
+   "speed": "auto",
+   "step": "Langkah 4",
+   "subs": [
+    "*Paste* prompt tadi",
+    "Tukar [nama fail] kepada *nama PDF* kau",
+    "Pilih saiz video: *9:16* atau 16:9"
+   ],
+   "popup": "PDF mesti ada dalam repo dulu",
+   "sfx": "pop, tick",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     113.2,
+     119.2
+    ],
+    [
+     1,
+     121.2,
+     125.2
+    ],
+    [
+     1,
+     139.6,
+     141.6
+    ]
+   ]
+  },
+  {
+   "id": "tema",
+   "label": "Tambah arahan sendiri",
+   "src": 1,
+   "from": 160,
+   "to": 204,
+   "speed": "auto",
+   "step": "Langkah 4",
+   "subs": [
+    "Nak tambah arahan sendiri?",
+    "Contoh: *tema warna merah*"
+   ],
+   "popup": "Tambah baris: 11. Aku nak tema merah.",
+   "sfx": "tick menaip, hit",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     168.6,
+     170.6
+    ],
+    [
+     1,
+     178.3,
+     184.3
+    ]
+   ]
+  },
+  {
+   "id": "preview",
+   "label": "Preview dulu, Sonnet",
+   "src": 1,
+   "from": 205,
+   "to": 213,
+   "speed": "auto",
+   "step": "Langkah 5",
+   "subs": [
+    "Guna *Sonnet* dulu supaya jimat *usage*"
+   ],
+   "popup": "Tunjuk preview dulu, jangan render",
+   "sfx": "pop",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     202.3,
+     206.3
+    ],
+    [
+     1,
+     222.3,
+     226.3
+    ]
+   ]
+  },
+  {
+   "id": "opus",
+   "label": "Tukar Opus, render",
+   "src": 1,
+   "from": 238,
+   "to": 252,
+   "speed": "auto",
+   "step": "Langkah 5",
+   "subs": [
+    "Preview dah okay? Tukar ke *Opus*, baru *render*"
+   ],
+   "popup": "Render akhir guna Opus = lebih berkualiti",
+   "sfx": "whoosh, hit",
+   "transition": "cut",
+   "voice": [
+    [
+     1,
+     242.3,
+     250.3
+    ]
+   ]
+  },
+  {
+   "id": "usage",
+   "label": "Usage & kredit",
+   "src": 2,
+   "from": 10,
+   "to": 36,
+   "speed": "auto",
+   "step": "Bonus",
+   "subs": [
+    "Tekan bulatan atas untuk tengok *usage*",
+    "*Current session* reset setiap 5 jam",
+    "*All models* reset hari Jumaat, jaga yang ni!"
+   ],
+   "popup": "100% = tak boleh edit lagi",
+   "sfx": "pop, hit pada All models",
+   "transition": "whoosh",
+   "voice": [
+    [
+     2,
+     12.4,
+     26.4
+    ]
+   ]
+  },
+  {
+   "id": "model",
+   "label": "Pilih model",
+   "src": 2,
+   "from": 40,
+   "to": 48,
+   "speed": "auto",
+   "step": "Bonus",
+   "subs": [
+    "*Sonnet* jimat, *Opus* lagi kuat tapi cepat habis kredit"
+   ],
+   "popup": "Sonnet = jimat · Opus = kuat",
+   "sfx": "pop",
+   "transition": "cut",
+   "voice": [
+    [
+     2,
+     44.4,
+     51.4
+    ]
+   ]
+  },
+  {
+   "id": "cta",
+   "label": "Penutup",
+   "src": 2,
+   "from": 92,
+   "to": 95,
+   "speed": "auto",
+   "hook": "Dah faham? *Cuba sekarang!*",
+   "subs": [],
+   "popup": "Simpan video ni, kongsi pada kawan",
+   "sfx": "hit akhir",
+   "transition": "fade keluar",
+   "end": true,
+   "fixed": 3.0
+  }
+ ],
+ "audio": {
+  "tempo": 1.25,
+  "gap": 0.12,
+  "note": "Suara asal user, dilajukan 1.25x (pitch kekal), dinormalkan"
+ }
 }

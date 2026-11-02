@@ -113,7 +113,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       <div class="stage-box" id="box">
         <div class="stage" id="stage">
           <div class="st-top" id="top"></div>
-          <div class="phone"><video id="vid" src="preview.mp4" muted playsinline preload="auto"></video></div>
+          <div class="phone"><video id="vid" src="preview.mp4" playsinline preload="auto"></video></div>
           <div class="st-pop" id="pop" hidden></div>
           <div class="st-sub" id="sub"></div>
           <div class="safe">zon UI TikTok (220px bawah)</div>
@@ -125,6 +125,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
         <span class="time mono" id="time">0:00 / 0:00</span>
       </div>
       <div class="row"><button class="tgl" id="g" aria-pressed="false">Tunjuk zon selamat</button></div>
+      <p class="muted" style="font-size:13px">Tekan main untuk dengar suara. Pastikan telefon tak dalam mod senyap.</p>
       <div class="chips" id="chips" aria-label="Lompat ke beat"></div>
     </div>
 
@@ -162,9 +163,9 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   <section class="card">
     <h2>Perlu kau putuskan sebelum render</h2>
     <ul class="plain">
-      <li><b>Suara.</b> Suara asal tak dimasukkan dalam preview sebab klip dipadatkan 2x hingga 6x supaya muat bawah 1:30. Pilihan: rakam voiceover baru ikut subtitle, guna suara BM AI, atau muzik dan SFX sahaja.</li>
+      <li><b>Suara.</b> Dalam preview ni ada suara asal kau. Aku pilih ayat penting setiap beat dan lajukan 1.25x (nada suara kekal), jadi video selaras dengan suara. Muzik latar dan SFX belum dimasukkan.</li>
       <li><b>Subtitle.</b> Ditulis ringkas daripada penerangan kau. Semak ejaan dan istilah, mana-mana baris boleh aku ubah.</li>
-      <li><b>Tempoh.</b> Sekarang <span class="mono" id="tot"></span>. Ada ruang tambah sehingga 1:30 kalau nak lebih perlahan di bahagian paste prompt.</li>
+      <li><b>Tempoh.</b> Sekarang <span class="mono" id="tot"></span>. Hampir had 1:30, jadi kalau nak tambah ayat, kena buang ayat lain.</li>
     </ul>
   </section>
 </div>
