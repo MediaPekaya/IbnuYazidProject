@@ -98,13 +98,20 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
 .cut { border: 1px dashed var(--warn); border-radius: 12px; padding: 10px 14px; display: flex; gap: 12px; align-items: center; font-size: 14px; }
 .cut b { color: var(--warn); font-family: var(--f-mono); font-weight: 500; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .st-pop { transition: none; } }
+.st-sub.hook { color: var(--st-hook); }
+.st-sub.hook .kw { color: var(--st-text); text-decoration: underline; text-decoration-thickness: 6px; text-underline-offset: 8px; text-decoration-color: var(--st-hook); }
+.cutrow { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 4px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.cutrow .cid { font-family: var(--f-mono); color: var(--warn); font-size: 13px; padding-top: 2px; }
+.cutrow q { display: block; color: var(--muted); font-style: normal; overflow-wrap: anywhere; }
+.cutrow button { margin-top: 6px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 3px 12px; font-size: 13px; color: var(--kw); }
+.more { color: var(--muted); font-size: 13px; }
 </style>
 
 <div class="wrap">
   <header class="head">
     <span class="eyebrow">Preview, belum render</span>
     <h1>Tutorial Claude Video, gabungan tutor 1 dan 2</h1>
-    <p class="muted">Draf resolusi rendah untuk semak potongan, subtitle dan popup. Video akhir belum dirender.</p>
+    <p class="muted">Semua video kekal pada kelajuan asal dengan suara asal. Yang dibuang hanya bahagian tersasul, awkward, senyap panjang dan bahagian tersalah buka app.</p>
     <div class="stats" id="stats"></div>
   </header>
 
@@ -126,15 +133,15 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       </div>
       <div class="row"><button class="tgl" id="g" aria-pressed="false">Tunjuk zon selamat</button></div>
       <p class="muted" style="font-size:13px">Tekan main untuk dengar suara. Pastikan telefon tak dalam mod senyap.</p>
-      <div class="chips" id="chips" aria-label="Lompat ke beat"></div>
+      <div class="chips" id="chips" aria-label="Lompat ke adegan"></div>
     </div>
 
     <aside class="side">
       <div class="card">
         <h3>Warna subtitle</h3>
         <div class="legend">
-          <span><i class="sw" style="background:#FFD23F"></i>Hook, kuning dan besar di atas</span>
-          <span><i class="sw" style="background:#FFFFFF;border:1px solid var(--line)"></i>Subtitle biasa, putih di bawah</span>
+          <span><i class="sw" style="background:#FFD23F"></i>Hook, ayat pertama berwarna kuning</span>
+          <span><i class="sw" style="background:#FFFFFF;border:1px solid var(--line)"></i>Subtitle biasa, putih</span>
           <span><i class="sw" style="background:#3DDCFF"></i>Perkataan penting, biru muda</span>
         </div>
       </div>
@@ -143,88 +150,90 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
         <div class="imgs">
           <figure><img src="crop.jpg" width="240" alt="Bar status atas dengan butang rec merah, bahagian yang dibuang berwarna merah"><figcaption>Atas 164px dibuang, butang rec hilang</figcaption></figure>
         </div>
-        <p class="muted" style="font-size:13px">Frame telefon dikecilkan kepada 560px (dari 1080px), ruang atas untuk tajuk dan langkah, ruang bawah untuk subtitle.</p>
+        <p class="muted" style="font-size:13px">Frame telefon dikecilkan kepada 560px (dari 1080px). Ruang atas untuk tajuk dan langkah, ruang bawah untuk subtitle.</p>
       </div>
       <div class="card">
-        <h3>Bahagian yang dibuang</h3>
+        <h3>Tersalah buka app</h3>
         <div class="imgs">
           <figure><img src="removed.jpg" width="72" alt="Paparan Screen Recorder yang tersalah buka"><figcaption>Screen Recorder</figcaption></figure>
-          <p style="flex:1;min-width:160px;font-size:14px">Tutor 1, <span class="mono">1:15 - 1:20</span>: swipe ke home, tersalah buka Screen Recorder. Video terus lompat dari Telegram (Copy code) ke senarai Claude Code.</p>
+          <p style="flex:1;min-width:160px;font-size:14px">Tutor 1, <span class="mono">1:15 - 1:20</span>: swipe ke home dan tersalah buka Screen Recorder. Sudah dibuang. Video terus lompat dari Telegram ke Claude pada <button class="tgl" id="jc2">0:55</button></p>
         </div>
       </div>
     </aside>
   </section>
 
   <section class="board" aria-label="Storyboard">
-    <div class="head"><h2>Storyboard</h2><p class="muted">Ketik gambar untuk lompat ke beat itu dalam pemain.</p></div>
+    <div class="head"><h2>Storyboard</h2><p class="muted">Ketik gambar untuk lompat ke adegan itu dalam pemain.</p></div>
     <div id="board" class="board"></div>
   </section>
 
+  <section class="board" aria-label="Senarai potongan">
+    <div class="head"><h2>Senarai potongan</h2><p class="muted" id="cutsum"></p></div>
+    <div id="cuts" class="board"></div>
+  </section>
+
   <section class="card">
-    <h2>Perlu kau putuskan sebelum render</h2>
+    <h2>Perlu kau semak</h2>
     <ul class="plain">
-      <li><b>Suara.</b> Dalam preview ni ada suara asal kau. Aku pilih ayat penting setiap beat dan lajukan 1.25x (nada suara kekal), jadi video selaras dengan suara. Muzik latar dan SFX belum dimasukkan.</li>
-      <li><b>Subtitle.</b> Ditulis ringkas daripada penerangan kau. Semak ejaan dan istilah, mana-mana baris boleh aku ubah.</li>
-      <li><b>Tempoh.</b> Sekarang <span class="mono" id="tot"></span>. Hampir had 1:30, jadi kalau nak tambah ayat, kena buang ayat lain.</li>
+      <li><b>Potongan tersasul.</b> Aku kesan daripada transkrip suara dan jeda, aku tak boleh dengar sendiri. Kalau ada potongan yang kau nak kekalkan, bagitahu nombor (contoh C7), aku pulangkan.</li>
+      <li><b>Subtitle.</b> Dijana terus daripada perkataan yang kau sebut. Aku anggap nama kau Izzul. Semak ejaan nama dan istilah.</li>
+      <li><b>Muzik dan SFX.</b> Belum dimasukkan. Boleh tambah lepas kau setuju dengan potongan.</li>
     </ul>
   </section>
 </div>
 
 <script>
-const EDL = /*EDL*/null;
+const D = /*EDL*/null;
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const kw = s => esc(s).replace(/\*(.+?)\*/g, '<span class="kw">$1</span>');
-const hk = s => esc(s).replace(/\*(.+?)\*/g, '<span class="kw">$1</span>');
 const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + String(s).padStart(2, '0'); };
-const beats = EDL.beats, total = EDL.total;
-const vid = $('vid'), stage = $('stage'), box = $('box');
+const total = D.total, vid = $('vid'), stage = $('stage'), box = $('box');
 
-$('stats').innerHTML = [['Tempoh', fmt(total)], ['Beat', beats.length], ['Saiz', '9:16 · 1080×1920'], ['Sasaran', 'bawah 1:30']]
+$('stats').innerHTML = [['Tempoh', fmt(total)], ['Asal', fmt(D.orig)], ['Kelajuan', '1x'], ['Adegan', D.scenes.length], ['Potongan', D.cuts.length + ' + ' + D.auto.count + ' senyap'], ['Saiz', '9:16']]
   .map(([a, b]) => `<span class="pill">${a} <b>${b}</b></span>`).join('');
-$('tot').textContent = fmt(total);
 
 function fit() { stage.style.transform = 'scale(' + (box.clientWidth / 1080) + ')'; }
 new ResizeObserver(fit).observe(box); fit();
 
-$('chips').innerHTML = beats.map((b, i) => `<button class="chip" data-i="${i}">${i + 1} ${esc(b.label)}</button>`).join('');
-$('chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) seek(beats[+c.dataset.i].start); });
+$('chips').innerHTML = D.scenes.map((s, i) => `<button class="chip" data-i="${i}">${i + 1} ${esc(s.label)}</button>`).join('');
+$('chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) seek(D.scenes[+c.dataset.i].s); });
+const c2 = D.cuts.find(c => c.id === 'c2'); $('jc2').textContent = fmt(c2.out); $('jc2').onclick = () => { seek(Math.max(0, c2.out - 2)); vid.play().catch(() => {}); };
 
-function srcText(b) {
-  const tn = 'Tutor ' + b.src;
-  if (b.segs) return tn + ' · ' + b.segs.map(s => fmt(s[0]) + '-' + fmt(s[1]) + ' @' + s[2] + 'x').join(' + ');
-  const f = b.from % 1 ? b.from.toFixed(1) + 's' : fmt(b.from);
-  return tn + ' · ' + f + '-' + fmt(b.to) + ' @' + b.speed + 'x';
-}
-$('board').innerHTML = beats.map((b, i) => {
-  const lines = (b.hook ? [`<span class="hk">${hk(b.hook)}</span>`] : []).concat(b.subs.map(kw));
-  return `<article class="beat" id="b${i}"><img src="th_${b.id}.jpg" alt="Frame beat ${i + 1}" data-t="${b.start}">
-    <div><div class="meta"><span class="n">${String(i + 1).padStart(2, '0')}</span><h3>${esc(b.label)}</h3>
-    <span class="mono muted" style="font-size:12px">${fmt(b.start)}-${fmt(b.start + b.dur)} · ${b.dur.toFixed(1)}s</span></div>
-    <dl><dt>Sumber</dt><dd>${esc(srcText(b))}</dd>
-    ${b.hook ? '<dt>Hook</dt>' : '<dt>Subtitle</dt>'}<dd>${lines.join('<br>') || '-'}</dd>
-    <dt>Popup</dt><dd>${esc(b.popup)}</dd>
-    <dt>Bunyi</dt><dd>${esc(b.sfx)}</dd>
-    <dt>Peralihan</dt><dd>${esc(b.transition)}</dd></dl></div></article>`;
+const srcFmt = (t) => fmt(t) + (t % 1 ? '.' + String(Math.round((t % 1) * 10)) : '');
+$('board').innerHTML = D.scenes.map((s, i) => {
+  const subs = s.subs.slice(0, 3).map(kw).join('<br>') + (s.subs.length > 3 ? `<br><span class="more">dan ${s.subs.length - 3} baris lagi</span>` : '');
+  const cuts = s.cuts.map(id => { const c = D.cuts.find(x => x.id === id); return `<b class="mono" style="color:var(--warn)">${id.toUpperCase()}</b> ${esc(c.why)}`; }).join('<br>');
+  return `<article class="beat"><img src="th_${s.id}.jpg" alt="Adegan ${i + 1}" data-t="${s.s}">
+    <div><div class="meta"><span class="n">${String(i + 1).padStart(2, '0')}</span><h3>${esc(s.label)}</h3>
+    <span class="mono muted" style="font-size:12px">${fmt(s.s)}-${fmt(s.e)} · ${Math.round(s.e - s.s)}s</span></div>
+    <dl><dt>Langkah</dt><dd>${esc(s.step)}</dd>
+    <dt>Sumber</dt><dd>Tutor ${s.src} · ${srcFmt(s.from)}-${srcFmt(s.to)} · 1x</dd>
+    <dt>Subtitle</dt><dd>${subs || '-'}</dd>
+    <dt>Popup</dt><dd>${s.pops.length ? s.pops.map(esc).join('<br>') : '-'}</dd>
+    <dt>Dibuang</dt><dd>${cuts || 'Senyap panjang sahaja'}</dd></dl></div></article>`;
 }).join('');
 $('board').addEventListener('click', e => { const im = e.target.closest('img[data-t]'); if (im) { seek(+im.dataset.t); box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
 
-let cur = -1, curSub = -2, popOn = null;
+$('cutsum').textContent = `${D.cuts.length} potongan tersasul dan awkward, serta ${D.auto.count} senyap panjang dipendekkan (jumlah ${D.auto.secs}s).`;
+$('cuts').innerHTML = D.cuts.map(c => `<div class="cutrow"><span class="cid">${c.id.toUpperCase()}</span><div>
+  <b>${esc(c.why)}</b> <span class="mono muted" style="font-size:12px">· Tutor ${c.src} ${srcFmt(c.a)}-${srcFmt(c.b)} · ${c.secs}s</span>
+  <q>"${esc(c.quote)}"</q><button data-t="${c.out}">Lompat ke sambungan (${fmt(c.out)})</button></div></div>`).join('');
+$('cuts').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) { seek(Math.max(0, +b.dataset.t - 2)); box.scrollIntoView({ behavior: 'smooth', block: 'center' }); vid.play().catch(() => {}); } });
+
+const find = (arr, t) => arr.find(x => t >= x.s && t < x.e);
+let lastTop = '', lastSub = null, lastPop = null, lastScene = -1;
 function render(t) {
-  let i = beats.findIndex(b => t >= b.start && t < b.start + b.dur);
-  if (i < 0) i = t >= total - 0.05 ? beats.length - 1 : 0;
-  const b = beats[i], rel = t - b.start;
-  if (i !== cur) {
-    cur = i; curSub = -2; popOn = null;
-    $('top').innerHTML = b.hook ? `<div class="st-hook">${hk(b.hook)}</div>`
-      : `<div class="st-step">${esc(b.step || '')}</div><div class="st-label">${esc(b.label)}</div>`;
-    $('pop').textContent = b.popup;
-    document.querySelectorAll('.chip').forEach((c, k) => c.setAttribute('aria-current', k === i ? 'true' : 'false'));
-  }
-  const n = b.subs.length, si = n ? Math.min(n - 1, Math.floor(rel / (b.dur / n))) : -1;
-  if (si !== curSub) { curSub = si; $('sub').innerHTML = si >= 0 ? kw(b.subs[si]) : ''; }
-  const on = rel > 0.3 && rel < Math.min(b.dur - 0.2, 3.8);
-  if (on !== popOn) { popOn = on; $('pop').hidden = !on; }
+  const sc = D.scenes.findIndex(s => t >= s.s && t < s.e), s = D.scenes[sc >= 0 ? sc : 0];
+  if (sc !== lastScene) { lastScene = sc; document.querySelectorAll('.chip').forEach((c, k) => c.setAttribute('aria-current', k === sc ? 'true' : 'false')); }
+  const top = t < D.hook_end + 0.4 ? 'h' : (t > total - 5 ? 'o' : 's' + s.id);
+  if (top !== lastTop) { lastTop = top;
+    $('top').innerHTML = top === 'h' ? `<div class="st-hook">${kw(D.hook_title)}</div>` : top === 'o' ? `<div class="st-hook">${kw(D.outro_title)}</div>`
+      : `<div class="st-step">${esc(s.step)}</div><div class="st-label">${esc(s.label)}</div>`; }
+  const cue = find(D.cues, t);
+  if (cue !== lastSub) { lastSub = cue; const el = $('sub'); el.className = 'st-sub' + (cue && cue.hook ? ' hook' : ''); el.innerHTML = cue ? kw(cue.t) : ''; }
+  const p = find(D.pops, t) || (t > total - 4.5 ? { t: 'Simpan video ni, kongsi pada kawan' } : null);
+  if (p !== lastPop) { lastPop = p; if (p) $('pop').textContent = p.t; $('pop').hidden = !p; }
   $('scrub').value = Math.round(t / total * 1000);
   $('time').textContent = fmt(t) + ' / ' + fmt(total);
 }
@@ -234,7 +243,7 @@ function setIco() { $('ico').innerHTML = vid.paused ? '<path d="M8 5v14l11-7z"/>
 $('play').onclick = () => { if (vid.paused) { if (vid.currentTime >= total - 0.1) vid.currentTime = 0; vid.play().catch(() => {}); } else vid.pause(); };
 vid.addEventListener('play', () => { setIco(); tick(); });
 vid.addEventListener('pause', () => { setIco(); render(vid.currentTime); });
-vid.addEventListener('ended', () => { setIco(); });
+vid.addEventListener('ended', setIco);
 vid.addEventListener('seeked', () => render(vid.currentTime));
 $('scrub').oninput = e => seek(+e.target.value / 1000 * total);
 $('g').onclick = e => { const on = stage.classList.toggle('guides'); e.currentTarget.setAttribute('aria-pressed', on); };
