@@ -1,0 +1,241 @@
+<title>Preview Tutorial Claude Video</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: pemain 9:16 di atas, kawalan di bawahnya, kemudian storyboard beat demi beat. Gaya bilik suntingan gelap. */
+:root {
+  --bg: #0F1013; --panel: #17191E; --line: #2A2D35; --fg: #ECEDF0; --muted: #9A9FAA;
+  --hook: #FFD23F; --kw: #3DDCFF; --warn: #FF6B5A; --chip-fg: #0F1013;
+  --st-bg1: #1B1E27; --st-bg2: #0B0C10; --st-hook: #FFD23F; --st-kw: #3DDCFF; --st-text: #FFFFFF;
+  --f-display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  --f-body: "Figtree", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F3F4F6; --panel: #FFFFFF; --line: #D9DCE3; --fg: #14161A; --muted: #5B616E;
+    --hook: #9A6E00; --kw: #00789E; --warn: #C93A2B; --chip-fg: #FFFFFF; color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F3F4F6; --panel: #FFFFFF; --line: #D9DCE3; --fg: #14161A; --muted: #5B616E;
+  --hook: #9A6E00; --kw: #00789E; --warn: #C93A2B; --chip-fg: #FFFFFF; color-scheme: light;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-block: 20px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 28px; font-weight: 800; }
+h2 { font-size: 20px; font-weight: 700; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.head { display: flex; flex-direction: column; gap: 10px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; background: var(--panel); }
+.pill b { font-family: var(--f-mono); font-weight: 500; color: var(--kw); }
+
+/* player */
+.player { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 720px) { .player { grid-template-columns: minmax(0, 1fr); justify-items: center; } .side { width: 100%; } }
+.stage-col { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 10px; }
+.stage-box { width: 100%; aspect-ratio: 9 / 16; position: relative; overflow: hidden; border-radius: 14px; border: 1px solid var(--line); background: #0B0C10; }
+.stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0;
+  background: radial-gradient(900px 700px at 50% 12%, var(--st-bg1), var(--st-bg2)); color: var(--st-text); font-family: var(--f-display); }
+.st-top { position: absolute; left: 60px; right: 60px; top: 150px; height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+.st-step { background: var(--st-kw); color: #0B0C10; font-weight: 800; font-size: 38px; letter-spacing: .06em; text-transform: uppercase; padding: 6px 26px; border-radius: 8px; }
+.st-label { font-size: 54px; font-weight: 700; line-height: 1.1; }
+.st-hook { font-size: 86px; font-weight: 800; line-height: 1.05; color: var(--st-hook); text-wrap: balance; }
+.st-hook .kw { color: var(--st-text); text-decoration: underline; text-decoration-thickness: 8px; text-underline-offset: 10px; text-decoration-color: var(--st-hook); }
+.phone { position: absolute; left: 260px; top: 360px; width: 560px; height: 1181px; border-radius: 54px; overflow: hidden; border: 10px solid #2B2E38; background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.phone video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.st-pop { position: absolute; left: 150px; width: 780px; top: 1290px; background: #FFFFFF; color: #12141A; border-radius: 26px; padding: 26px 34px; font-size: 44px; font-weight: 700; line-height: 1.2; text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,.5); border-bottom: 10px solid var(--st-hook); transition: opacity .2s, transform .2s; }
+.st-pop[hidden] { display: block !important; opacity: 0; transform: translateY(24px) scale(.96); pointer-events: none; }
+.st-sub { position: absolute; left: 60px; right: 60px; top: 1555px; height: 150px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 62px; font-weight: 800; line-height: 1.12; text-wrap: balance;
+  text-shadow: 0 4px 0 rgba(0,0,0,.55), 0 0 22px rgba(0,0,0,.6); }
+.st-sub .kw, .st-sub .kw { color: var(--st-kw); }
+.safe { position: absolute; left: 0; right: 0; bottom: 0; height: 220px; border-top: 3px dashed rgba(255,107,90,.7); background: rgba(255,107,90,.08); display: none; font: 500 28px var(--f-mono); color: #FF8A7B; padding: 14px 24px; }
+.stage.guides .safe { display: block; }
+.ctl { display: flex; align-items: center; gap: 10px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--kw); outline-offset: 2px; }
+.play { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--kw); color: var(--chip-fg); display: grid; place-items: center; flex: none; }
+.play svg { width: 18px; height: 18px; fill: currentColor; }
+.scrub { flex: 1; min-width: 0; accent-color: var(--kw); }
+.time { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tgl { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.tgl[aria-pressed="true"] { border-color: var(--kw); color: var(--kw); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; max-width: 100%; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 4px 10px; font-size: 13px; }
+.chip[aria-current="true"] { border-color: var(--kw); color: var(--kw); }
+
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.legend { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
+.imgs { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.imgs figure { margin: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.imgs img { border-radius: 8px; border: 1px solid var(--line); display: block; }
+figcaption { font-size: 12px; color: var(--muted); }
+ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+
+/* storyboard */
+.board { display: flex; flex-direction: column; gap: 10px; }
+.beat { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.beat img { width: 84px; border-radius: 8px; display: block; border: 1px solid var(--line); cursor: pointer; }
+.beat .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.beat .n { font-family: var(--f-mono); color: var(--kw); font-size: 13px; }
+.beat dl { margin: 8px 0 0; display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 4px 10px; font-size: 14px; }
+.beat dt { color: var(--muted); font-size: 12px; font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .05em; padding-top: 2px; }
+.beat dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.beat .kw { color: var(--kw); font-weight: 600; }
+.beat .hk { color: var(--hook); font-weight: 700; }
+.cut { border: 1px dashed var(--warn); border-radius: 12px; padding: 10px 14px; display: flex; gap: 12px; align-items: center; font-size: 14px; }
+.cut b { color: var(--warn); font-family: var(--f-mono); font-weight: 500; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .st-pop { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <span class="eyebrow">Preview, belum render</span>
+    <h1>Tutorial Claude Video, gabungan tutor 1 dan 2</h1>
+    <p class="muted">Draf resolusi rendah untuk semak potongan, subtitle dan popup. Video akhir belum dirender.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="player" aria-label="Pemain preview">
+    <div class="stage-col">
+      <div class="stage-box" id="box">
+        <div class="stage" id="stage">
+          <div class="st-top" id="top"></div>
+          <div class="phone"><video id="vid" src="preview.mp4" muted playsinline preload="auto"></video></div>
+          <div class="st-pop" id="pop" hidden></div>
+          <div class="st-sub" id="sub"></div>
+          <div class="safe">zon UI TikTok (220px bawah)</div>
+        </div>
+      </div>
+      <div class="ctl">
+        <button class="play" id="play" aria-label="Main atau jeda"><svg viewBox="0 0 24 24" id="ico"><path d="M8 5v14l11-7z"/></svg></button>
+        <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Skrub masa">
+        <span class="time mono" id="time">0:00 / 0:00</span>
+      </div>
+      <div class="row"><button class="tgl" id="g" aria-pressed="false">Tunjuk zon selamat</button></div>
+      <div class="chips" id="chips" aria-label="Lompat ke beat"></div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h3>Warna subtitle</h3>
+        <div class="legend">
+          <span><i class="sw" style="background:#FFD23F"></i>Hook, kuning dan besar di atas</span>
+          <span><i class="sw" style="background:#FFFFFF;border:1px solid var(--line)"></i>Subtitle biasa, putih di bawah</span>
+          <span><i class="sw" style="background:#3DDCFF"></i>Perkataan penting, biru muda</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Crop dan frame</h3>
+        <div class="imgs">
+          <figure><img src="crop.jpg" width="240" alt="Bar status atas dengan butang rec merah, bahagian yang dibuang berwarna merah"><figcaption>Atas 164px dibuang, butang rec hilang</figcaption></figure>
+        </div>
+        <p class="muted" style="font-size:13px">Frame telefon dikecilkan kepada 560px (dari 1080px), ruang atas untuk tajuk dan langkah, ruang bawah untuk subtitle.</p>
+      </div>
+      <div class="card">
+        <h3>Bahagian yang dibuang</h3>
+        <div class="imgs">
+          <figure><img src="removed.jpg" width="72" alt="Paparan Screen Recorder yang tersalah buka"><figcaption>Screen Recorder</figcaption></figure>
+          <p style="flex:1;min-width:160px;font-size:14px">Tutor 1, <span class="mono">1:15 - 1:20</span>: swipe ke home, tersalah buka Screen Recorder. Video terus lompat dari Telegram (Copy code) ke senarai Claude Code.</p>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="board" aria-label="Storyboard">
+    <div class="head"><h2>Storyboard</h2><p class="muted">Ketik gambar untuk lompat ke beat itu dalam pemain.</p></div>
+    <div id="board" class="board"></div>
+  </section>
+
+  <section class="card">
+    <h2>Perlu kau putuskan sebelum render</h2>
+    <ul class="plain">
+      <li><b>Suara.</b> Suara asal tak dimasukkan dalam preview sebab klip dipadatkan 2x hingga 6x supaya muat bawah 1:30. Pilihan: rakam voiceover baru ikut subtitle, guna suara BM AI, atau muzik dan SFX sahaja.</li>
+      <li><b>Subtitle.</b> Ditulis ringkas daripada penerangan kau. Semak ejaan dan istilah, mana-mana baris boleh aku ubah.</li>
+      <li><b>Tempoh.</b> Sekarang <span class="mono" id="tot"></span>. Ada ruang tambah sehingga 1:30 kalau nak lebih perlahan di bahagian paste prompt.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const EDL = /*EDL*/null;
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const kw = s => esc(s).replace(/\*(.+?)\*/g, '<span class="kw">$1</span>');
+const hk = s => esc(s).replace(/\*(.+?)\*/g, '<span class="kw">$1</span>');
+const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + String(s).padStart(2, '0'); };
+const beats = EDL.beats, total = EDL.total;
+const vid = $('vid'), stage = $('stage'), box = $('box');
+
+$('stats').innerHTML = [['Tempoh', fmt(total)], ['Beat', beats.length], ['Saiz', '9:16 · 1080×1920'], ['Sasaran', 'bawah 1:30']]
+  .map(([a, b]) => `<span class="pill">${a} <b>${b}</b></span>`).join('');
+$('tot').textContent = fmt(total);
+
+function fit() { stage.style.transform = 'scale(' + (box.clientWidth / 1080) + ')'; }
+new ResizeObserver(fit).observe(box); fit();
+
+$('chips').innerHTML = beats.map((b, i) => `<button class="chip" data-i="${i}">${i + 1} ${esc(b.label)}</button>`).join('');
+$('chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) seek(beats[+c.dataset.i].start); });
+
+function srcText(b) {
+  const tn = 'Tutor ' + b.src;
+  if (b.segs) return tn + ' · ' + b.segs.map(s => fmt(s[0]) + '-' + fmt(s[1]) + ' @' + s[2] + 'x').join(' + ');
+  const f = b.from % 1 ? b.from.toFixed(1) + 's' : fmt(b.from);
+  return tn + ' · ' + f + '-' + fmt(b.to) + ' @' + b.speed + 'x';
+}
+$('board').innerHTML = beats.map((b, i) => {
+  const lines = (b.hook ? [`<span class="hk">${hk(b.hook)}</span>`] : []).concat(b.subs.map(kw));
+  return `<article class="beat" id="b${i}"><img src="th_${b.id}.jpg" alt="Frame beat ${i + 1}" data-t="${b.start}">
+    <div><div class="meta"><span class="n">${String(i + 1).padStart(2, '0')}</span><h3>${esc(b.label)}</h3>
+    <span class="mono muted" style="font-size:12px">${fmt(b.start)}-${fmt(b.start + b.dur)} · ${b.dur.toFixed(1)}s</span></div>
+    <dl><dt>Sumber</dt><dd>${esc(srcText(b))}</dd>
+    ${b.hook ? '<dt>Hook</dt>' : '<dt>Subtitle</dt>'}<dd>${lines.join('<br>') || '-'}</dd>
+    <dt>Popup</dt><dd>${esc(b.popup)}</dd>
+    <dt>Bunyi</dt><dd>${esc(b.sfx)}</dd>
+    <dt>Peralihan</dt><dd>${esc(b.transition)}</dd></dl></div></article>`;
+}).join('');
+$('board').addEventListener('click', e => { const im = e.target.closest('img[data-t]'); if (im) { seek(+im.dataset.t); box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
+
+let cur = -1, curSub = -2, popOn = null;
+function render(t) {
+  let i = beats.findIndex(b => t >= b.start && t < b.start + b.dur);
+  if (i < 0) i = t >= total - 0.05 ? beats.length - 1 : 0;
+  const b = beats[i], rel = t - b.start;
+  if (i !== cur) {
+    cur = i; curSub = -2; popOn = null;
+    $('top').innerHTML = b.hook ? `<div class="st-hook">${hk(b.hook)}</div>`
+      : `<div class="st-step">${esc(b.step || '')}</div><div class="st-label">${esc(b.label)}</div>`;
+    $('pop').textContent = b.popup;
+    document.querySelectorAll('.chip').forEach((c, k) => c.setAttribute('aria-current', k === i ? 'true' : 'false'));
+  }
+  const n = b.subs.length, si = n ? Math.min(n - 1, Math.floor(rel / (b.dur / n))) : -1;
+  if (si !== curSub) { curSub = si; $('sub').innerHTML = si >= 0 ? kw(b.subs[si]) : ''; }
+  const on = rel > 0.3 && rel < Math.min(b.dur - 0.2, 3.8);
+  if (on !== popOn) { popOn = on; $('pop').hidden = !on; }
+  $('scrub').value = Math.round(t / total * 1000);
+  $('time').textContent = fmt(t) + ' / ' + fmt(total);
+}
+function seek(t) { vid.currentTime = Math.min(total - 0.05, Math.max(0, t)); render(vid.currentTime); }
+function tick() { render(vid.currentTime); if (!vid.paused) requestAnimationFrame(tick); }
+function setIco() { $('ico').innerHTML = vid.paused ? '<path d="M8 5v14l11-7z"/>' : '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>'; }
+$('play').onclick = () => { if (vid.paused) { if (vid.currentTime >= total - 0.1) vid.currentTime = 0; vid.play().catch(() => {}); } else vid.pause(); };
+vid.addEventListener('play', () => { setIco(); tick(); });
+vid.addEventListener('pause', () => { setIco(); render(vid.currentTime); });
+vid.addEventListener('ended', () => { setIco(); });
+vid.addEventListener('seeked', () => render(vid.currentTime));
+$('scrub').oninput = e => seek(+e.target.value / 1000 * total);
+$('g').onclick = e => { const on = stage.classList.toggle('guides'); e.currentTarget.setAttribute('aria-pressed', on); };
+render(0);
+</script>
