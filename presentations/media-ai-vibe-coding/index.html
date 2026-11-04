@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Media Digital AI &amp; Vibe Coding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#eef4ff;--muted:#a9bbe0;--card:rgba(9,14,40,.84);--line:rgba(255,255,255,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#03040f;overflow:hidden;color:var(--ink);
+  font-family:'Space Grotesk','Inter','Segoe UI',Roboto,system-ui,-apple-system,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji";
+  user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer}
+#bg{position:fixed;inset:0;width:100vw;height:100vh;transition:opacity .4s}
+#stage{position:fixed;left:50%;top:50%;width:1920px;height:1080px;margin:-540px 0 0 -960px;
+  transform:scale(var(--s,1));transform-origin:center center;overflow:hidden}
+b{font-weight:700}
+
+/* ---------- slide base ---------- */
+.slide{position:absolute;inset:0;visibility:hidden;opacity:0;pointer-events:none;isolation:isolate;--a1:#22d3ee;--a2:#8b5cf6}
+.slide.active{visibility:visible;opacity:1}
+.slide::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(950px 620px at 88% 6%,color-mix(in srgb,var(--a1) 20%,transparent),transparent 70%),
+             radial-gradient(900px 700px at 4% 104%,color-mix(in srgb,var(--a2) 22%,transparent),transparent 70%)}
+.slide::after{content:"";position:absolute;inset:26px;z-index:-1;border-radius:34px;pointer-events:none;
+  border:1.5px solid color-mix(in srgb,var(--a1) 22%,transparent);
+  -webkit-mask:linear-gradient(135deg,#000 0,transparent 22%,transparent 78%,#000 100%);mask:linear-gradient(135deg,#000 0,transparent 22%,transparent 78%,#000 100%)}
+.slide.entering{animation:sIn .95s cubic-bezier(.16,.84,.24,1) both}
+.slide.leaving{animation:sOut .6s cubic-bezier(.55,0,.85,.4) both}
+.slide.back.entering{animation-name:sInB}
+.slide.back.leaving{animation-name:sOutB}
+@keyframes sIn{from{opacity:0;transform:translateX(170px) scale(.93);filter:blur(16px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes sOut{to{opacity:0;transform:translateX(-170px) scale(1.05);filter:blur(16px)}}
+@keyframes sInB{from{opacity:0;transform:translateX(-170px) scale(.93);filter:blur(16px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes sOutB{to{opacity:0;transform:translateX(170px) scale(1.05);filter:blur(16px)}}
+
+/* ---------- pop-in system (sound is synced to these) ---------- */
+.pop{opacity:0}
+.active .pop{animation:popIn .8s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--d,0)*1ms)}
+@keyframes popIn{from{opacity:0;transform:translate(var(--tx,0px),var(--ty,50px)) scale(var(--sc,.86))}to{opacity:1;transform:none}}
+.px{--tx:-90px;--ty:0px}.pxr{--tx:90px;--ty:0px}.pz{--ty:0px;--sc:.45}.pd{--ty:-50px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinRev{to{transform:rotate(-360deg)}}
+@keyframes pulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes shimmer{to{background-position:200% 0}}
+@keyframes blink{50%{opacity:0}}
+@keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes wipe{from{transform:translateX(-120%) skewX(-18deg)}to{transform:translateX(260%) skewX(-18deg)}}
+
+/* ---------- shared pieces ---------- */
+.hd{position:absolute;left:90px;top:64px;right:90px}
+.tag{display:inline-flex;align-items:center;gap:14px;font-size:24px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--a1);
+  padding:9px 24px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--a1) 55%,transparent);background:color-mix(in srgb,var(--a1) 10%,transparent)}
+.tag::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--a1);box-shadow:0 0 14px var(--a1)}
+.title{display:block;margin-top:20px;font-size:84px;font-weight:700;line-height:1.04;letter-spacing:-.01em;white-space:nowrap}
+.grad,.title{background:linear-gradient(90deg,#fff 0%,var(--a1) 45%,var(--a2) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.active .title{animation:popIn .8s cubic-bezier(.34,1.56,.64,1) both,shimmer 6s linear infinite;animation-delay:calc(var(--d,0)*1ms),0s}
+.card{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:26px;
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.09)}
+.card::before{content:"";position:absolute;left:26px;right:26px;top:-1.5px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--a1),var(--a2))}
+.lead{font-size:34px;line-height:1.46;color:#dce8ff;font-weight:500}
+.lead b{color:#fff}
+.hl{color:var(--a1);font-weight:700}
+.muted{color:var(--muted)}
+.ico{display:flex;align-items:center;justify-content:center;border-radius:22px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--a1) 32%,transparent),color-mix(in srgb,var(--a2) 28%,transparent));
+  border:1.5px solid color-mix(in srgb,var(--a1) 45%,transparent);box-shadow:0 0 28px -6px var(--a1)}
+.noteBar{position:absolute;left:90px;right:90px;display:flex;align-items:center;gap:22px;padding:20px 32px;border-radius:22px;font-size:30px;line-height:1.35;font-weight:500;
+  background:color-mix(in srgb,var(--a1) 11%,rgba(8,12,34,.7));border:1.5px solid color-mix(in srgb,var(--a1) 45%,transparent)}
+.noteBar .ni{font-size:44px;flex:none}
+.warn{--a1:#fbbf24;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.6)}
+
+#foot{position:absolute;left:90px;right:90px;bottom:22px;display:flex;justify-content:space-between;font-size:17px;letter-spacing:.28em;color:var(--muted);opacity:.55;transition:opacity .5s;z-index:20;pointer-events:none}
+#foot.off{opacity:0}
+
+/* ---------- COVER ---------- */
+.s-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.cr{position:absolute;left:50%;top:50%;border-radius:50%;border:2px dashed color-mix(in srgb,var(--a1) 40%,transparent)}
+.cr::before{content:"";position:absolute;top:-9px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--a1);box-shadow:0 0 22px 4px var(--a1)}
+.cr1{width:1180px;height:1180px;margin:-590px 0 0 -590px;animation:spin 40s linear infinite}
+.cr2{width:880px;height:880px;margin:-440px 0 0 -440px;border-style:solid;opacity:.35;animation:spinRev 30s linear infinite}
+.cr2::before{background:var(--a2);box-shadow:0 0 22px 4px var(--a2)}
+.cr3{width:600px;height:600px;margin:-300px 0 0 -300px;animation:spin 22s linear infinite}
+.cover-chip{width:170px;height:170px;margin-bottom:26px;animation:floaty 4s ease-in-out infinite}
+.cv-title{font-size:132px;font-weight:700;line-height:1.02;letter-spacing:-.015em}
+.cv-title span{display:block}
+.cv-title .l2{font-size:156px}
+.cv-tags{display:flex;gap:22px;margin-top:46px}
+.cv-tags span{font-size:40px;font-weight:600;padding:14px 38px;border-radius:999px;background:rgba(10,16,44,.7);border:1.5px solid color-mix(in srgb,var(--a1) 55%,transparent);box-shadow:0 0 30px -8px var(--a1)}
+.cv-tags span:nth-child(2){border-color:color-mix(in srgb,var(--a2) 60%,transparent);box-shadow:0 0 30px -8px var(--a2)}
+.cv-sub{margin-top:38px;font-size:32px;color:var(--muted);font-weight:500}
+.cv-hint{position:absolute;bottom:72px;font-size:26px;letter-spacing:.3em;color:var(--a1);text-transform:uppercase;animation:pulse 2s infinite}
+
+/* ---------- S1 ---------- */
+.s1-text{position:absolute;left:90px;top:262px;width:1010px}
+.quote{margin-top:26px;padding:24px 32px;border-radius:24px;font-size:32px;line-height:1.42;background:rgba(10,16,44,.72);border-left:8px solid var(--a1);color:#e9f1ff}
+.orb{position:absolute;right:120px;top:150px;width:600px;height:600px}
+.orb .ring{position:absolute;border-radius:50%}
+.orb .r1{inset:68px;border:2px dashed color-mix(in srgb,var(--a1) 50%,transparent)}
+.orb .r2{inset:0;border:2px solid color-mix(in srgb,var(--a2) 40%,transparent)}
+.orb .core{position:absolute;left:50%;top:50%;width:250px;height:250px;margin:-125px 0 0 -125px;filter:drop-shadow(0 0 32px var(--a1));animation:pulse 3s ease-in-out infinite}
+.orb .spin{position:absolute;inset:0;animation:spin 28s linear infinite}
+.orb .nd{position:absolute;left:50%;top:50%;width:0;height:0;transform:rotate(var(--r)) translateX(232px)}
+.orb .nr{position:absolute;left:0;top:0;width:0;height:0;transform:rotate(calc(var(--r)*-1))}
+.orb .nin{position:absolute;left:-68px;top:-68px;width:136px;height:136px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(8,13,38,.9);border:2px solid var(--a1);box-shadow:0 0 30px -4px var(--a1);animation:spinRev 28s linear infinite;font-size:46px;line-height:1}
+.orb .nin small{font-size:22px;font-weight:700;margin-top:6px;color:var(--a1)}
+.c3{position:absolute;left:90px;right:90px;top:788px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.c3 .card{display:flex;gap:22px;align-items:flex-start;padding:28px 30px 24px;height:222px}
+.c3 .num{flex:none;width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#04101f;background:linear-gradient(135deg,var(--a1),var(--a2))}
+.c3 h4{font-size:34px;line-height:1.1;margin-bottom:10px}
+.c3 p{font-size:26px;line-height:1.38;color:var(--muted);font-weight:500}
+
+/* ---------- S2 timeline ---------- */
+.tl{position:absolute;left:90px;right:90px;top:262px;height:600px}
+.tl-line{position:absolute;left:0;right:0;top:132px;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--a1),var(--a2));transform-origin:left;box-shadow:0 0 22px var(--a1);transform:scaleX(0)}
+.active .tl-line{animation:draw 2.6s cubic-bezier(.5,0,.2,1) .5s both}
+.tl-items{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:24px}
+.tl-it{display:flex;flex-direction:column;align-items:center}
+.tl-it .yr{height:76px;font-size:62px;font-weight:700;line-height:1.1}
+.tl-it .dot{margin:20px 0 30px;width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;background:#070b25;border:4px solid var(--a1);box-shadow:0 0 28px var(--a1)}
+.tl-it .card{width:100%;padding:28px 26px 24px;flex:1}
+.tl-it h4{font-size:32px;line-height:1.15;margin-bottom:12px;color:var(--a1)}
+.tl-it p{font-size:26px;line-height:1.4;color:#d5e2ff;font-weight:500}
+
+/* ---------- S3 grid ---------- */
+.g4{position:absolute;left:90px;right:90px;top:250px;display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+.g4 .card{height:344px;padding:30px 28px;overflow:hidden}
+.g4 .ico{width:92px;height:92px;font-size:50px;margin-bottom:22px}
+.g4 h4{font-size:33px;margin-bottom:12px;line-height:1.1}
+.g4 p{font-size:27px;line-height:1.38;color:var(--muted);font-weight:500}
+.g4 .card::after{content:"";position:absolute;right:-60px;bottom:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--a2) 40%,transparent),transparent 70%)}
+
+/* ---------- S4 agent ---------- */
+.defc{position:absolute;left:90px;right:90px;top:250px;padding:20px 36px;font-size:33px;line-height:1.4;font-weight:500;color:#e5f0ff}
+.flow{position:absolute;left:90px;right:90px;top:414px;display:flex;align-items:center;justify-content:space-between}
+.step{width:360px;height:156px;padding:22px 26px;display:flex;align-items:center;gap:20px}
+.step .ico{width:78px;height:78px;font-size:42px;flex:none}
+.step small{display:block;font-size:20px;letter-spacing:.2em;color:var(--a1);font-weight:700}
+.step b{font-size:32px;line-height:1.15}
+.arr{flex:1;height:6px;margin:0 8px;position:relative;border-radius:6px;background:repeating-linear-gradient(90deg,var(--a1) 0 14px,transparent 14px 26px);opacity:.8}
+.arr::after{content:"";position:absolute;right:-6px;top:-13px;border-left:22px solid var(--a1);border-top:16px solid transparent;border-bottom:16px solid transparent}
+.arr i{position:absolute;top:-6px;left:0;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 18px 4px var(--a1);animation:travel 1.8s linear infinite}
+@keyframes travel{from{left:0;opacity:0}15%{opacity:1}85%{opacity:1}to{left:calc(100% - 18px);opacity:0}}
+.sub{position:absolute;left:90px;top:594px;font-size:26px;letter-spacing:.22em;color:var(--a1);font-weight:700}
+.ag5{position:absolute;left:90px;right:90px;top:640px;display:grid;grid-template-columns:repeat(5,1fr);gap:22px}
+.ag5 .card{height:252px;padding:26px 24px}
+.ag5 .ico{width:66px;height:66px;font-size:36px;border-radius:18px;margin-bottom:16px}
+.ag5 h4{font-size:30px;margin-bottom:8px;line-height:1.1}
+.ag5 p{font-size:24px;line-height:1.36;color:var(--muted);font-weight:500}
+
+/* ---------- S5 vibe coding ---------- */
+.s5-left{position:absolute;left:90px;top:262px;width:800px}
+.facts{margin-top:24px;display:flex;flex-direction:column;gap:16px}
+.fact{display:flex;align-items:center;gap:20px;padding:18px 26px;border-radius:20px;background:rgba(10,16,44,.72);border:1.5px solid var(--line);font-size:28px;line-height:1.3;font-weight:500}
+.fact span{font-size:38px}
+.basics{position:absolute;left:90px;top:800px;width:800px;padding:22px 28px}
+.basics h5{font-size:22px;letter-spacing:.2em;color:var(--a1);margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font-size:23px;font-weight:700;padding:8px 14px;border-radius:999px;background:color-mix(in srgb,var(--a1) 14%,transparent);border:1.5px solid color-mix(in srgb,var(--a1) 55%,transparent)}
+.chip:nth-child(even){background:color-mix(in srgb,var(--a2) 16%,transparent);border-color:color-mix(in srgb,var(--a2) 60%,transparent)}
+.win{position:absolute;right:90px;top:244px;width:870px;height:730px;border-radius:26px;overflow:hidden;background:rgba(6,10,30,.9);border:1.5px solid color-mix(in srgb,var(--a1) 45%,transparent);box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 60px -20px var(--a1)}
+.win .bar{height:58px;display:flex;align-items:center;gap:12px;padding:0 24px;background:rgba(255,255,255,.06);border-bottom:1.5px solid var(--line);font-size:22px;color:var(--muted);letter-spacing:.06em}
+.win .bar i{width:16px;height:16px;border-radius:50%;background:#fb7185}.win .bar i:nth-child(2){background:#fbbf24}.win .bar i:nth-child(3){background:#34d399}
+.win .bar span{margin-left:14px}
+.win .pad{padding:22px 28px}
+.lbl{font-size:20px;font-weight:700;letter-spacing:.2em;color:var(--a1);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.bubble{padding:20px 24px;border-radius:20px;font-size:28px;line-height:1.42;background:color-mix(in srgb,var(--a2) 20%,rgba(8,12,34,.9));border:1.5px solid color-mix(in srgb,var(--a2) 55%,transparent);color:#f1f5ff;min-height:176px}
+.typing::after{content:"▍";color:var(--a1);animation:blink .7s steps(1) infinite;margin-left:2px}
+.code{margin-top:6px;padding:18px 22px;border-radius:16px;background:#050818;border:1.5px solid var(--line);font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-size:23px;line-height:1.5;color:#cfe0ff;overflow:hidden;white-space:pre;font-variant-ligatures:none}
+.code .t{color:#f472b6}.code .a{color:#fbbf24}.code .s{color:#34d399}.code .c{color:#64748b}.code .k{color:#60a5fa}
+
+/* ---------- S6 build ---------- */
+.g3{position:absolute;left:90px;right:90px;top:250px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.g3 .card{height:204px;padding:26px 28px;display:flex;gap:22px;align-items:flex-start}
+.g3 .ico{width:86px;height:86px;font-size:46px;flex:none}
+.g3 h4{font-size:35px;margin-bottom:8px;line-height:1.1}
+.g3 p{font-size:28px;line-height:1.36;color:var(--muted);font-weight:500}
+.pipe-l{position:absolute;left:90px;top:716px;font-size:24px;letter-spacing:.22em;color:var(--a1);font-weight:700}
+.pipe{position:absolute;left:90px;right:90px;top:764px;display:flex;align-items:center;justify-content:space-between}
+.ps{width:198px;height:200px;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 10px;background:var(--card);border:1.5px solid var(--line);position:relative}
+.ps i{font-style:normal;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;color:#04101f;background:linear-gradient(135deg,var(--a1),var(--a2))}
+.ps b{font-size:29px;line-height:1.12}
+.active .ps.lit{animation:popIn .8s cubic-bezier(.34,1.56,.64,1) both,glow 7s linear infinite;animation-delay:calc(var(--d,0)*1ms),calc(var(--d,0)*1ms + 1500ms)}
+@keyframes glow{0%,12%,100%{box-shadow:none;border-color:var(--line)}4%{box-shadow:0 0 40px -2px var(--a1);border-color:var(--a1)}}
+.pa{font-size:34px;color:var(--a1);font-weight:700}
+
+/* ---------- S7 study buddy ---------- */
+.chat{position:absolute;left:90px;top:252px;width:1080px}
+.proj{display:inline-flex;align-items:center;gap:16px;padding:14px 28px;border-radius:18px;background:rgba(10,16,44,.75);border:1.5px solid var(--a1);font-size:30px;font-weight:600;margin-bottom:22px}
+.chat .win{position:relative;right:auto;top:auto;width:1080px;height:auto}
+.chat .bubble{font-size:30px;min-height:290px;line-height:1.46}
+.tip{position:absolute;left:90px;top:858px;width:1080px;display:flex;gap:24px;align-items:center;padding:22px 30px;font-size:30px;line-height:1.35;font-weight:500}
+.tip>span{font-size:50px}
+.phone{position:absolute;right:120px;top:212px;width:490px;height:810px;border-radius:64px;padding:16px;background:linear-gradient(160deg,#2a3a6d,#0b1130);box-shadow:0 40px 90px -20px rgba(0,0,0,.85),0 0 70px -10px var(--a1),inset 0 0 0 2px rgba(255,255,255,.18);animation-name:popIn}
+.active .phone{animation:popIn .9s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--d,0)*1ms)}
+.scr{width:100%;height:100%;border-radius:50px;overflow:hidden;background:linear-gradient(180deg,#fff9e6,#fff1c9);color:#3b2a05;padding:30px 26px;position:relative}
+.scr::before{content:"";position:absolute;left:50%;top:12px;width:120px;height:26px;margin-left:-60px;border-radius:20px;background:#0b1130}
+.scr h3{margin-top:26px;font-size:36px;display:flex;align-items:center;gap:10px}
+.scr .pl{display:flex;gap:8px;flex-wrap:nowrap;margin:14px 0}
+.scr .pl span{font-size:20px;font-weight:700;padding:6px 14px;border-radius:999px;background:#fff;border:2px solid #fbbf24}
+.scr .pl span.on{background:#fb923c;color:#fff;border-color:#fb923c}
+.scr .nota{padding:12px 16px;border-radius:18px;background:#fff;border:2px dashed #fbbf24;font-size:20px;line-height:1.35;margin-bottom:16px}
+.scr .qq{font-size:23px;font-weight:700;margin-bottom:12px}
+.scr .op{padding:11px 18px;border-radius:16px;background:#fff;border:2px solid #f3d486;font-size:22px;font-weight:600;margin-bottom:9px}
+.active .scr .op.ok{animation:popIn .8s cubic-bezier(.34,1.56,.64,1) both,okk .5s both;animation-delay:calc(var(--d,0)*1ms),4.6s}
+@keyframes okk{to{background:#34d399;border-color:#10b981;color:#052e1b}}
+.scr .score{margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:24px;font-weight:700}
+.scr .score b{font-size:34px;color:#ea580c}
+.scr .btn{margin-top:14px;text-align:center;padding:16px;border-radius:18px;font-size:26px;font-weight:700;color:#fff;background:linear-gradient(90deg,#fb923c,#f59e0b);box-shadow:0 8px 0 #c2410c}
+
+/* ---------- S8 ecosystem ---------- */
+.g5{position:absolute;left:90px;right:90px;top:232px;display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+.g5 .card{height:326px;padding:22px 22px 18px;overflow:hidden}
+.g5 .top{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.g5 .ico{width:60px;height:60px;font-size:32px;border-radius:16px;flex:none}
+.g5 h4{font-size:29px;line-height:1.08}
+.g5 p{font-size:24px;line-height:1.3;color:var(--muted);font-weight:500;margin-bottom:12px}
+.g5 .ex{display:flex;flex-wrap:wrap;gap:8px}
+.g5 .ex span{font-size:22px;font-weight:700;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--a1) 13%,transparent);border:1.5px solid color-mix(in srgb,var(--a1) 45%,transparent);color:#e8f1ff}
+
+/* ---------- S9 match ---------- */
+.m2{position:absolute;left:90px;right:90px;top:232px;display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(6,1fr);gap:14px 24px;height:770px}
+.mr.remind{--a1:#fbbf24;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.6)}
+.mr.remind b{font-size:28px;line-height:1.3;font-weight:600}
+.mr{display:flex;align-items:center;gap:20px;padding:0 24px;border-radius:22px;background:var(--card);border:1.5px solid var(--line);position:relative;overflow:hidden}
+.mr::before{content:"";position:absolute;left:0;top:14%;bottom:14%;width:6px;border-radius:6px;background:linear-gradient(var(--a1),var(--a2))}
+.mr .ico{width:64px;height:64px;font-size:34px;border-radius:18px;flex:none}
+.mr small{display:block;font-size:19px;letter-spacing:.18em;color:var(--a1);font-weight:700;text-transform:uppercase}
+.mr b{display:block;font-size:27px;line-height:1.18;color:#fff}
+.mr em{display:block;font-style:normal;font-size:22px;line-height:1.2;color:var(--muted);font-weight:500}
+
+/* ---------- S10 compare ---------- */
+.vs{position:absolute;left:90px;right:90px;top:240px;display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.pnl{padding:28px 32px 24px;height:446px}
+.pnl h3{font-size:36px;display:flex;align-items:center;gap:16px;margin-bottom:16px;line-height:1.1}
+.pnl h3 .ico{width:72px;height:72px;font-size:40px;flex:none}
+.pnl.L{--a1:#fb923c;--a2:#f43f5e}
+.pnl.R{--a1:#22d3ee;--a2:#34d399}
+.row{display:flex;gap:16px;align-items:flex-start;margin-bottom:12px}
+.row u{flex:none;width:156px;text-decoration:none;text-align:center;font-size:20px;font-weight:700;letter-spacing:.06em;padding:7px 0;border-radius:12px;background:color-mix(in srgb,var(--a1) 18%,transparent);border:1.5px solid color-mix(in srgb,var(--a1) 55%,transparent);color:var(--a1);text-transform:uppercase;margin-top:3px}
+.row span{font-size:26px;line-height:1.36;color:#e3edff;font-weight:500}
+.vsb{position:absolute;left:50%;top:463px;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#04101f;background:linear-gradient(135deg,#fbbf24,#22d3ee);box-shadow:0 0 40px #fbbf24;z-index:5}
+.final{position:absolute;left:90px;right:90px;top:714px;padding:24px 40px;border-radius:30px;text-align:center;background:linear-gradient(120deg,color-mix(in srgb,var(--a1) 22%,rgba(8,12,34,.9)),color-mix(in srgb,var(--a2) 22%,rgba(8,12,34,.9)));border:2px solid color-mix(in srgb,var(--a1) 65%,transparent);box-shadow:0 0 60px -14px var(--a1)}
+.final h5{font-size:24px;letter-spacing:.3em;color:var(--a1);margin-bottom:12px}
+.final p{font-size:33px;line-height:1.36;font-weight:600;color:#fff}
+.final p+p{margin-top:8px;color:#fde68a}
+
+/* ---------- splash / transition fx / HUD ---------- */
+#splash{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;text-align:center;
+  background:radial-gradient(900px 600px at 50% 40%,rgba(34,211,238,.12),transparent 70%);transition:opacity .7s,visibility .7s}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+#splash h1{font-size:clamp(28px,4vw,64px);font-weight:700;letter-spacing:.04em}
+#splash p{color:var(--muted);font-size:clamp(14px,1.5vw,24px);letter-spacing:.12em}
+#startBtn{font-family:inherit;font-size:clamp(18px,2vw,32px);font-weight:700;letter-spacing:.2em;color:#04101f;background:linear-gradient(90deg,#22d3ee,#8b5cf6);border:0;border-radius:999px;padding:.7em 1.9em;cursor:pointer;box-shadow:0 0 50px -4px #22d3ee;animation:pulse 2s infinite}
+#wipe{position:fixed;top:0;bottom:0;left:0;width:30vw;z-index:30;pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(120,220,255,.28),rgba(255,255,255,.5),rgba(180,140,255,.28),transparent)}
+#wipe.go{opacity:1;animation:wipe .9s cubic-bezier(.5,0,.2,1) forwards}
+#hud{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(6,10,30,.78);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);opacity:0;transition:opacity .35s}
+#hud.show{opacity:1}
+#hud button{font-family:inherit;cursor:pointer;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;font-size:18px}
+#hud button:hover{background:rgba(34,211,238,.3)}
+#hud .cnt{min-width:76px;text-align:center;font-size:15px;letter-spacing:.14em;color:var(--muted)}
+#progress{position:fixed;left:0;bottom:0;height:5px;width:0;z-index:40;background:linear-gradient(90deg,#22d3ee,#8b5cf6,#f472b6);box-shadow:0 0 14px #22d3ee;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div id="stage">
+
+  <!-- 0 COVER -->
+  <section class="slide s-cover" data-mode="net" style="--a1:#22d3ee;--a2:#8b5cf6">
+    <div class="cr cr1 pop pz" style="--d:0"></div>
+    <div class="cr cr2 pop pz" style="--d:120"></div>
+    <div class="cr cr3 pop pz" style="--d:240"></div>
+    <div class="cover-chip pop pz" style="--d:300"><svg class="chip-svg" viewBox="0 0 200 200" width="170" height="170"></svg></div>
+    <h1 class="cv-title"><span class="grad pop" style="--d:600">MEDIA DIGITAL</span><span class="grad l2 pop" style="--d:900">AI &amp; VIBE CODING</span></h1>
+    <div class="cv-tags"><span class="pop" style="--d:1500">Kenali AI.</span><span class="pop" style="--d:1900">Cipta dengan idea.</span><span class="pop" style="--d:2300">Bina masa depan digital.</span></div>
+    <p class="cv-sub pop" style="--d:2800">Bahan pembentangan untuk sesi perkongsian bersama anak-anak yatim.</p>
+    <div class="cv-hint pop" style="--d:3400">Klik untuk mula &rsaquo;</div>
+  </section>
+
+  <!-- 1 APA ITU AI -->
+  <section class="slide" data-mode="net-pk" style="--a1:#38bdf8;--a2:#818cf8">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 1 · Pengenalan AI</span><h2 class="title pop" style="--d:200">APA ITU AI?</h2></div>
+    <div class="s1-text">
+      <p class="lead pop" style="--d:500"><b>AI</b> ialah <b>Artificial Intelligence</b> atau <span class="hl">Kecerdasan Buatan</span>. Teknologi yang membolehkan komputer melakukan tugasan yang biasanya memerlukan kebolehan manusia: memahami bahasa, mengenal imej, mencari pola dan menjana idea.</p>
+      <div class="quote pop" style="--d:850">💡 Bayangkan AI sebagai <b>pembantu digital</b>: kita beri arahan yang jelas, AI membantu kita bermula dengan lebih cepat.</div>
+    </div>
+    <div class="orb pop pz" style="--d:600">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <svg class="core chip-svg" viewBox="0 0 200 200"></svg>
+      <div class="spin">
+        <div class="nd" style="--r:-90deg"><div class="nr" style="--r:-90deg"><div class="nin">💬<small>Bahasa</small></div></div></div>
+        <div class="nd" style="--r:0deg"><div class="nr" style="--r:0deg"><div class="nin">🖼️<small>Imej</small></div></div></div>
+        <div class="nd" style="--r:90deg"><div class="nr" style="--r:90deg"><div class="nin">🔎<small>Pola</small></div></div></div>
+        <div class="nd" style="--r:180deg"><div class="nr" style="--r:180deg"><div class="nin">💡<small>Idea</small></div></div></div>
+      </div>
+    </div>
+    <div class="c3" id="s1cards"></div>
+  </section>
+
+  <!-- 2 SEJARAH -->
+  <section class="slide" data-mode="rain-bin" style="--a1:#fbbf24;--a2:#fb7185">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 2 · Sejarah Ringkas AI</span><h2 class="title pop" style="--d:200">BAGAIMANA AI BERMULA?</h2></div>
+    <div class="tl"><div class="tl-line"></div><div class="tl-items" id="tl"></div></div>
+    <div class="noteBar pop" style="--d:3700;top:912px;padding:14px 32px"><span class="ni">🤝</span><span><b>Nota:</b> AI berkembang melalui sumbangan ramai penyelidik, bukan dicipta oleh seorang individu sahaja.</span></div>
+  </section>
+
+  <!-- 3 KEBOLEHAN -->
+  <section class="slide" data-mode="stars" style="--a1:#e879f9;--a2:#8b5cf6">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 3 · Kebolehan AI Hari Ini</span><h2 class="title pop" style="--d:200">APA YANG AI BOLEH BUAT SEKARANG?</h2></div>
+    <div class="g4" id="g4"></div>
+  </section>
+
+  <!-- 4 AI AGENT -->
+  <section class="slide" data-mode="net-pk" style="--a1:#34d399;--a2:#22d3ee">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 4 · Pengenalan AI Agent</span><h2 class="title pop" style="--d:200;font-size:72px">AI AGENT: PEMBANTU YANG BOLEH BERTINDAK</h2></div>
+    <div class="card defc pop" style="--d:500">AI Agent ialah sistem AI yang boleh <span class="hl">menerima matlamat</span>, <span class="hl">merancang langkah</span>, <span class="hl">menggunakan alat</span> dan <span class="hl">menyemak hasil</span>, dengan kebenaran serta had yang ditetapkan.</div>
+    <div class="flow" id="flow"></div>
+    <div class="sub pop" style="--d:1700">CONTOH JENIS AGENT</div>
+    <div class="ag5" id="ag5"></div>
+    <div class="noteBar warn pop" style="--d:3000;top:924px;padding:12px 32px;font-size:28px"><span class="ni" style="font-size:36px">⚠️</span><span><b>Peringatan:</b> semak tindakan Agent sebelum ia menghantar, menerbitkan atau mengubah data penting.</span></div>
+  </section>
+
+  <!-- 5 VIBE CODING -->
+  <section class="slide" data-mode="rain-code" style="--a1:#a78bfa;--a2:#f472b6">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 5 · Vibe Coding</span><h2 class="title pop" style="--d:200">APA ITU VIBE CODING?</h2></div>
+    <div class="s5-left">
+      <p class="lead pop" style="--d:500">Cara membina perisian dengan <span class="hl">menerangkan idea menggunakan bahasa biasa</span> kepada AI, kemudian <b>menguji dan memperbaiki kod bersama AI</b>.</p>
+      <div class="facts">
+        <div class="fact pop" style="--d:900"><span>🧑‍🔬</span><div>Istilah dipopularkan oleh <b>Andrej Karpathy</b> pada Februari 2025.</div></div>
+        <div class="fact pop" style="--d:1150"><span>🧭</span><div>Bukan nama bahasa pengaturcaraan, tetapi <b>pendekatan kerja baharu</b>.</div></div>
+      </div>
+    </div>
+    <div class="card basics pop" style="--d:1400">
+      <h5>ASAS CODING MASIH PENTING</h5>
+      <div class="chips"><span class="chip">🧩 Logik</span><span class="chip">🔒 Keselamatan</span><span class="chip">🗄️ Data</span><span class="chip">🐞 Debugging</span></div>
+    </div>
+    <div class="win pop pxr" style="--d:700">
+      <div class="bar"><i></i><i></i><i></i><span>vibe-coding · AI Assistant</span></div>
+      <div class="pad">
+        <div class="lbl">💬 CONTOH ARAHAN KITA</div>
+        <div class="bubble typer" data-delay="1300" data-text="“Bina laman web mudah alih untuk kelab sekolah. Ada halaman aktiviti, borang pendaftaran dan paparan jadual. Gunakan warna cerah dan pastikan mesra telefon.”"></div>
+        <div class="lbl pop" style="--d:3700;margin-top:18px">🤖 AI MENULIS KOD: HTML · CSS · JAVASCRIPT</div>
+        <div class="code" id="codebox"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 APA BOLEH DIBINA -->
+  <section class="slide" data-mode="grid" style="--a1:#2dd4bf;--a2:#60a5fa">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 6 · Fungsi Vibe Coding</span><h2 class="title pop" style="--d:200">APA YANG BOLEH DIBINA?</h2></div>
+    <div class="g3" id="g3"></div>
+    <div class="pipe-l pop" style="--d:1900">ALIRAN KERJA</div>
+    <div class="pipe" id="pipe"></div>
+  </section>
+
+  <!-- 7 STUDY BUDDY -->
+  <section class="slide" data-mode="stars-warm" style="--a1:#fde047;--a2:#fb923c">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 7 · Contoh Projek Pelajar</span><h2 class="title pop" style="--d:200">DEMO IDEA: STUDY BUDDY</h2></div>
+    <div class="chat">
+      <div class="proj pop" style="--d:500">📚 Projek: <b>“Study Buddy”</b> — laman ulang kaji untuk pelajar</div>
+      <div class="win pop px" style="--d:750">
+        <div class="bar"><i></i><i></i><i></i><span>prompt contoh</span></div>
+        <div class="pad"><div class="bubble typer" data-delay="1300" data-text="“Bertindak sebagai pembangun web berpengalaman dan mentor. Bina laman ulang kaji yang ringkas dan mesra telefon. Masukkan senarai subjek, kad nota, kuiz 5 soalan dan paparan skor. Gunakan tema cerah, teks jelas dan butang besar. Bina menggunakan HTML, CSS dan JavaScript sahaja. Pastikan semua butang berfungsi dan jangan kumpul data peribadi.”"></div></div>
+      </div>
+    </div>
+    <div class="card tip pop" style="--d:4200"><span>💡</span><div><b>Tip:</b> minta AI membina <span class="hl">satu bahagian pada satu masa</span>. Uji dahulu sebelum tambah fungsi baharu.</div></div>
+    <div class="phone pop pxr" style="--d:1000">
+      <div class="scr">
+        <h3>📖 Study Buddy</h3>
+        <div class="pl pop" style="--d:1700"><span class="on">B. Melayu</span><span>Matematik</span><span>Sains</span></div>
+        <div class="nota pop" style="--d:2100">📝 <b>Kad Nota:</b> Fotosintesis ialah proses tumbuhan membuat makanan menggunakan cahaya matahari.</div>
+        <div class="qq pop" style="--d:2500">Soalan 1 / 5: Apakah ibu negara Malaysia?</div>
+        <div class="op pop" style="--d:2800">A. Johor Bahru</div>
+        <div class="op ok pop" style="--d:3050">B. Kuala Lumpur ✓</div>
+        <div class="op pop" style="--d:3300">C. Ipoh</div>
+        <div class="score pop" style="--d:3600"><span>🏆 Skor</span><b>1 / 5</b></div>
+        <div class="btn pop" style="--d:3900">Soalan Seterusnya ›</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 EKOSISTEM -->
+  <section class="slide" data-mode="orbit" style="--a1:#22d3ee;--a2:#6366f1">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 8 · Jenis AI Mengikut Kelas</span><h2 class="title pop" style="--d:200">PETA RINGKAS EKOSISTEM AI</h2></div>
+    <div class="g5" id="g5"></div>
+    <div class="noteBar pop" style="--d:3500;top:924px;padding:12px 30px;font-size:26px"><span class="ni" style="font-size:34px">ℹ️</span><span><b>Nota:</b> kategori ini boleh bertindih; alat AI sentiasa berubah dan ciri mungkin berbeza mengikut pelan.</span></div>
+  </section>
+
+  <!-- 9 PADANAN TUGASAN -->
+  <section class="slide" data-mode="scan" style="--a1:#a3e635;--a2:#22d3ee">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 9 · AI Mengikut Kepakaran Kerja</span><h2 class="title pop" style="--d:200">AI MANA SESUAI UNTUK TUGASAN?</h2></div>
+    <div class="m2" id="m2"></div>
+  </section>
+
+  <!-- 10 KESIMPULAN -->
+  <section class="slide" data-mode="orbit" style="--a1:#fbbf24;--a2:#22d3ee">
+    <div class="hd"><span class="tag pop pxr" style="--d:50">Slide 10 · Kesimpulan</span><h2 class="title pop" style="--d:200;font-size:76px">AI ROBOT vs AI YANG MEMBANTU MANUSIA</h2></div>
+    <div class="vs">
+      <div class="card pnl L pop px" style="--d:550">
+        <h3><span class="ico">🤖</span>AI ROBOT / AUTOMASI</h3>
+        <div class="row pop" style="--d:900"><u>Perbezaan</u><span>AI menjalankan tugasan secara automatik; robot ialah mesin yang boleh melakukan kerja fizikal.</span></div>
+        <div class="row pop" style="--d:1250"><u>Kelebihan</u><span>Cepat, konsisten dan boleh melakukan kerja berulang atau berbahaya.</span></div>
+        <div class="row pop" style="--d:1600"><u>Kekurangan</u><span>Boleh tersilap, kurang memahami konteks dan memerlukan arahan serta penyelenggaraan.</span></div>
+      </div>
+      <div class="card pnl R pop pxr" style="--d:700">
+        <h3><span class="ico">🧠</span>AI MENINGKATKAN KEBOLEHAN MANUSIA</h3>
+        <div class="row pop" style="--d:1050"><u>Perbezaan</u><span>AI menjadi pembantu; manusia masih berfikir, memilih dan membuat keputusan.</span></div>
+        <div class="row pop" style="--d:1400"><u>Kelebihan</u><span>Membantu belajar, mencari idea dan menyelesaikan masalah dengan lebih baik.</span></div>
+        <div class="row pop" style="--d:1750"><u>Kekurangan</u><span>Jika terlalu bergantung, manusia mungkin kurang berlatih berfikir sendiri; jawapan AI juga perlu disemak.</span></div>
+      </div>
+    </div>
+    <div class="vsb pop pz" style="--d:1000">VS</div>
+    <div class="final pop" style="--d:2400">
+      <h5>KESIMPULAN MUDAH</h5>
+      <p>🤖 AI robot membantu mesin melakukan kerja.</p>
+      <p style="color:#fff;margin-top:0">🧠 AI sebagai pembantu membantu manusia menjadi lebih cekap.</p>
+      <p>Gunakan AI sebagai alat. Manusia tetap perlu berfikir, menyemak dan bertanggungjawab.</p>
+    </div>
+  </section>
+
+  <div id="foot" class="off"><span>MEDIA DIGITAL AI &amp; VIBE CODING</span><span id="cnt"></span></div>
+</div>
+
+<div id="splash">
+  <h1>MEDIA DIGITAL AI &amp; VIBE CODING</h1>
+  <button id="startBtn">▶ MULAKAN</button>
+  <p>Klik untuk seterusnya · ← → papan kekunci · F skrin penuh · M senyap</p>
+</div>
+<div id="wipe"></div>
+<div id="progress"></div>
+<div id="hud"><button class="ctl" id="bPrev" title="Sebelum">‹</button><div class="cnt" id="hcnt">01 / 11</div><button class="ctl" id="bNext" title="Seterusnya">›</button><button class="ctl" id="bMute" title="Bunyi (M)">🔊</button><button class="ctl" id="bFs" title="Skrin penuh (F)">⛶</button></div>
+
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+
+/* ===================== DATA / RENDER ===================== */
+const chipSVG=()=>{let p='';for(let i=0;i<5;i++){const v=62+i*19;p+=`<line x1="${v}" y1="20" x2="${v}" y2="48"/><line x1="${v}" y1="152" x2="${v}" y2="180"/><line x1="20" y1="${v}" x2="48" y2="${v}"/><line x1="152" y1="${v}" x2="180" y2="${v}"/>`}
+ return `<g stroke="var(--a1)" stroke-width="5" stroke-linecap="round">${p}</g>
+ <rect x="48" y="48" width="104" height="104" rx="20" fill="#071030" stroke="var(--a1)" stroke-width="5"/>
+ <rect x="62" y="62" width="76" height="76" rx="12" fill="none" stroke="var(--a2)" stroke-width="2" stroke-dasharray="6 6"/>
+ <text x="100" y="116" text-anchor="middle" font-size="46" font-weight="800" fill="#fff" font-family="Space Grotesk,Inter,Arial,sans-serif">AI</text>`};
+$$('.chip-svg').forEach(s=>s.innerHTML=chipSVG());
+
+function fill(sel,items,tpl,base,step){$(sel).innerHTML=items.map((it,i)=>tpl(it,i,base+i*step)).join('')}
+
+fill('#s1cards',[
+ ['1','AI bukan manusia','Tiada pengalaman hidup atau perasaan seperti manusia.'],
+ ['2','AI boleh tersilap','Semak fakta, angka dan sumber sebelum percaya atau berkongsi.'],
+ ['3','Manusia tetap memimpin','Kita tentukan tujuan, nilai, adab dan keputusan.']
+],(c,i,d)=>`<div class="card pop" style="--d:${d}"><div class="num">${c[0]}</div><div><h4>${c[1]}</h4><p>${c[2]}</p></div></div>`,1400,380);
+
+fill('#tl',[
+ ['1950','❓','Alan Turing','Membincangkan “Bolehkah mesin berfikir?” dan mencadangkan ujian yang dikenali sebagai Turing Test.'],
+ ['1956','🎓','John McCarthy','Bersama rakan penyelidik, memperkenalkan istilah “Artificial Intelligence” dalam Dartmouth Research Project. Sering dianggap titik lahir bidang AI.'],
+ ['1997','♟️','IBM Deep Blue','Komputer IBM Deep Blue menewaskan juara catur dunia Garry Kasparov.'],
+ ['2010-an','👁️','Deep Learning','Kemajuan deep learning mempercepat perkembangan pengecaman imej, suara dan bahasa.'],
+ ['2020-an','✨','AI Generatif','Lebih mudah digunakan untuk menulis, menghasilkan gambar, audio, video dan membantu coding.']
+],(c,i,d)=>`<div class="tl-it"><div class="yr grad pop pd" style="--d:${d}">${c[0]}</div><div class="dot pop pz" style="--d:${d+120}">${c[1]}</div><div class="card pop" style="--d:${d+260}"><h4>${c[2]}</h4><p>${c[3]}</p></div></div>`,650,560);
+
+fill('#g4',[
+ ['✍️','Teks &amp; Idea','Rangka karangan, cerita, ucapan, copywriting dan idea projek.'],
+ ['📚','Pembelajaran','Terangkan topik ikut tahap, buat kuiz dan bantu ulang kaji.'],
+ ['📊','Data &amp; Analisis','Ringkaskan Excel/CSV, cari corak dan bantu memahami graf.'],
+ ['🎨','Gambar &amp; Reka Bentuk','Jana visual, konsep poster, ilustrasi dan suntingan imej.'],
+ ['🎬','Audio &amp; Video','Transkripsi, sari kata, suara latar, klip video dan storyboard.'],
+ ['🏢','Kerja Pejabat','Draf e-mel, minit mesyuarat, laporan dan slaid.'],
+ ['💻','Coding','Tulis, terangkan, baiki dan bina prototaip laman web atau aplikasi.'],
+ ['🤖','AI Agent','Bantu jalankan aliran kerja berbilang langkah dengan alat yang dibenarkan.']
+],(c,i,d)=>`<div class="card pop" style="--d:${d}"><div class="ico">${c[0]}</div><h4>${c[1]}</h4><p>${c[2]}</p></div>`,550,330);
+
+(function(){const st=[['🎯','LANGKAH 1','Terima matlamat'],['🧭','LANGKAH 2','Rancang langkah'],['🛠️','LANGKAH 3','Guna alat'],['✅','LANGKAH 4','Semak hasil']];
+ $('#flow').innerHTML=st.map((s,i)=>`<div class="card step pop" style="--d:${900+i*330}"><div class="ico">${s[0]}</div><div><small>${s[1]}</small><b>${s[2]}</b></div></div>`+(i<3?`<div class="arr pop" style="--d:${1050+i*330}"><i style="animation-delay:${i*.45}s"></i></div>`:'')).join('')})();
+fill('#ag5',[
+ ['🔍','Research Agent','Mencari dan merumus sumber serta menyusun dapatan.'],
+ ['🎨','Media Agent','Membantu idea visual, poster, kapsyen dan kandungan.'],
+ ['🏢','Office Agent','Menyusun dokumen, draf e-mel, laporan dan minit mesyuarat.'],
+ ['📊','Data Agent','Membaca fail, menganalisis angka dan menyediakan rumusan.'],
+ ['🌐','Web/App Agent','Membantu membina atau menguji aliran kerja digital.']
+],(c,i,d)=>`<div class="card pop" style="--d:${d}"><div class="ico">${c[0]}</div><h4>${c[1]}</h4><p>${c[2]}</p></div>`,1950,200);
+
+(function(){const L=[
+ '<span class="c">&lt;!-- Kelab Sekolah --&gt;</span>',
+ '<span class="t">&lt;header</span> <span class="a">class</span>=<span class="s">"hero"</span><span class="t">&gt;</span>',
+ '  <span class="t">&lt;h1&gt;</span>Kelab Sekolah<span class="t">&lt;/h1&gt;</span>',
+ '<span class="t">&lt;/header&gt;</span>',
+ '<span class="t">&lt;section</span> <span class="a">id</span>=<span class="s">"aktiviti"</span><span class="t">&gt;</span>…<span class="t">&lt;/section&gt;</span>',
+ '<span class="t">&lt;form</span> <span class="a">id</span>=<span class="s">"daftar"</span><span class="t">&gt;</span>…<span class="t">&lt;/form&gt;</span>',
+ '<span class="k">function</span> paparJadual() { <span class="c">// ...</span> }',
+ '<span class="k">body</span> { background: <span class="s">#fff7d6</span>; } <span class="c">/* warna cerah */</span>'];
+ $('#codebox').innerHTML=L.map((l,i)=>`<div class="pop px" style="--d:${3950+i*210}">${l}</div>`).join('')})();
+
+fill('#g3',[
+ ['🌐','Laman Web','Portfolio, kelab sekolah atau kempen kebaikan.'],
+ ['📱','Aplikasi Mini','Kuiz ilmu, jadual tugasan atau kalkulator markah.'],
+ ['🗂️','Sistem Pengurusan','Pendaftaran program, kehadiran dan inventori.'],
+ ['📈','Dashboard','Paparan keputusan, graf kemajuan dan laporan.'],
+ ['🤖','AI Chatbot / Agent','Pembantu FAQ, tutor asas atau bot media.'],
+ ['🧪','Prototaip Produk','Menguji idea aplikasi sebelum dibangunkan sepenuhnya.']
+],(c,i,d)=>`<div class="card pop" style="--d:${d}"><div class="ico">${c[0]}</div><div><h4>${c[1]}</h4><p>${c[2]}</p></div></div>`,500,260);
+(function(){const s=['Rancang','Prompt','Jana','Uji','Baiki','Semak keselamatan','Terbit'];
+ $('#pipe').innerHTML=s.map((t,i)=>`<div class="ps pop lit" style="--d:${2100+i*300}"><i>${i+1}</i><b>${t}</b></div>`+(i<6?`<div class="pa pop" style="--d:${2200+i*300}">›</div>`:'')).join('')})();
+
+fill('#g5',[
+ ['💬','AI Chat &amp; Reasoning','Perbualan, penaakulan dan penulisan.',['ChatGPT','Claude','Gemini']],
+ ['🔍','Research &amp; Search','Mencari sumber dan ringkasan web.',['Perplexity','Gemini','ChatGPT Search']],
+ ['📊','Data &amp; Analitik','Fail, jadual, graf dan analisis.',['ChatGPT Data Analysis','Claude','Microsoft Copilot']],
+ ['🎨','Imej &amp; Reka Bentuk','Jana imej, edit dan poster.',['ChatGPT Images','Midjourney','Adobe Firefly','Canva AI']],
+ ['🎬','Video','Jana klip, suntingan dan storyboard.',['Google Veo','Runway','Kling','Sora']],
+ ['🎙️','Audio &amp; Suara','Suara, transkripsi dan muzik.',['ElevenLabs','Whisper','Suno']],
+ ['💻','Coding &amp; Vibe Coding','Kod, prototaip dan debugging.',['Claude Code','Cursor','GitHub Copilot','Replit']],
+ ['🏢','Office &amp; Produktiviti','Dokumen, slaid dan e-mel.',['Microsoft Copilot','Gemini for Workspace','ChatGPT']],
+ ['🤖','AI Agent &amp; Automasi','Aliran kerja dan tugasan berulang.',['ChatGPT Agent','n8n AI','Zapier AI']],
+ ['🧊','3D / Spatial','Model dan kandungan 3D.',['Meshy','Tripo','Luma AI']]
+],(c,i,d)=>`<div class="card pop" style="--d:${d}"><div class="top"><div class="ico">${c[0]}</div><h4>${c[1]}</h4></div><p>${c[2]}</p><div class="ex">${c[3].map(x=>`<span>${x}</span>`).join('')}</div></div>`,500,260);
+
+fill('#m2',[
+ ['🔍','Research &amp; Cari Sumber','Perplexity · ChatGPT Search · Gemini','Cari maklumat, sertakan rujukan. Semak sumber asal.'],
+ ['🧠','Analisis &amp; Penaakulan','ChatGPT · Claude · Gemini','Banding idea, huraikan masalah dan merumus.'],
+ ['📄','Baca PDF / Dokumen','ChatGPT · Claude · NotebookLM','Tanya kandungan dokumen, cari isi penting.'],
+ ['📊','Excel / Data / Graf','ChatGPT Data Analysis · Microsoft Copilot','Analisis fail, formula, jadual dan visualisasi.'],
+ ['🧾','Akaun / Kerja Pejabat','Microsoft Copilot · ChatGPT','Draf dokumen, formula, laporan. Sahkan angka kewangan.'],
+ ['🖼️','Poster / Design','Canva AI · Adobe Firefly · ChatGPT Images','Susun reka bentuk, jana visual, ubah suai.'],
+ ['🎨','Gambar Kreatif','ChatGPT Images · Midjourney · Adobe Firefly','Jana visual mengikut arahan dan gaya.'],
+ ['🎬','Video','Google Veo · Runway · Kling · Sora','Jana klip atau bantu aliran penciptaan video.'],
+ ['🎙️','Voice / Transkripsi','Whisper · ElevenLabs','Tukar audio ke teks atau hasilkan suara.'],
+ ['💻','Website / App','Claude Code · Cursor · GitHub Copilot · Replit','Tulis, uji dan perbaiki kod.'],
+ ['📽️','Slide Presentation','ChatGPT · Canva · Gamma','Susun isi, reka slaid dan bina jalan cerita.']
+],(c,i,d)=>`<div class="mr pop ${i%2?'pxr':'px'}" style="--d:${d}"><div class="ico">${c[0]}</div><div><small>${c[1]}</small><b>${c[2]}</b><em>${c[3]}</em></div></div>`,450,190);
+$('#m2').insertAdjacentHTML('beforeend','<div class="mr remind pop pz" style="--d:2800"><div class="ico">✅</div><div><small>Ingat</small><b>Semak sumber asal, sahkan angka kewangan. AI membantu, kita yang memutuskan.</b></div></div>');
+
+/* ===================== AUDIO (WebAudio synth fx) ===================== */
+let ac=null,master=null,muted=false;
+function initAudio(){if(ac)return;try{ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.55;master.connect(ac.destination)}catch(e){ac=null}
+ if(ac&&ac.state==='suspended')ac.resume()}
+let noiseBuf=null;
+function noise(){if(noiseBuf)return noiseBuf;noiseBuf=ac.createBuffer(1,ac.sampleRate*1,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return noiseBuf}
+const SCALE=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.51,1174.66,1046.5,880,783.99,659.25,587.33];
+function pop(i){if(!ac||muted)return;const t=ac.currentTime,f=SCALE[i%SCALE.length];
+ const o=ac.createOscillator(),g=ac.createGain();o.type='sine';
+ o.frequency.setValueAtTime(f*.6,t);o.frequency.exponentialRampToValueAtTime(f*1.35,t+.07);o.frequency.exponentialRampToValueAtTime(f,t+.14);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+.2);
+ o.connect(g);g.connect(master);o.start(t);o.stop(t+.22);
+ const n=ac.createBufferSource();n.buffer=noise();const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;const ng=ac.createGain();
+ ng.gain.setValueAtTime(.12,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.03);n.connect(hp);hp.connect(ng);ng.connect(master);n.start(t);n.stop(t+.04)}
+function whoosh(){if(!ac||muted)return;const t=ac.currentTime;const n=ac.createBufferSource();n.buffer=noise();n.loop=true;
+ const bp=ac.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.4;bp.frequency.setValueAtTime(300,t);bp.frequency.exponentialRampToValueAtTime(3200,t+.5);
+ const g=ac.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.34,t+.18);g.gain.exponentialRampToValueAtTime(.0001,t+.62);
+ n.connect(bp);bp.connect(g);g.connect(master);n.start(t);n.stop(t+.65)}
+function tick(){if(!ac||muted)return;const t=ac.currentTime;const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=1700+Math.random()*500;
+ g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.0001,t+.025);o.connect(g);g.connect(master);o.start(t);o.stop(t+.03)}
+function chime(){if(!ac||muted)return;const t=ac.currentTime;[523.25,659.25,783.99,1046.5].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;
+ const s=t+i*.09;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.22,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.7);o.connect(g);g.connect(master);o.start(s);o.stop(s+.75)})}
+
+/* ===================== BACKGROUND CANVAS (tech themes) ===================== */
+const cv=$('#bg'),ctx=cv.getContext('2d');let W=0,H=0,dpr=1;
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const C={a:[34,211,238],b:[139,92,246]},T={a:[34,211,238],b:[139,92,246]};
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const R=(a,b)=>a+Math.random()*(b-a);
+function mkNet(pk){const n=Math.round(W*H/17000),L=200;const P=Array.from({length:n},()=>({x:R(0,W),y:R(0,H),vx:R(-.5,.5)*28,vy:R(-.5,.5)*28,r:R(1.5,3.6)}));const K=[];
+ return{draw(dt){for(const p of P){p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1}
+  ctx.lineWidth=1.2;
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const dx=P[i].x-P[j].x,dy=P[i].y-P[j].y,d=Math.hypot(dx,dy);if(d<L){ctx.strokeStyle=rgba(C.a,(1-d/L)*.38);ctx.beginPath();ctx.moveTo(P[i].x,P[i].y);ctx.lineTo(P[j].x,P[j].y);ctx.stroke()}}
+  for(const p of P){ctx.fillStyle=rgba(C.b,.85);ctx.shadowColor=rgba(C.b,1);ctx.shadowBlur=12;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}ctx.shadowBlur=0;
+  if(pk){if(Math.random()<dt*5){const i=(Math.random()*n)|0;let best=-1,bd=L;for(let j=0;j<n;j++)if(j!==i){const d=Math.hypot(P[i].x-P[j].x,P[i].y-P[j].y);if(d<bd){bd=d;best=j}}if(best>=0)K.push({i,j:best,t:0})}
+   for(let k=K.length-1;k>=0;k--){const q=K[k];q.t+=dt*1.4;if(q.t>=1){K.splice(k,1);continue}const a=P[q.i],b=P[q.j],x=a.x+(b.x-a.x)*q.t,y=a.y+(b.y-a.y)*q.t;ctx.fillStyle='#fff';ctx.shadowColor=rgba(C.a,1);ctx.shadowBlur=18;ctx.beginPath();ctx.arc(x,y,3.6,0,7);ctx.fill();ctx.shadowBlur=0}}}}}
+function mkRain(chars){const S=28,N=Math.ceil(W/S);const cols=Array.from({length:N},(_,i)=>({x:i*S,y:R(-H,0),sp:R(70,200),len:(8+Math.random()*16)|0,ch:[]}));
+ for(const c of cols)for(let k=0;k<c.len;k++)c.ch.push(chars[(Math.random()*chars.length)|0]);
+ return{draw(dt){ctx.font="600 22px 'JetBrains Mono',monospace";ctx.textAlign='center';
+  cols.forEach((c,ci)=>{c.y+=c.sp*dt;if(c.y-c.len*S>H){c.y=R(-300,0);c.sp=R(70,200)}
+   for(let k=0;k<c.len;k++){if(Math.random()<.01)c.ch[k]=chars[(Math.random()*chars.length)|0];const y=c.y-k*S;if(y<-S||y>H+S)continue;
+    const a=k===0?.8:(1-k/c.len)*.32;ctx.fillStyle=k===0?'#fff':rgba(ci%3?C.a:C.b,a);ctx.fillText(c.ch[k],c.x+S/2,y)}})}}}
+function mkGrid(){return{draw(dt,t){const hz=H*.5;const g=ctx.createLinearGradient(0,hz-200,0,hz+60);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,rgba(C.b,.28));ctx.fillStyle=g;ctx.fillRect(0,hz-200,W,260);
+  ctx.strokeStyle=rgba(C.a,.4);ctx.lineWidth=1.4;
+  for(let i=-24;i<=24;i++){ctx.beginPath();ctx.moveTo(W/2+i*40,hz);ctx.lineTo(W/2+i*(W/12),H);ctx.stroke()}
+  for(let k=0;k<16;k++){const f=((k+(t*.35)%1)/16),y=hz+(H-hz)*f*f;ctx.strokeStyle=rgba(C.a,.12+f*.4);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  ctx.fillStyle=rgba(C.b,.5);for(let i=0;i<40;i++){const x=(i*173.3)%W,y=(i*97.7)%hz;ctx.globalAlpha=.3+.4*Math.abs(Math.sin(t*.8+i));ctx.fillRect(x,y,2.4,2.4)}ctx.globalAlpha=1}}}
+function mkStars(warm){const n=Math.round(W*H/16000);const P=Array.from({length:n},()=>({x:R(0,W),y:R(0,H),r:R(1,warm?5.5:4),sp:R(14,warm?60:44),ph:R(0,6.28),b:Math.random()<.5}));
+ return{draw(dt,t){for(const p of P){p.y-=p.sp*dt;p.x+=Math.sin(t*.6+p.ph)*8*dt;if(p.y<-10){p.y=H+10;p.x=R(0,W)}
+  const a=.35+.6*Math.abs(Math.sin(t*1.6+p.ph));const c=p.b?C.a:C.b;ctx.fillStyle=rgba(c,a);ctx.shadowColor=rgba(c,1);ctx.shadowBlur=16;
+  if(warm&&p.r>4){ctx.beginPath();for(let k=0;k<10;k++){const rr=k%2?p.r*.45:p.r*1.5,an=k*Math.PI/5-Math.PI/2+t*.3;ctx.lineTo(p.x+Math.cos(an)*rr,p.y+Math.sin(an)*rr)}ctx.closePath();ctx.fill()}
+  else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}}ctx.shadowBlur=0}}}
+function mkOrbit(){const cx=W/2,cy=H/2,rings=[];for(let k=0;k<5;k++){const rx=(k+1)*Math.max(W,H)*.14,n=6+k*4;rings.push({rx,ry:rx*.5,sp:(k%2?-1:1)*(.12-k*.012),n,off:R(0,6.28)})}
+ return{draw(dt,t){const pts=[];ctx.lineWidth=1.2;
+  rings.forEach((r,ri)=>{ctx.strokeStyle=rgba(C.a,.14);ctx.beginPath();ctx.ellipse(cx,cy,r.rx,r.ry,-.25,0,7);ctx.stroke();const row=[];
+   for(let i=0;i<r.n;i++){const an=r.off+i/r.n*6.283+t*r.sp,x=Math.cos(an)*r.rx,y=Math.sin(an)*r.ry,cs=Math.cos(-.25),sn=Math.sin(-.25);row.push({x:cx+x*cs-y*sn,y:cy+x*sn+y*cs})}pts.push(row)});
+  pts.forEach((row,ri)=>{row.forEach((p,i)=>{const q=row[(i+1)%row.length];ctx.strokeStyle=rgba(C.a,.18);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+   if(pts[ri+1]){const o=pts[ri+1][Math.round(i/row.length*pts[ri+1].length)%pts[ri+1].length];ctx.strokeStyle=rgba(C.b,.14);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(o.x,o.y);ctx.stroke()}});
+   row.forEach(p=>{ctx.fillStyle=rgba(C.b,.9);ctx.shadowColor=rgba(C.b,1);ctx.shadowBlur=14;ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,7);ctx.fill()})});ctx.shadowBlur=0;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,260);g.addColorStop(0,rgba(C.a,.22));g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(cx-260,cy-260,520,520)}}}
+function mkScan(){const S=46;return{draw(dt,t){const sy=((t*160)%(H+400))-200;ctx.lineWidth=2;
+  for(let y=S/2;y<H;y+=S)for(let x=S/2;x<W;x+=S){const d=(y-sy)/90,a=.1+.85*Math.exp(-d*d);ctx.fillStyle=rgba(a>.4?C.b:C.a,a*.8);ctx.fillRect(x-1.6,y-1.6,3.2,3.2)}
+  const g=ctx.createLinearGradient(0,sy-60,0,sy+4);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,rgba(C.a,.22));ctx.fillStyle=g;ctx.fillRect(0,sy-60,W,64);ctx.fillStyle=rgba(C.a,.8);ctx.fillRect(0,sy+2,W,2)}}}
+const BIN=['0','1'],CODE='{}<>/=;()[]$#01+*&|'.split('');
+const builders={net:()=>mkNet(false),'net-pk':()=>mkNet(true),'rain-bin':()=>mkRain(BIN),'rain-code':()=>mkRain(CODE),grid:mkGrid,stars:()=>mkStars(false),'stars-warm':()=>mkStars(true),orbit:mkOrbit,scan:mkScan};
+let M=null,curMode='';
+function setMode(m){if(m===curMode)return;curMode=m;if(!M){M=builders[m]();return}cv.style.opacity=0;setTimeout(()=>{M=builders[m]();cv.style.opacity=1},380)}
+function resizeCv(){dpr=Math.min(window.devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);if(curMode)M=builders[curMode]()}
+let last=performance.now(),T0=last;
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-T0)/1000,k=Math.min(1,dt*3);
+ for(let i=0;i<3;i++){C.a[i]+=(T.a[i]-C.a[i])*k;C.b[i]+=(T.b[i]-C.b[i])*k}
+ ctx.clearRect(0,0,W,H);if(M)M.draw(dt,t);requestAnimationFrame(frame)}
+
+/* ===================== STAGE SCALING ===================== */
+const stage=$('#stage');
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.setProperty('--s',s);resizeCv()}
+addEventListener('resize',fit);
+
+/* ===================== SLIDE ENGINE ===================== */
+const slides=$$('.slide'),N=slides.length;let cur=-1,started=false,lock=false,timers=[];
+const wipe=$('#wipe'),prog=$('#progress'),foot=$('#foot');
+const clearTimers=()=>{timers.forEach(t=>{clearTimeout(t);clearInterval(t)});timers=[]};
+function enterFx(sl){
+ const items=$$('.pop',sl).map(e=>({e,d:parseFloat(getComputedStyle(e).getPropertyValue('--d'))||0})).sort((a,b)=>a.d-b.d);
+ let lastT=-999,k=0;items.forEach(it=>{if(it.d-lastT<110)return;lastT=it.d;const idx=k++;timers.push(setTimeout(()=>pop(idx),it.d+110))});
+ $$('.typer',sl).forEach(el=>{const full=el.dataset.text,delay=+el.dataset.delay||0;el.textContent='';
+  timers.push(setTimeout(()=>{el.classList.add('typing');let i=0;const iv=setInterval(()=>{i+=2;el.textContent=full.slice(0,i);if(i%8===0)tick();if(i>=full.length){clearInterval(iv);el.classList.remove('typing')}},24);timers.push(iv)},delay))})}
+function go(n,dir){
+ if(!started||lock||n<0||n>=N||n===cur)return;lock=true;setTimeout(()=>lock=false,520);
+ const back=dir<0,old=slides[cur],nu=slides[n];clearTimers();
+ if(old){old.classList.toggle('back',back);old.classList.add('leaving');setTimeout(()=>old.classList.remove('active','leaving','back','entering'),600)}
+ nu.classList.toggle('back',back);nu.classList.remove('leaving');nu.classList.add('active','entering');
+ setTimeout(()=>nu.classList.remove('entering','back'),1000);
+ cur=n;if(n>0||old){whoosh();wipe.classList.remove('go');void wipe.offsetWidth;wipe.style.animationDirection=back?'reverse':'normal';wipe.classList.add('go');setTimeout(()=>wipe.classList.remove('go'),1000)}
+ const cs=getComputedStyle(nu);T.a=hex(cs.getPropertyValue('--a1').trim());T.b=hex(cs.getPropertyValue('--a2').trim());setMode(nu.dataset.mode);
+ enterFx(nu);
+ const lab=String(n+1).padStart(2,'0')+' / '+N;$('#cnt').textContent=lab;$('#hcnt').textContent=lab;foot.classList.toggle('off',n===0);prog.style.width=(n/(N-1)*100)+'%';
+}
+const next=()=>go(cur+1,1),prev=()=>go(cur-1,-1);
+
+function start(){if(started)return;initAudio();started=true;$('#splash').classList.add('hide');chime();go(0,1)}
+$('#startBtn').addEventListener('click',e=>{e.stopPropagation();start()});
+$('#splash').addEventListener('click',start);
+document.addEventListener('click',e=>{if(!started||e.target.closest('#hud'))return;next()});
+document.addEventListener('keydown',e=>{const k=e.key;
+ if(!started){if(k==='Enter'||k===' '||k==='ArrowRight'){e.preventDefault();start()}return}
+ if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)){e.preventDefault();next()}
+ else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)){e.preventDefault();prev()}
+ else if(k==='Home')go(0,-1);else if(k==='End')go(N-1,1);
+ else if(k==='f'||k==='F')toggleFs();else if(k==='m'||k==='M')toggleMute()});
+let tx=0,ty=0;addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev()}},{passive:true});
+$('#bPrev').onclick=e=>{e.stopPropagation();prev()};$('#bNext').onclick=e=>{e.stopPropagation();next()};
+function toggleMute(){muted=!muted;$('#bMute').textContent=muted?'🔇':'🔊'}
+function toggleFs(){const d=document;if(!d.fullscreenElement)(d.documentElement.requestFullscreen||(()=>{})).call(d.documentElement);else d.exitFullscreen()}
+$('#bMute').onclick=e=>{e.stopPropagation();toggleMute()};$('#bFs').onclick=e=>{e.stopPropagation();toggleFs()};
+const hud=$('#hud');let hideT;addEventListener('mousemove',()=>{if(!started)return;hud.classList.add('show');document.body.style.cursor='pointer';clearTimeout(hideT);hideT=setTimeout(()=>{hud.classList.remove('show')},2200)});
+
+fit();setMode('net');requestAnimationFrame(frame);
+window.__deck={go,next,prev,start,get cur(){return cur},N};
+})();
+</script>
+</body>
+</html>
