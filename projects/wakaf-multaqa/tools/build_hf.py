@@ -19,7 +19,7 @@ for i, (sid, src, off, st, d) in enumerate(shots):
         tl.append(f'tl.set("#w{n:02d}", {{ opacity: 0 }}, {round(nxt + FADE + 0.02, 2)});')
 
 # VO windows (absolute seconds) and ducking
-vo = [("vo1", "v1", 1.5, 5.80), ("vo3", "v3", 16.8, 12.12), ("vo4", "v4", 30.2, 4.83), ("vo6", "v6", 42.8, 13.84), ("vo7", "v7", 59.8, 9.38)]
+vo = []
 wins = [(1.5, 7.4), (16.8, 35.1), (42.8, 56.7), (59.8, 69.3)]
 BASE, DUCK = 0.8, 0.3
 pts = [(0, BASE)]
@@ -28,7 +28,7 @@ for a, b in wins:
 pts.append((TOTAL, BASE))
 lane = json.dumps({"version": 1, "lanes": [{"target": "volume", "points": [{"t": t, "v": v} for t, v in pts]}]}).replace('"', '&quot;')
 
-audio = [f'    <audio id="music" class="clip" src="assets/audio/music.mp3" data-start="0" data-duration="{TOTAL}" data-track-index="30" data-volume="1" data-fade-in="2" data-fade-out="4" data-automation="{lane}"></audio>']
+audio = [f'    <audio id="music" class="clip" src="assets/audio/music.mp3" data-start="0" data-duration="{TOTAL}" data-track-index="30" data-volume="1" data-fade-in="2" data-fade-out="4"></audio>']
 for aid, f, st, d in vo:
     audio.append(f'    <audio id="{aid}" class="clip" src="assets/audio/{f}.mp3" data-start="{st}" data-duration="{d}" data-track-index="31" data-volume="1"></audio>')
 
@@ -191,6 +191,24 @@ card_js.append(f'''    tl.fromTo("#title .scrim", {{ opacity: 0 }}, {{ opacity: 
     tl.to("#title .inner", {{ opacity: 0, filter: "blur(6px)", duration: 0.8, ease: "power2.in" }}, {round(tst + tdur - 0.85, 2)});
     tl.to("#title .scrim", {{ opacity: 0, duration: 0.8, ease: "sine.in" }}, {round(tst + tdur - 0.85, 2)});''')
 
+
+# narrative caption cards (replace the former voice-over lines; text only)
+caps = [("k1", 2.0, 4.6, "Ada kebaikan… yang tidak pernah berhenti, walau jasad telah pergi."),
+        ("k3", 23.0, 5.0, "Para mutawalli dan nazir khas wakaf berhimpun… untuk menyusun langkah, menjaga harta Allah."),
+        ("k4", 29.6, 4.6, "Kerana wakaf bukan sekadar tanah dan bangunan… ia adalah amanah.")]
+for cid, cst, cd, ctext in caps:
+    card_html.append(f'''    <div id="{cid}" class="card clip" data-start="{cst}" data-duration="{cd}" data-track-index="4">
+      <div class="scrim"></div>
+      <div class="inner">
+        <p class="cap">{ctext}</p>
+        {divider}
+      </div>
+    </div>''')
+    card_js.append(f'''    tl.fromTo("#{cid} .scrim", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.0, ease: "sine.out" }}, {cst});
+    tl.fromTo("#{cid} .inner", {{ opacity: 0, filter: "blur(10px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.2, ease: "power2.out" }}, {cst + 0.1});
+    tl.to("#{cid} .inner", {{ opacity: 0, filter: "blur(6px)", duration: 0.8, ease: "power2.in" }}, {round(cst + cd - 0.85, 2)});
+    tl.to("#{cid} .scrim", {{ opacity: 0, duration: 0.8, ease: "sine.in" }}, {round(cst + cd - 0.85, 2)});''')
+
 # end card (doa), line by line
 est, edur = 59.7, 13.3
 lines = [(59.9, "Ya Allah, terimalah wakaf mereka yang telah pergi,"),
@@ -237,6 +255,7 @@ verses = f'''<template>
     .kicker {{ font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 38px; letter-spacing: 0.42em; color: #e3c07a; text-shadow: 0 1px 10px rgba(0,0,0,0.7); margin-bottom: 18px; }}
     .ttl {{ text-wrap: balance; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 58px; line-height: 1.16; color: #fff6e0; text-shadow: 0 2px 16px rgba(0,0,0,0.75); }}
     .venue {{ font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 38px; line-height: 1.3; color: #f3dca8; text-shadow: 0 2px 12px rgba(0,0,0,0.7); }}
+    .cap {{ text-wrap: balance; font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 52px; line-height: 1.3; color: #fff6e0; text-shadow: 0 2px 16px rgba(0,0,0,0.75); }}
     .doa {{ text-wrap: balance; font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 48px; line-height: 1.28; color: #fff6e0; text-shadow: 0 2px 16px rgba(0,0,0,0.75); margin-bottom: 14px; opacity: 0; }}
     .amin {{ font-size: 84px; line-height: 1.5; color: #f7e7bf; text-shadow: 0 2px 18px rgba(0,0,0,0.6); opacity: 0; }}
     #endcard .div, #endcard .cite {{ opacity: 0; }}

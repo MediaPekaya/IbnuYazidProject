@@ -20,6 +20,7 @@
     .kicker { font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 38px; letter-spacing: 0.42em; color: #e3c07a; text-shadow: 0 1px 10px rgba(0,0,0,0.7); margin-bottom: 18px; }
     .ttl { text-wrap: balance; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 58px; line-height: 1.16; color: #fff6e0; text-shadow: 0 2px 16px rgba(0,0,0,0.75); }
     .venue { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 38px; line-height: 1.3; color: #f3dca8; text-shadow: 0 2px 12px rgba(0,0,0,0.7); }
+    .cap { text-wrap: balance; font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 52px; line-height: 1.3; color: #fff6e0; text-shadow: 0 2px 16px rgba(0,0,0,0.75); }
     .doa { text-wrap: balance; font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 48px; line-height: 1.28; color: #fff6e0; text-shadow: 0 2px 16px rgba(0,0,0,0.75); margin-bottom: 14px; opacity: 0; }
     .amin { font-size: 84px; line-height: 1.5; color: #f7e7bf; text-shadow: 0 2px 18px rgba(0,0,0,0.6); opacity: 0; }
     #endcard .div, #endcard .cite { opacity: 0; }
@@ -70,6 +71,27 @@
         <p class="venue">Pusat Konvensyen Antarabangsa Putrajaya (PICC)</p>
       </div>
     </div>
+    <div id="k1" class="card clip" data-start="2.0" data-duration="4.6" data-track-index="4">
+      <div class="scrim"></div>
+      <div class="inner">
+        <p class="cap">Ada kebaikan… yang tidak pernah berhenti, walau jasad telah pergi.</p>
+        <svg class="div" viewBox="0 0 220 28" width="220" height="28" aria-hidden="true"><g fill="none" stroke="#e3c07a" stroke-width="1.6"><polygon points="110.0,3.0 113.2,6.2 117.8,6.2 117.8,10.8 121.0,14.0 117.8,17.2 117.8,21.8 113.2,21.8 110.0,25.0 106.8,21.8 102.2,21.8 102.2,17.2 99.0,14.0 102.2,10.8 102.2,6.2 106.8,6.2" /><path d="M 6 14 H 84" /><path d="M 136 14 H 214" /></g></svg>
+      </div>
+    </div>
+    <div id="k3" class="card clip" data-start="23.0" data-duration="5.0" data-track-index="4">
+      <div class="scrim"></div>
+      <div class="inner">
+        <p class="cap">Para mutawalli dan nazir khas wakaf berhimpun… untuk menyusun langkah, menjaga harta Allah.</p>
+        <svg class="div" viewBox="0 0 220 28" width="220" height="28" aria-hidden="true"><g fill="none" stroke="#e3c07a" stroke-width="1.6"><polygon points="110.0,3.0 113.2,6.2 117.8,6.2 117.8,10.8 121.0,14.0 117.8,17.2 117.8,21.8 113.2,21.8 110.0,25.0 106.8,21.8 102.2,21.8 102.2,17.2 99.0,14.0 102.2,10.8 102.2,6.2 106.8,6.2" /><path d="M 6 14 H 84" /><path d="M 136 14 H 214" /></g></svg>
+      </div>
+    </div>
+    <div id="k4" class="card clip" data-start="29.6" data-duration="4.6" data-track-index="4">
+      <div class="scrim"></div>
+      <div class="inner">
+        <p class="cap">Kerana wakaf bukan sekadar tanah dan bangunan… ia adalah amanah.</p>
+        <svg class="div" viewBox="0 0 220 28" width="220" height="28" aria-hidden="true"><g fill="none" stroke="#e3c07a" stroke-width="1.6"><polygon points="110.0,3.0 113.2,6.2 117.8,6.2 117.8,10.8 121.0,14.0 117.8,17.2 117.8,21.8 113.2,21.8 110.0,25.0 106.8,21.8 102.2,21.8 102.2,17.2 99.0,14.0 102.2,10.8 102.2,6.2 106.8,6.2" /><path d="M 6 14 H 84" /><path d="M 136 14 H 214" /></g></svg>
+      </div>
+    </div>
     <div id="endcard" class="card clip" data-start="59.7" data-duration="13.3" data-track-index="3">
       <div class="scrim big"></div>
       <div class="inner">
@@ -104,6 +126,18 @@
     tl.fromTo("#title .inner", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 1.2, ease: "power2.out" }, 16.700000000000003);
     tl.to("#title .inner", { opacity: 0, filter: "blur(6px)", duration: 0.8, ease: "power2.in" }, 21.25);
     tl.to("#title .scrim", { opacity: 0, duration: 0.8, ease: "sine.in" }, 21.25);
+    tl.fromTo("#k1 .scrim", { opacity: 0 }, { opacity: 1, duration: 1.0, ease: "sine.out" }, 2.0);
+    tl.fromTo("#k1 .inner", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 1.2, ease: "power2.out" }, 2.1);
+    tl.to("#k1 .inner", { opacity: 0, filter: "blur(6px)", duration: 0.8, ease: "power2.in" }, 5.75);
+    tl.to("#k1 .scrim", { opacity: 0, duration: 0.8, ease: "sine.in" }, 5.75);
+    tl.fromTo("#k3 .scrim", { opacity: 0 }, { opacity: 1, duration: 1.0, ease: "sine.out" }, 23.0);
+    tl.fromTo("#k3 .inner", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 1.2, ease: "power2.out" }, 23.1);
+    tl.to("#k3 .inner", { opacity: 0, filter: "blur(6px)", duration: 0.8, ease: "power2.in" }, 27.15);
+    tl.to("#k3 .scrim", { opacity: 0, duration: 0.8, ease: "sine.in" }, 27.15);
+    tl.fromTo("#k4 .scrim", { opacity: 0 }, { opacity: 1, duration: 1.0, ease: "sine.out" }, 29.6);
+    tl.fromTo("#k4 .inner", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 1.2, ease: "power2.out" }, 29.700000000000003);
+    tl.to("#k4 .inner", { opacity: 0, filter: "blur(6px)", duration: 0.8, ease: "power2.in" }, 33.35);
+    tl.to("#k4 .scrim", { opacity: 0, duration: 0.8, ease: "sine.in" }, 33.35);
     tl.fromTo("#endcard .scrim", { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "sine.out" }, 59.7);
     tl.set("#endcard .inner", { opacity: 1 }, 59.7);
     tl.fromTo("#doa1", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }, 59.9);
