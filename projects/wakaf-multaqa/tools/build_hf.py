@@ -19,8 +19,8 @@ for i, (sid, src, off, st, d) in enumerate(shots):
         tl.append(f'tl.set("#w{n:02d}", {{ opacity: 0 }}, {round(nxt + FADE + 0.02, 2)});')
 
 # VO windows (absolute seconds) and ducking
-vo = [("vo1", "v1", 1.5, 4.99), ("vo3", "v3", 16.8, 12.22), ("vo4", "v4", 30.2, 4.33), ("vo6", "v6", 42.8, 12.82), ("vo7", "v7", 59.8, 9.17)]
-wins = [(1.5, 6.52), (16.8, 34.6), (42.8, 55.65), (59.8, 69.0)]
+vo = [("vo1", "v1", 1.5, 5.82), ("vo3", "v3", 16.8, 12.12), ("vo4", "v4", 29.9, 4.59), ("vo6", "v6", 42.8, 13.84), ("vo7", "v7", 59.8, 9.4)]
+wins = [(1.5, 7.35), (16.8, 34.52), (42.8, 56.67), (59.8, 69.23)]
 BASE, DUCK = 0.8, 0.3
 pts = [(0, BASE)]
 for a, b in wins:
@@ -155,8 +155,8 @@ cards = [
  # id, start, dur, kind, arabic_font, arabic, lines(translation), cite
  ("c1", 7.9, 4.6, "ayat", "q", "لَن تَنَالُوا الْبِرَّ حَتَّىٰ تُنفِقُوا مِمَّا تُحِبُّونَ", "Kamu tidak akan mencapai kebajikan yang sempurna, sehingga kamu menginfakkan sebahagian harta yang kamu cintai.", "ALI IMRAN 3:92"),
  ("c3", 34.8, 4.5, "ayat", "q", "إِنَّ ٱللَّهَ یَأۡمُرُكُمۡ أَن تُؤَدُّوا۟ ٱلۡأَمَـٰنَـٰتِ إِلَىٰۤ أَهۡلِهَا", "Sesungguhnya Allah menyuruh kamu menyampaikan amanah kepada yang berhak.", "AN-NISA’ 4:58"),
- ("h1", 45.6, 4.3, "hadith", "a", "إِذَا مَاتَ الإِنْسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلاَّ مِنْ ثَلاَثَةٍ", "Apabila manusia meninggal dunia, terputuslah amalnya kecuali tiga perkara:", "HADIS RIWAYAT MUSLIM"),
- ("h2", 49.9, 5.3, "hadith", "a", "إِلَّا مِنْ صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ", "sedekah jariah, ilmu yang bermanfaat, dan anak soleh yang mendoakannya.", "HADIS RIWAYAT MUSLIM"),
+ ("h1", 46.3, 4.4, "hadith", "a", "إِذَا مَاتَ الإِنْسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلاَّ مِنْ ثَلاَثَةٍ", "Apabila manusia meninggal dunia, terputuslah amalnya kecuali tiga perkara:", "HADIS RIWAYAT MUSLIM"),
+ ("h2", 50.8, 5.3, "hadith", "a", "إِلَّا مِنْ صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ", "sedekah jariah, ilmu yang bermanfaat, dan anak soleh yang mendoakannya.", "HADIS RIWAYAT MUSLIM"),
 ]
 card_html, card_js = [], []
 for cid, st, d, kind, fnt, ar, tr, cite in cards:
@@ -213,8 +213,8 @@ for cid, cst, cd, ctext in caps:
 # end card (doa), line by line
 est, edur = 59.7, 13.3
 lines = [(59.9, "Ya Allah, terimalah wakaf mereka yang telah pergi,"),
-         (63.2, "kuatkan amanah mereka yang menjaganya,"),
-         (65.8, "dan jadikan ia pahala yang terus mengalir.")]
+         (62.9, "kuatkan amanah mereka yang menjaganya,"),
+         (65.6, "dan jadikan ia pahala yang terus mengalir.")]
 l_html = "\n".join(f'        <p class="doa" id="doa{k+1}">{t}</p>' for k, (s, t) in enumerate(lines))
 card_html.append(f'''    <div id="endcard" class="card clip" data-start="{est}" data-duration="{edur}" data-track-index="3">
       <div class="scrim big"></div>
@@ -231,7 +231,7 @@ card_js.append(f'''    tl.fromTo("#endcard .scrim", {{ opacity: 0 }}, {{ opacity
     tl.fromTo("#doa2", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, {lines[1][0]});
     tl.fromTo("#doa3", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, {lines[2][0]});
     tl.fromTo("#endcard .div", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.2, ease: "sine.out" }}, 67.9);
-    tl.fromTo("#amin", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, 68.3);
+    tl.fromTo("#amin", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, 68.2);
     tl.fromTo("#aminl", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.2, ease: "sine.out" }}, 69.0);''')
 
 verses = f'''<template>
