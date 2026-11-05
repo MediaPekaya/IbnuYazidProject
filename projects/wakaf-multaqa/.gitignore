@@ -1,0 +1,6 @@
+# Bahan mentah dan lagu berhak cipta tidak disimpan dalam repo
+assets/clips/
+assets/audio/music.mp3
+.hyperframes/
+node_modules/
+*.mp4
