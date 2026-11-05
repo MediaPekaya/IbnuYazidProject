@@ -19,8 +19,8 @@ for i, (sid, src, off, st, d) in enumerate(shots):
         tl.append(f'tl.set("#w{n:02d}", {{ opacity: 0 }}, {round(nxt + FADE + 0.02, 2)});')
 
 # VO windows (absolute seconds) and ducking
-vo = [("vo1", "v1", 1.5, 4.99), ("vo3", "v3", 16.8, 12.22), ("vo4", "v4", 30.2, 4.28), ("vo6", "v6", 42.8, 12.82), ("vo7", "v7", 59.8, 9.17)]
-wins = [(1.5, 6.52), (16.8, 34.51), (42.8, 55.65), (59.8, 69.0)]
+vo = [("vo1", "v1", 1.5, 4.99), ("vo3", "v3", 16.8, 12.22), ("vo4", "v4", 30.2, 4.33), ("vo6", "v6", 42.8, 12.82), ("vo7", "v7", 59.8, 9.17)]
+wins = [(1.5, 6.52), (16.8, 34.6), (42.8, 55.65), (59.8, 69.0)]
 BASE, DUCK = 0.8, 0.3
 pts = [(0, BASE)]
 for a, b in wins:

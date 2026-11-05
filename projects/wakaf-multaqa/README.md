@@ -12,3 +12,5 @@ Montaj tenang untuk *Majlis Multaqa YB Menteri di Jabatan Perdana Menteri (Hal E
 Bahan yang TIDAK ada dalam repo: klip sumber dan `assets/clips/*.mp4` (Google Drive), `assets/audio/music.mp3` (lagu Ittaqullah – Inteam, blok korus ~62–104s + ~136–170s, crossfade 2s).
 
 Preview: `npx hyperframes@0.9.16 preview` · Draf: `npx hyperframes@0.9.16 render -q draft -w 4 -o preview.mp4`
+
+Catatan VO: baris ke-3 bermula terus "Wakaf…" (ejaan fonetik "Wakaff" + `previous_text` supaya sebutan betul). Semua VO diproses dengan bass (`highpass 45Hz`, `bass +8dB @130Hz`, `+3dB @220Hz`, kompresor ringan, loudnorm -16 LUFS).
