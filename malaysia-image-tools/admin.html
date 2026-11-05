@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ms" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Malaysia Image Tools Admin</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: login card → admin console (left nav + panels); same tokens as index.html */
+:root{
+  --bg:#ffffff;--soft:#f5f6fc;--soft-2:#eef0f9;--line:#e3e6f2;--ink:#0e1530;--ink-2:#2b3352;--muted:#626b88;
+  --blue:#2457f5;--blue-50:#edf2ff;--violet:#7b3fe4;--violet-50:#f3eeff;--grad:linear-gradient(135deg,#2457f5 0%,#7b3fe4 100%);
+  --ok:#0f9d63;--ok-50:#e7f8f0;--warn:#b86e00;--warn-50:#fff5e1;--bad:#d6334a;--bad-50:#ffecef;
+  --shadow:0 1px 2px rgba(20,30,80,.06),0 8px 24px -12px rgba(20,30,80,.18);--shadow-lg:0 24px 60px -20px rgba(36,60,180,.35);
+  --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--soft);color:var(--ink)}
+body{font-family:var(--font);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+[hidden]{display:none!important}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+svg.i{width:18px;height:18px;flex:none}
+.mono{font-family:var(--mono)}
+/* Login */
+.login{min-height:100vh;display:grid;place-items:center;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:radial-gradient(700px 320px at 85% 0%,rgba(123,63,228,.14),transparent 70%),radial-gradient(600px 300px at 0% 100%,rgba(36,87,245,.12),transparent 70%),var(--soft)}
+.login-card{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-lg);padding:28px;display:grid;gap:16px}
+.brand{display:flex;gap:11px;align-items:center}
+.brand-mark{width:42px;height:42px;border-radius:12px;background:var(--grad);display:grid;place-items:center;color:#fff;flex:none}
+.brand b{display:block;font-size:14px;letter-spacing:.06em;font-weight:800}
+.brand small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.fld{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.inp{height:42px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff;width:100%;outline:none;font-weight:500}
+textarea.inp{height:auto;min-height:84px;padding:10px 12px;resize:vertical}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-50)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:650;font-size:13.5px;cursor:pointer;white-space:nowrap;color:var(--ink)}
+.btn:hover{background:var(--soft);border-color:#bcc6ea}
+.btn.primary{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 8px 20px -10px rgba(60,70,230,.8)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--bad)}.btn.danger:hover{background:var(--bad-50);border-color:#f3c0c8}
+.btn.sm{height:32px;padding:0 11px;font-size:12.5px;border-radius:8px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.link{background:none;border:0;color:var(--blue);font-weight:650;cursor:pointer;padding:0;font-size:13px}
+.msg{font-size:13px;border-radius:10px;padding:10px 12px;border:1px solid}
+.msg.err{background:var(--bad-50);border-color:#f6c2cb;color:var(--bad)}
+.msg.ok{background:var(--ok-50);border-color:#bfe9d4;color:var(--ok)}
+.msg.info{background:var(--blue-50);border-color:#cfdcff;color:#1d3fb8}
+.msg.warn{background:var(--warn-50);border-color:#f3dba8;color:var(--warn)}
+.steps{margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);display:grid;gap:5px}
+code{font-family:var(--mono);font-size:12px;background:var(--soft-2);padding:1px 5px;border-radius:5px}
+/* Console */
+.console{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:14px;position:sticky;top:0;height:100vh;padding-left:max(12px,env(safe-area-inset-left,0px))}
+.side nav{display:grid;gap:2px}
+.side nav button{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;border:0;background:none;cursor:pointer;font-weight:600;color:var(--ink-2);text-align:left;font-size:13.5px}
+.side nav button:hover{background:var(--soft)}
+.side nav button.on{background:var(--blue-50);color:var(--blue)}
+.side nav button .badge{margin-left:auto;background:var(--bad);color:#fff;font-size:11px;border-radius:999px;padding:0 7px;font-weight:700}
+.side .who{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;font-size:12px;color:var(--muted);display:grid;gap:8px;word-break:break-all}
+.main{min-width:0;padding-block:24px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:900px){.main{padding-left:32px;padding-right:32px}}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:18px}
+.head{display:flex;align-items:end;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.head h1{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.head p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.demo-flag{display:inline-flex;gap:6px;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--warn-50);color:var(--warn);border:1px solid #f3dba8;border-radius:999px;padding:4px 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-h h2{font-size:15px;font-weight:750;flex:1}
+.card-b{padding:16px;display:grid;gap:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{padding:16px}
+.kpi span{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi b{display:block;font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:4px}
+.kpi small{color:var(--muted);font-size:12px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+@media (max-width:980px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.chart{width:100%;height:auto;display:block}
+.bars{display:grid;gap:9px}
+.bar-row{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) 54px;gap:10px;align-items:center;font-size:13px}
+.bar-row .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.bar-row .t{height:10px;background:var(--soft-2);border-radius:99px;overflow:hidden}
+.bar-row .t i{display:block;height:100%;background:var(--grad);border-radius:99px}
+.bar-row .v{font:600 12.5px var(--mono);text-align:right}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{background:var(--soft);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-flex;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px}
+.pill.convert{background:var(--blue-50);color:var(--blue)}.pill.edit{background:var(--violet-50);color:var(--violet)}.pill.util{background:var(--soft-2);color:#4b4be8}
+.pill.new{background:var(--bad-50);color:var(--bad)}.pill.read{background:var(--soft-2);color:var(--muted)}
+.switch{position:relative;width:42px;height:24px;flex:none;display:inline-block}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch span{position:absolute;inset:0;background:#cdd3e6;border-radius:99px;cursor:pointer;transition:.15s}
+.switch span::after{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch input:checked+span{background:var(--blue)}
+.switch input:checked+span::after{transform:translateX(18px)}
+.switch input:focus-visible+span{outline:2px solid var(--blue);outline-offset:2px}
+.toggle-row{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 14px;border:1px solid var(--line);border-radius:12px}
+.toggle-row b{display:block;font-size:14px}.toggle-row small{color:var(--muted);font-size:12.5px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
+.fb{padding:14px 16px;border-bottom:1px solid var(--line);display:grid;gap:6px}
+.fb:last-child{border-bottom:0}
+.fb .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.fb .top b{color:var(--ink);font-size:13.5px}
+.fb p{margin:0;white-space:pre-wrap;word-break:break-word}
+.fb .acts{display:flex;gap:6px;flex-wrap:wrap}
+.stars{color:#e8a200;letter-spacing:1px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{height:32px;padding:0 11px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:650;cursor:pointer}
+.seg button.on{background:var(--blue-50);border-color:var(--blue);color:var(--blue)}
+.preview-banner{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:11px 14px;font-size:13.5px;border:1px solid}
+.preview-banner.info{background:var(--blue-50);border-color:#cfdcff;color:#1d3fb8}
+.preview-banner.warning{background:var(--warn-50);border-color:#f6dca6;color:var(--warn)}
+.preview-banner.success{background:var(--ok-50);border-color:#b8ead2;color:var(--ok)}
+.topbar{display:none}
+.toasts{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:100;width:min(340px,calc(100vw - 32px))}
+.toast{background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:12px;padding:11px 13px;box-shadow:var(--shadow-lg);font-size:13.5px}
+.toast.success{border-left-color:var(--ok)}.toast.error{border-left-color:var(--bad)}
+@media (max-width:860px){
+  .console{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:12px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px))}
+  .side nav{grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto;scrollbar-width:none}
+  .side .who{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:0}
+  .bar-row{grid-template-columns:minmax(0,110px) minmax(0,1fr) 46px}
+}
+</style>
+</head>
+<body>
+<!-- ============ LOG MASUK ============ -->
+<section class="login" id="loginView">
+  <div class="login-card">
+    <div class="brand"><span class="brand-mark"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span><span><b>MALAYSIA IMAGE TOOLS</b><small>Panel Pentadbir</small></span></div>
+    <div id="setupBox" hidden>
+      <div class="msg warn" style="margin-bottom:12px"><b>Firebase belum disambung.</b> Isi <code>FIREBASE_CONFIG</code> dalam fail ini (dan dalam index.html) untuk log masuk sebenar.</div>
+      <ol class="steps">
+        <li>Cipta projek percuma di <b>console.firebase.google.com</b> (pelan Spark).</li>
+        <li>Aktifkan <b>Authentication → Email/Password</b> dan cipta akaun admin.</li>
+        <li>Aktifkan <b>Firestore</b> dan <b>Realtime Database</b>, kemudian tampal peraturan (rules) yang disediakan.</li>
+        <li>Salin UID admin. Cipta dokumen Firestore <code>admins/{UID}</code> dan nod Realtime DB <code>admins/{UID}: true</code>.</li>
+        <li>Tampal konfigurasi web app ke <code>FIREBASE_CONFIG</code>.</li>
+      </ol>
+      <button class="btn block" id="demoBtn" type="button" style="margin-top:14px">Buka Mod Demo (data contoh)</button>
+    </div>
+    <form id="loginForm" style="display:grid;gap:12px">
+      <label class="fld">E-mel<input class="inp" id="email" type="email" autocomplete="username" required></label>
+      <label class="fld">Kata laluan<input class="inp" id="pass" type="password" autocomplete="current-password" required minlength="6"></label>
+      <div id="loginMsg" hidden></div>
+      <button class="btn primary block" type="submit" id="loginBtn">Log Masuk</button>
+      <button class="link" type="button" id="resetBtn" style="justify-self:start">Lupa kata laluan?</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ KONSOL ============ -->
+<div class="console" id="consoleView" hidden>
+  <aside class="side">
+    <div class="brand"><span class="brand-mark"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span><span><b>MIT ADMIN</b><small>Malaysia Image Tools</small></span></div>
+    <nav id="tabs">
+      <button type="button" data-tab="overview" class="on">Ringkasan</button>
+      <button type="button" data-tab="site">Tetapan Laman</button>
+      <button type="button" data-tab="tools">Urus Alat</button>
+      <button type="button" data-tab="feedback">Maklum Balas <span class="badge" id="fbBadge" hidden>0</span></button>
+      <button type="button" data-tab="data">Data &amp; Privasi</button>
+    </nav>
+    <div class="who"><span id="whoText"></span><button class="btn sm" id="logoutBtn" type="button">Log Keluar</button></div>
+  </aside>
+  <main class="main"><div class="wrap">
+    <div id="demoNote" hidden class="preview-banner warning"><b>MOD DEMO</b>&nbsp;· Data di bawah ialah contoh dan disimpan dalam browser ini sahaja. Sambungkan Firebase untuk data sebenar.</div>
+
+    <!-- Ringkasan -->
+    <section data-panel="overview" style="display:grid;gap:16px">
+      <div class="head"><div><h1>Ringkasan</h1><p>Statistik penggunaan alat (dikira setiap kali pengguna memuat turun hasil). Tiada gambar disimpan.</p></div><button class="btn sm" id="refreshBtn" type="button">Muat Semula</button></div>
+      <div class="kpis">
+        <div class="card kpi"><span>Jumlah penggunaan</span><b id="kTotal">–</b><small>sejak mula</small></div>
+        <div class="card kpi"><span>Hari ini</span><b id="kToday">–</b><small id="kTodayDate"></small></div>
+        <div class="card kpi"><span>Alat aktif</span><b id="kActive">–</b><small id="kActiveOf"></small></div>
+        <div class="card kpi"><span>Maklum balas baharu</span><b id="kFb">–</b><small>belum dibaca</small></div>
+      </div>
+      <div class="kpis">
+        <div class="card kpi"><span>Jumlah pengguna</span><b id="vUsers">–</b><small>pengguna unik sejak mula</small></div>
+        <div class="card kpi"><span>Pelawat hari ini</span><b id="vToday">–</b><small>set semula 12:00 malam (MYT)</small></div>
+        <div class="card kpi"><span>Pelawat bulan ini</span><b id="vMonth">–</b><small>set semula awal bulan</small></div>
+        <div class="card kpi"><span>Keseluruhan lawatan</span><b id="vTotal">–</b><small>campuran semua hari</small></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><div class="card-h"><h2>Penggunaan 7 hari terakhir</h2></div><div class="card-b"><svg class="chart" id="chart" viewBox="0 0 560 240" role="img" aria-label="Carta penggunaan 7 hari"></svg></div></div>
+        <div class="card"><div class="card-h"><h2>Alat paling popular</h2></div><div class="card-b"><div class="bars" id="topTools"></div></div></div>
+      </div>
+    </section>
+
+    <!-- Tetapan laman -->
+    <section data-panel="site" hidden style="display:grid;gap:16px">
+      <div class="head"><div><h1>Tetapan Laman</h1><p>Pengumuman dipaparkan di bahagian atas setiap halaman index.html.</p></div></div>
+      <form class="card" id="siteForm"><div class="card-h"><h2>Pengumuman</h2></div><div class="card-b">
+        <div class="toggle-row"><div><b>Papar pengumuman</b><small>Hidupkan untuk tunjuk mesej kepada semua pengunjung</small></div><label class="switch"><input type="checkbox" id="annOn"><span></span></label></div>
+        <label class="fld">Teks pengumuman (maks 300 aksara)<textarea class="inp" id="annText" maxlength="300" placeholder="cth: Alat baharu! Cuba Passport Photo Layout Generator."></textarea></label>
+        <div class="fld"><span>Jenis</span><div class="seg" id="annType"><button type="button" data-v="info" class="on">Info</button><button type="button" data-v="success">Berita baik</button><button type="button" data-v="warning">Amaran</button></div></div>
+        <div class="fld"><span>Pratonton</span><div id="annPreview" class="preview-banner info">—</div></div>
+      </div>
+      <div class="card-h" style="border-top:1px solid var(--line)"><h2>Penyelenggaraan</h2></div><div class="card-b">
+        <div class="toggle-row"><div><b>Mod penyelenggaraan</b><small>Papar amaran penyelenggaraan (menggantikan pengumuman). Alat masih boleh digunakan.</small></div><label class="switch"><input type="checkbox" id="mOn"><span></span></label></div>
+        <label class="fld">Mesej penyelenggaraan<input class="inp" id="mText" maxlength="300" placeholder="Penyelenggaraan pada 10 malam ini."></label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn primary" type="submit">Simpan Tetapan</button><span id="siteMeta" style="font-size:12.5px;color:var(--muted)"></span></div>
+      </div></form>
+    </section>
+
+    <!-- Urus alat -->
+    <section data-panel="tools" hidden style="display:grid;gap:16px">
+      <div class="head"><div><h1>Urus Alat</h1><p>Matikan alat buat sementara atau tandakan sebagai "Pilihan" di halaman utama. Perubahan disimpan serta-merta.</p></div></div>
+      <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Alat</th><th>Kategori</th><th>Penggunaan</th><th>Aktif</th><th>Pilihan</th></tr></thead><tbody id="toolRows"></tbody></table></div></div>
+    </section>
+
+    <!-- Maklum balas -->
+    <section data-panel="feedback" hidden style="display:grid;gap:16px">
+      <div class="head"><div><h1>Maklum Balas</h1><p>Mesej yang dihantar melalui borang "Hantar Maklum Balas".</p></div><div class="seg" id="fbFilter"><button type="button" data-v="all" class="on">Semua</button><button type="button" data-v="new">Baharu</button><button type="button" data-v="read">Dibaca</button></div></div>
+      <div class="card" id="fbList"></div>
+    </section>
+
+    <!-- Data -->
+    <section data-panel="data" hidden style="display:grid;gap:16px">
+      <div class="head"><div><h1>Data &amp; Privasi</h1><p>Apa yang disimpan oleh sistem ini.</p></div></div>
+      <div class="card"><div class="card-b">
+        <div class="msg ok"><b>Gambar pengguna tidak pernah dimuat naik.</b> Semua pemprosesan berlaku dalam browser pengunjung. Firebase Storage tidak digunakan.</div>
+        <table><thead><tr><th>Lokasi</th><th>Data</th><th>Siapa boleh baca/tulis</th></tr></thead><tbody>
+          <tr><td>Firestore <code>settings/site</code></td><td>Pengumuman &amp; mod penyelenggaraan</td><td>Semua boleh baca · admin sahaja tulis</td></tr>
+          <tr><td>Firestore <code>tools/{id}</code></td><td>Status aktif &amp; pilihan</td><td>Semua boleh baca · admin sahaja tulis</td></tr>
+          <tr><td>Firestore <code>feedback/{id}</code></td><td>Nama (pilihan), mesej, penilaian</td><td>Semua boleh cipta · admin sahaja baca/ubah/padam</td></tr>
+          <tr><td>Firestore <code>admins/{uid}</code></td><td>Senarai admin</td><td>Dicipta manual di konsol Firebase</td></tr>
+          <tr><td>Realtime DB <code>visits/…</code></td><td>Kiraan pelawat (nombor sahaja, tiada data peribadi)</td><td>Semua boleh baca &amp; tambah +1 · admin sahaja boleh set semula</td></tr>
+          <tr><td>Realtime DB <code>stats/…</code></td><td>Kiraan penggunaan (nombor sahaja)</td><td>Semua boleh baca &amp; tambah +1 · admin sahaja boleh set semula</td></tr>
+        </tbody></table>
+      </div></div>
+      <div class="card"><div class="card-h"><h2>Set semula statistik</h2></div><div class="card-b">
+        <p style="margin:0;color:var(--muted)">Padam semua kiraan penggunaan alat <b>dan</b> statistik pelawat dalam Realtime Database. Tindakan ini tidak boleh dibatalkan.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="resetArea"><button class="btn danger" type="button" id="resetStats">Set Semula Statistik</button></div>
+      </div></div>
+    </section>
+  </div></main>
+</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"></script>
+<script>
+'use strict';
+/* ====== Tampal konfigurasi yang SAMA seperti dalam index.html ====== */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+const TOOL_LIST = [
+  ['jpg-to-png','JPG to PNG','convert'],['png-to-jpg','PNG to JPG','convert'],['webp-to-jpg','WEBP to JPG','convert'],['jpg-to-webp','JPG to WEBP','convert'],['png-to-webp','PNG to WEBP','convert'],['image-format-converter','Image Format Converter','convert'],['image-to-pdf','Image to PDF','convert'],['pdf-to-image','PDF to Image','convert'],
+  ['image-compressor','Image Compressor','edit'],['image-resizer','Image Resizer','edit'],['image-cropper','Image Cropper','edit'],['image-rotator','Image Rotator','edit'],['image-flipper','Image Flipper','edit'],['image-color-picker','Image Color Picker','edit'],['image-brightness','Image Brightness Editor','edit'],['image-contrast','Image Contrast Editor','edit'],['image-saturation','Image Saturation Editor','edit'],['image-grayscale','Image Grayscale Converter','edit'],['image-blur','Image Blur Tool','edit'],['image-border','Image Border Maker','edit'],['remove-background','Remove Background (AI)','edit'],
+  ['image-metadata','Image Metadata Viewer','util'],['image-dimension','Image Dimension Checker','util'],['color-palette','Image Color Palette Extractor','util'],['favicon-generator','Favicon Generator','util'],['youtube-thumbnail','YouTube Thumbnail Resizer','util'],['passport-photo','Passport Photo Layout Generator','util'],['profile-picture','Profile Picture Maker','util'],['image-collage','Image Collage Maker','util'],['meme-generator','Meme Generator','util'],['image-comparison','Image Comparison Tool','util']
+];
+const CAT_NAME = { convert: 'Converter', edit: 'Editor', util: 'Utilities' };
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = n => Number(n || 0).toLocaleString('ms-MY');
+const dayKey = d => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kuala_Lumpur', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); // tarikh waktu Malaysia
+function toast(msg, type = '') { const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; $('#toasts').appendChild(t); setTimeout(() => t.remove(), 3500); }
+function showMsg(text, type) { const m = $('#loginMsg'); m.hidden = !text; m.className = 'msg ' + type; m.textContent = text || ''; }
+
+/* ---------- Lapisan data: Firebase atau Demo ---------- */
+const configured = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+let API = null, user = null;
+
+function firebaseAPI() {
+  const db = firebase.firestore(), rt = FIREBASE_CONFIG.databaseURL ? firebase.database() : null;
+  return {
+    demo: false,
+    async getSettings() { const s = await db.doc('settings/site').get(); return s.exists ? s.data() : {}; },
+    async saveSettings(d) { await db.doc('settings/site').set({ ...d, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: user.email }); },
+    async getTools() { const out = {}; (await db.collection('tools').get()).forEach(d => out[d.id] = d.data()); return out; },
+    async setTool(id, patch) { await db.doc('tools/' + id).set({ ...patch, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }); },
+    async getStats() { if (!rt) return {}; const s = await rt.ref('stats').get(); return s.val() || {}; },
+    async getVisits() { if (!rt) return {}; const s = await rt.ref('visits').get(); return s.val() || {}; },
+    async resetVisits() { if (!rt) throw new Error('Realtime Database tidak dikonfigurasi.'); await rt.ref('visits').remove(); },
+    async resetStats() { if (!rt) throw new Error('Realtime Database tidak dikonfigurasi (databaseURL kosong).'); await rt.ref('stats').remove(); },
+    async listFeedback() { const q = await db.collection('feedback').orderBy('createdAt', 'desc').limit(200).get(); return q.docs.map(d => ({ id: d.id, ...d.data(), createdAt: d.data().createdAt ? d.data().createdAt.toDate() : null })); },
+    async updateFeedback(id, patch) { await db.doc('feedback/' + id).update(patch); },
+    async deleteFeedback(id) { await db.doc('feedback/' + id).delete(); }
+  };
+}
+function demoAPI() {
+  const KEY = 'mit_admin_demo';
+  const seed = () => {
+    const tools = {}, daily = {}; let total = 0; const now = new Date();
+    TOOL_LIST.forEach(([id], i) => tools[id] = Math.round(400 / (i + 1.5)) + (i * 7) % 13);
+    total = Object.values(tools).reduce((a, b) => a + b, 0);
+    for (let d = 0; d < 7; d++) { const k = dayKey(new Date(now - d * 864e5)); daily[k] = {}; TOOL_LIST.slice(0, 8).forEach(([id], i) => daily[k][id] = ((d * 5 + i * 3) % 9) + 2); }
+    const vd = {}, vm = {}; for (let d = 0; d < 7; d++) vd[dayKey(new Date(now - d * 864e5))] = 40 + (d * 17) % 30; vm[dayKey(now).slice(0, 7)] = 812;
+    return { visits: { users: 1530, total: 2987, daily: vd, monthly: vm }, settings: { announcementActive: true, announcement: 'CONTOH: Alat baharu Passport Photo Layout Generator kini tersedia!', announcementType: 'success', maintenance: false, maintenanceMessage: '' }, tools: { 'meme-generator': { enabled: true, featured: true } }, stats: { tools, total, daily },
+      feedback: [{ id: 'd1', name: 'Contoh: Aina', message: 'Contoh mesej: alat compressor sangat membantu untuk hantar borang kerajaan.', tool: 'image-compressor', rating: 5, status: 'new', createdAt: new Date(now - 36e5) }, { id: 'd2', name: '', message: 'Contoh mesej: boleh tambah alat buang latar belakang?', tool: 'umum', rating: 4, status: 'read', createdAt: new Date(now - 864e5) }] };
+  };
+  let st; try { st = JSON.parse(localStorage.getItem(KEY)); } catch { }
+  if (!st) st = seed();
+  st.feedback.forEach(f => f.createdAt = f.createdAt ? new Date(f.createdAt) : null);
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { } };
+  return {
+    demo: true,
+    async getSettings() { return { ...st.settings }; }, async saveSettings(d) { st.settings = { ...d, updatedBy: 'demo' }; save(); },
+    async getTools() { return JSON.parse(JSON.stringify(st.tools)); }, async setTool(id, p) { st.tools[id] = { ...(st.tools[id] || {}), ...p }; save(); },
+    async getStats() { return st.stats; }, async getVisits() { return st.visits || {}; }, async resetVisits() { st.visits = {}; save(); }, async resetStats() { st.stats = { tools: {}, total: 0, daily: {} }; save(); },
+    async listFeedback() { return st.feedback.slice(); }, async updateFeedback(id, p) { Object.assign(st.feedback.find(f => f.id === id), p); save(); },
+    async deleteFeedback(id) { st.feedback = st.feedback.filter(f => f.id !== id); save(); }
+  };
+}
+
+/* ---------- Log masuk ---------- */
+if (!configured) { $('#setupBox').hidden = false; $('#loginBtn').disabled = true; $('#resetBtn').hidden = true; }
+else {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  firebase.auth().onAuthStateChanged(async u => {
+    if (!u) { $('#consoleView').hidden = true; $('#loginView').hidden = false; return; }
+    try {
+      const a = await firebase.firestore().doc('admins/' + u.uid).get();
+      if (!a.exists) { showMsg(`Akaun ini bukan admin. Tambah dokumen Firestore admins/${u.uid} untuk memberi akses.`, 'err'); await firebase.auth().signOut(); return; }
+      user = u; API = firebaseAPI(); enterConsole();
+    } catch (e) { showMsg('Gagal menyemak akses admin: ' + e.message, 'err'); }
+  });
+}
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); if (!configured) return;
+  showMsg('', ''); $('#loginBtn').disabled = true; $('#loginBtn').textContent = 'Sedang log masuk...';
+  try { await firebase.auth().signInWithEmailAndPassword($('#email').value.trim(), $('#pass').value); }
+  catch (err) { showMsg({ 'auth/invalid-credential': 'E-mel atau kata laluan salah.', 'auth/wrong-password': 'Kata laluan salah.', 'auth/user-not-found': 'Akaun tidak wujud.', 'auth/too-many-requests': 'Terlalu banyak cubaan. Cuba sebentar lagi.' }[err.code] || err.message, 'err'); }
+  finally { $('#loginBtn').disabled = false; $('#loginBtn').textContent = 'Log Masuk'; }
+});
+$('#resetBtn').addEventListener('click', async () => {
+  const email = $('#email').value.trim(); if (!email) return showMsg('Isi e-mel dahulu, kemudian klik "Lupa kata laluan".', 'info');
+  try { await firebase.auth().sendPasswordResetEmail(email); showMsg('Pautan set semula kata laluan telah dihantar ke ' + email + '.', 'ok'); } catch (e) { showMsg(e.message, 'err'); }
+});
+$('#demoBtn').addEventListener('click', () => { API = demoAPI(); user = { email: 'demo@contoh (tiada Firebase)' }; enterConsole(); });
+$('#logoutBtn').addEventListener('click', async () => { if (API && !API.demo) await firebase.auth().signOut(); API = null; user = null; $('#consoleView').hidden = true; $('#loginView').hidden = false; });
+
+/* ---------- Konsol ---------- */
+let cache = { stats: {}, tools: {}, feedback: [], settings: {} }, fbFilter = 'all';
+function enterConsole() {
+  $('#loginView').hidden = true; $('#consoleView').hidden = false; $('#demoNote').hidden = !API.demo;
+  $('#whoText').textContent = user.email; loadAll();
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; $$('#tabs button').forEach(x => x.classList.toggle('on', x === b)); $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== b.dataset.tab); });
+$('#refreshBtn').addEventListener('click', loadAll);
+async function loadAll() {
+  try {
+    const [stats, tools, settings, feedback, visits] = await Promise.all([API.getStats(), API.getTools(), API.getSettings(), API.listFeedback().catch(e => { toast('Maklum balas: ' + e.message, 'error'); return []; }), API.getVisits().catch(() => ({}))]);
+    cache = { stats, tools, settings, feedback, visits };
+    renderOverview(); renderTools(); renderSettings(); renderFeedback();
+  } catch (e) { toast('Gagal memuatkan data: ' + e.message, 'error'); }
+}
+function renderOverview() {
+  const st = cache.stats || {}, t = st.tools || {}, daily = st.daily || {}, today = dayKey(new Date());
+  $('#kTotal').textContent = num(st.total);
+  const vi = cache.visits || {}; $('#vUsers').textContent = num(vi.users); $('#vTotal').textContent = num(vi.total); $('#vToday').textContent = num((vi.daily || {})[today]); $('#vMonth').textContent = num((vi.monthly || {})[today.slice(0, 7)]);
+  $('#kToday').textContent = num(Object.values(daily[today] || {}).reduce((a, b) => a + b, 0)); $('#kTodayDate').textContent = today;
+  const active = TOOL_LIST.filter(([id]) => (cache.tools[id] || {}).enabled !== false).length; $('#kActive').textContent = active; $('#kActiveOf').textContent = `daripada ${TOOL_LIST.length} alat`;
+  const nNew = cache.feedback.filter(f => f.status === 'new').length; $('#kFb').textContent = nNew; $('#fbBadge').hidden = !nNew; $('#fbBadge').textContent = nNew;
+  // carta 7 hari
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.now() - (6 - i) * 864e5); const k = dayKey(d); return { k, label: d.toLocaleDateString('ms-MY', { weekday: 'short', day: 'numeric' }), v: Object.values(daily[k] || {}).reduce((a, b) => a + b, 0) }; });
+  const max = Math.max(1, ...days.map(d => d.v)), step = Math.pow(10, Math.floor(Math.log10(max))) * (max / Math.pow(10, Math.floor(Math.log10(max))) > 5 ? 2 : 1), top = Math.ceil(max / step) * step;
+  const L = 44, R = 12, T = 14, B = 34, W = 560 - L - R, H = 240 - T - B, bw = W / 7;
+  let svg = '';
+  for (let g = 0; g <= top; g += step) { const y = T + H - g / top * H; svg += `<line x1="${L}" x2="${560 - R}" y1="${y}" y2="${y}" stroke="#e3e6f2"/><text x="${L - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#626b88" font-family="JetBrains Mono, monospace">${g}</text>`; }
+  svg += `<defs><linearGradient id="gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7b3fe4"/><stop offset="1" stop-color="#2457f5"/></linearGradient></defs>`;
+  days.forEach((d, i) => { const h = d.v / top * H, x = L + i * bw + bw * .2; svg += `<rect x="${x}" y="${T + H - h}" width="${bw * .6}" height="${Math.max(h, 0)}" rx="5" fill="url(#gb)"><title>${d.k}: ${d.v}</title></rect>${d.v ? `<text x="${x + bw * .3}" y="${T + H - h - 5}" text-anchor="middle" font-size="11" font-weight="600" fill="#0e1530" font-family="JetBrains Mono, monospace">${d.v}</text>` : ''}<text x="${x + bw * .3}" y="${240 - 12}" text-anchor="middle" font-size="11" fill="#626b88">${esc(d.label)}</text>`; });
+  $('#chart').innerHTML = svg;
+  const rows = TOOL_LIST.map(([id, n]) => [n, t[id] || 0]).sort((a, b) => b[1] - a[1]).slice(0, 8); const m = Math.max(1, ...rows.map(r => r[1]));
+  $('#topTools').innerHTML = rows.some(r => r[1]) ? rows.map(([n, v]) => `<div class="bar-row"><span class="n" title="${esc(n)}">${esc(n)}</span><span class="t"><i style="width:${v / m * 100}%"></i></span><span class="v">${num(v)}</span></div>`).join('') : '<div class="empty">Belum ada data penggunaan.</div>';
+}
+function renderTools() {
+  const t = (cache.stats || {}).tools || {};
+  $('#toolRows').innerHTML = TOOL_LIST.map(([id, n, c]) => { const s = cache.tools[id] || {}; return `<tr><td><b>${esc(n)}</b><br><span class="mono" style="font-size:11.5px;color:var(--muted)">#${id}</span></td><td><span class="pill ${c}">${CAT_NAME[c]}</span></td><td class="mono">${num(t[id])}</td>
+    <td><label class="switch" aria-label="Aktifkan ${esc(n)}"><input type="checkbox" data-id="${id}" data-k="enabled" ${s.enabled !== false ? 'checked' : ''}><span></span></label></td>
+    <td><label class="switch" aria-label="Tanda pilihan ${esc(n)}"><input type="checkbox" data-id="${id}" data-k="featured" ${s.featured ? 'checked' : ''}><span></span></label></td></tr>`; }).join('');
+}
+$('#toolRows').addEventListener('change', async e => {
+  const i = e.target; if (!i.dataset.id) return; i.disabled = true;
+  try { await API.setTool(i.dataset.id, { [i.dataset.k]: i.checked }); cache.tools[i.dataset.id] = { ...(cache.tools[i.dataset.id] || {}), [i.dataset.k]: i.checked }; toast('Disimpan.', 'success'); renderOverview(); }
+  catch (err) { i.checked = !i.checked; toast('Gagal simpan: ' + err.message, 'error'); } finally { i.disabled = false; }
+});
+let annType = 'info';
+function renderSettings() {
+  const s = cache.settings || {};
+  $('#annOn').checked = !!s.announcementActive; $('#annText').value = s.announcement || ''; annType = s.announcementType || 'info';
+  $('#mOn').checked = !!s.maintenance; $('#mText').value = s.maintenanceMessage || '';
+  $$('#annType button').forEach(b => b.classList.toggle('on', b.dataset.v === annType));
+  $('#siteMeta').textContent = s.updatedBy ? `Kemas kini terakhir oleh ${s.updatedBy}` : ''; preview();
+}
+function preview() { const p = $('#annPreview'); p.className = 'preview-banner ' + annType; p.textContent = $('#annText').value || '(tiada teks)'; }
+$('#annText').addEventListener('input', preview);
+$('#annType').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; annType = b.dataset.v; $$('#annType button').forEach(x => x.classList.toggle('on', x === b)); preview(); });
+$('#siteForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = { announcementActive: $('#annOn').checked, announcement: $('#annText').value.trim().slice(0, 300), announcementType: annType, maintenance: $('#mOn').checked, maintenanceMessage: $('#mText').value.trim().slice(0, 300) };
+  try { await API.saveSettings(d); cache.settings = { ...d, updatedBy: user.email }; renderSettings(); toast('Tetapan disimpan.', 'success'); } catch (err) { toast('Gagal simpan: ' + err.message, 'error'); }
+});
+function renderFeedback() {
+  const list = cache.feedback.filter(f => fbFilter === 'all' || f.status === fbFilter);
+  const tname = id => (TOOL_LIST.find(t => t[0] === id) || [, 'Umum'])[1];
+  $('#fbList').innerHTML = list.length ? list.map(f => `<div class="fb" data-id="${esc(f.id)}"><div class="top"><b>${esc(f.name || 'Tanpa nama')}</b><span class="pill ${f.status === 'new' ? 'new' : 'read'}">${f.status === 'new' ? 'Baharu' : 'Dibaca'}</span><span>${esc(tname(f.tool))}</span><span class="stars">${'★'.repeat(f.rating || 0)}</span><span>${f.createdAt ? f.createdAt.toLocaleString('ms-MY') : ''}</span></div><p>${esc(f.message)}</p>
+    <div class="acts">${f.status === 'new' ? '<button class="btn sm" data-a="read" type="button">Tanda dibaca</button>' : '<button class="btn sm" data-a="new" type="button">Tanda baharu</button>'}<button class="btn sm danger" data-a="del" type="button">Padam</button></div></div>`).join('') : '<div class="empty">Tiada maklum balas.</div>';
+}
+$('#fbFilter').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; fbFilter = b.dataset.v; $$('#fbFilter button').forEach(x => x.classList.toggle('on', x === b)); renderFeedback(); });
+$('#fbList').addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]'); if (!b) return; const id = b.closest('.fb').dataset.id; const f = cache.feedback.find(x => x.id === id);
+  try {
+    if (b.dataset.a === 'del') { b.dataset.a = 'del2'; b.textContent = 'Klik lagi untuk sahkan'; return; }
+    if (b.dataset.a === 'del2') { await API.deleteFeedback(id); cache.feedback = cache.feedback.filter(x => x.id !== id); toast('Dipadam.', 'success'); }
+    else { await API.updateFeedback(id, { status: b.dataset.a }); f.status = b.dataset.a; }
+    renderFeedback(); renderOverview();
+  } catch (err) { toast('Gagal: ' + err.message, 'error'); }
+});
+$('#resetArea').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'resetStats') { $('#resetArea').innerHTML = '<span style="align-self:center;font-weight:600">Anda pasti? Semua kiraan akan dipadam.</span><button class="btn danger" id="resetYes" type="button">Ya, padam</button><button class="btn" id="resetNo" type="button">Batal</button>'; return; }
+  if (b.id === 'resetYes') { try { await API.resetStats(); await API.resetVisits(); cache.stats = {}; cache.visits = {}; renderOverview(); renderTools(); toast('Statistik telah diset semula.', 'success'); } catch (err) { toast('Gagal: ' + err.message, 'error'); } }
+  $('#resetArea').innerHTML = '<button class="btn danger" type="button" id="resetStats">Set Semula Statistik</button>';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+rules_version = '2';
+
+// MALAYSIA IMAGE TOOLS — Firestore Security Rules
+// Gambar pengguna TIDAK disimpan di Firestore. Hanya tetapan, status alat & maklum balas teks.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function shortStr(v, max) { return v is string && v.size() <= max; }
+
+    // Senarai admin: dicipta MANUAL di Firebase Console (admins/{UID}).
+    // Admin boleh baca dokumen sendiri; tiada sesiapa boleh tulis dari aplikasi.
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Tetapan laman (pengumuman & penyelenggaraan)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && docId == 'site'
+        && request.resource.data.keys().hasOnly([
+             'announcementActive', 'announcement', 'announcementType',
+             'maintenance', 'maintenanceMessage', 'updatedAt', 'updatedBy'])
+        && request.resource.data.announcementActive is bool
+        && shortStr(request.resource.data.announcement, 300)
+        && request.resource.data.announcementType in ['info', 'success', 'warning']
+        && request.resource.data.maintenance is bool
+        && shortStr(request.resource.data.maintenanceMessage, 300);
+    }
+
+    // Status alat (aktif / pilihan)
+    match /tools/{toolId} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && toolId.matches('^[a-z0-9-]{2,40}$')
+        && request.resource.data.keys().hasOnly(['enabled', 'featured', 'updatedAt'])
+        && (!('enabled' in request.resource.data) || request.resource.data.enabled is bool)
+        && (!('featured' in request.resource.data) || request.resource.data.featured is bool);
+    }
+
+    // Maklum balas: sesiapa boleh HANTAR, hanya admin boleh baca/ubah/padam
+    match /feedback/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'message', 'tool', 'rating', 'status', 'createdAt'])
+        && shortStr(request.resource.data.name, 60)
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 1
+        && request.resource.data.message.size() <= 1000
+        && shortStr(request.resource.data.tool, 40)
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && request.resource.data.status == 'new'
+        && request.resource.data.createdAt == request.time;
+      allow read, delete: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['new', 'read'];
+    }
+
+    // Selain di atas: tutup sepenuhnya
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
