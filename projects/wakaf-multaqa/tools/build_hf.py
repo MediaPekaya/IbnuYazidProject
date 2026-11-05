@@ -19,8 +19,8 @@ for i, (sid, src, off, st, d) in enumerate(shots):
         tl.append(f'tl.set("#w{n:02d}", {{ opacity: 0 }}, {round(nxt + FADE + 0.02, 2)});')
 
 # VO windows (absolute seconds) and ducking
-vo = []
-wins = [(1.5, 7.4), (16.8, 35.1), (42.8, 56.7), (59.8, 69.3)]
+vo = [("vo1", "v1", 1.5, 4.99), ("vo3", "v3", 16.8, 12.22), ("vo4", "v4", 30.2, 4.28), ("vo6", "v6", 42.8, 12.82), ("vo7", "v7", 59.8, 9.17)]
+wins = [(1.5, 6.52), (16.8, 34.51), (42.8, 55.65), (59.8, 69.0)]
 BASE, DUCK = 0.8, 0.3
 pts = [(0, BASE)]
 for a, b in wins:
@@ -28,7 +28,7 @@ for a, b in wins:
 pts.append((TOTAL, BASE))
 lane = json.dumps({"version": 1, "lanes": [{"target": "volume", "points": [{"t": t, "v": v} for t, v in pts]}]}).replace('"', '&quot;')
 
-audio = [f'    <audio id="music" class="clip" src="assets/audio/music.mp3" data-start="0" data-duration="{TOTAL}" data-track-index="30" data-volume="1" data-fade-in="2" data-fade-out="4"></audio>']
+audio = [f'    <audio id="music" class="clip" src="assets/audio/music.mp3" data-start="0" data-duration="{TOTAL}" data-track-index="30" data-volume="1" data-fade-in="2" data-fade-out="4" data-automation="{lane}"></audio>']
 for aid, f, st, d in vo:
     audio.append(f'    <audio id="{aid}" class="clip" src="assets/audio/{f}.mp3" data-start="{st}" data-duration="{d}" data-track-index="31" data-volume="1"></audio>')
 
@@ -155,8 +155,8 @@ cards = [
  # id, start, dur, kind, arabic_font, arabic, lines(translation), cite
  ("c1", 7.9, 4.6, "ayat", "q", "لَن تَنَالُوا الْبِرَّ حَتَّىٰ تُنفِقُوا مِمَّا تُحِبُّونَ", "Kamu tidak akan mencapai kebajikan yang sempurna, sehingga kamu menginfakkan sebahagian harta yang kamu cintai.", "ALI IMRAN 3:92"),
  ("c3", 34.8, 4.5, "ayat", "q", "إِنَّ ٱللَّهَ یَأۡمُرُكُمۡ أَن تُؤَدُّوا۟ ٱلۡأَمَـٰنَـٰتِ إِلَىٰۤ أَهۡلِهَا", "Sesungguhnya Allah menyuruh kamu menyampaikan amanah kepada yang berhak.", "AN-NISA’ 4:58"),
- ("h1", 46.4, 4.4, "hadith", "a", "إِذَا مَاتَ الإِنْسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلاَّ مِنْ ثَلاَثَةٍ", "Apabila manusia meninggal dunia, terputuslah amalnya kecuali tiga perkara:", "HADIS RIWAYAT MUSLIM"),
- ("h2", 51.2, 4.8, "hadith", "a", "إِلَّا مِنْ صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ", "sedekah jariah, ilmu yang bermanfaat, dan anak soleh yang mendoakannya.", "HADIS RIWAYAT MUSLIM"),
+ ("h1", 45.6, 4.3, "hadith", "a", "إِذَا مَاتَ الإِنْسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلاَّ مِنْ ثَلاَثَةٍ", "Apabila manusia meninggal dunia, terputuslah amalnya kecuali tiga perkara:", "HADIS RIWAYAT MUSLIM"),
+ ("h2", 49.9, 5.3, "hadith", "a", "إِلَّا مِنْ صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ", "sedekah jariah, ilmu yang bermanfaat, dan anak soleh yang mendoakannya.", "HADIS RIWAYAT MUSLIM"),
 ]
 card_html, card_js = [], []
 for cid, st, d, kind, fnt, ar, tr, cite in cards:
@@ -193,9 +193,10 @@ card_js.append(f'''    tl.fromTo("#title .scrim", {{ opacity: 0 }}, {{ opacity: 
 
 
 # narrative caption cards (replace the former voice-over lines; text only)
-caps = [("k1", 2.0, 4.6, "Ada kebaikan… yang tidak pernah berhenti, walau jasad telah pergi."),
+caps_text_only = [("k1", 2.0, 4.6, "Ada kebaikan… yang tidak pernah berhenti, walau jasad telah pergi."),
         ("k3", 23.0, 5.0, "Para mutawalli dan nazir khas wakaf berhimpun… untuk menyusun langkah, menjaga harta Allah."),
         ("k4", 29.6, 4.6, "Kerana wakaf bukan sekadar tanah dan bangunan… ia adalah amanah.")]
+caps = []
 for cid, cst, cd, ctext in caps:
     card_html.append(f'''    <div id="{cid}" class="card clip" data-start="{cst}" data-duration="{cd}" data-track-index="4">
       <div class="scrim"></div>
@@ -212,8 +213,8 @@ for cid, cst, cd, ctext in caps:
 # end card (doa), line by line
 est, edur = 59.7, 13.3
 lines = [(59.9, "Ya Allah, terimalah wakaf mereka yang telah pergi,"),
-         (63.6, "kuatkan amanah mereka yang menjaganya,"),
-         (66.5, "dan jadikan ia pahala yang terus mengalir.")]
+         (63.2, "kuatkan amanah mereka yang menjaganya,"),
+         (65.8, "dan jadikan ia pahala yang terus mengalir.")]
 l_html = "\n".join(f'        <p class="doa" id="doa{k+1}">{t}</p>' for k, (s, t) in enumerate(lines))
 card_html.append(f'''    <div id="endcard" class="card clip" data-start="{est}" data-duration="{edur}" data-track-index="3">
       <div class="scrim big"></div>
@@ -229,9 +230,9 @@ card_js.append(f'''    tl.fromTo("#endcard .scrim", {{ opacity: 0 }}, {{ opacity
     tl.fromTo("#doa1", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, {lines[0][0]});
     tl.fromTo("#doa2", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, {lines[1][0]});
     tl.fromTo("#doa3", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, {lines[2][0]});
-    tl.fromTo("#endcard .div", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.2, ease: "sine.out" }}, 68.4);
-    tl.fromTo("#amin", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, 68.8);
-    tl.fromTo("#aminl", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.2, ease: "sine.out" }}, 69.6);''')
+    tl.fromTo("#endcard .div", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.2, ease: "sine.out" }}, 67.9);
+    tl.fromTo("#amin", {{ opacity: 0, filter: "blur(8px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 1.4, ease: "power2.out" }}, 68.3);
+    tl.fromTo("#aminl", {{ opacity: 0 }}, {{ opacity: 1, duration: 1.2, ease: "sine.out" }}, 69.0);''')
 
 verses = f'''<template>
   <style>
