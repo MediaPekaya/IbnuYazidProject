@@ -32,18 +32,19 @@ function renderHome() {
   const view = $('#view'); const q = '';
   const n = visibleTools().length;
   view.innerHTML = `${bannerHTML()}${previewNote()}
-    <section class="hero"><div class="hero-photo" aria-hidden="true"></div><div class="hero-grid"><div>
+    <section class="hero"><div class="hero-photo" aria-hidden="true"></div><div class="hero-in">
       <span class="eyebrow"><i></i>100% percuma · tanpa daftar</span>
       <h1>MALAYSIA <span>IMAGE TOOLS</span></h1>
       <p class="sub">Alat Gambar Percuma, Lengkap &amp; Mudah Digunakan</p>
       <label class="search"><span class="sr">Cari alat</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="homeSearch" type="search" placeholder="Cari: compress, resize, PDF, favicon..." autocomplete="off"></label>
       <div class="quick"><a class="hot" href="#remove-background">Buang latar (AI)</a><a href="#image-compressor">Mampat gambar</a><a href="#image-resizer">Ubah saiz</a><a href="#png-to-jpg">PNG → JPG</a><a href="#image-to-pdf">Gambar → PDF</a><a href="#passport-photo">Foto pasport</a></div>
-    </div><div class="hero-stats">
-      <div class="stat t1"><span class="si">${icon('image')}</span><b>${n}</b><span>alat gambar sedia guna</span></div>
-      <div class="stat t2"><span class="si">${icon('shield')}</span><b>0</b><span>gambar dimuat naik ke server</span></div>
-      <div class="stat t3"><span class="si">${icon('star')}</span><b>RM0</b><span>tiada langganan, tiada iklan berbayar</span></div>
-      <div class="stat t4"><span class="si">${icon('upload')}</span><b>${CONFIG.maxImageMB} MB</b><span>had saiz setiap gambar</span></div>
-    </div></div></section>
+      <div class="hero-mini">
+        <div class="mini t1"><span class="si">${icon('image')}</span><div><b>${n} alat</b><small>sedia guna</small></div></div>
+        <div class="mini t2"><span class="si">${icon('shield')}</span><div><b>0 muat naik</b><small>gambar kekal di peranti</small></div></div>
+        <div class="mini t3"><span class="si">${icon('star')}</span><div><b>RM0</b><small>tiada langganan</small></div></div>
+        <div class="mini t4"><span class="si">${icon('upload')}</span><div><b>${CONFIG.maxImageMB} MB</b><small>had setiap gambar</small></div></div>
+      </div>
+    </div></section>
     <div id="homeGrids"></div>
     <section class="sec"><div class="sec-head"><div><h2>Cara guna</h2><p>Tiga langkah. Semua berlaku dalam browser anda.</p></div></div>
       <div class="how"><div><b><em>1</em>Pilih alat</b><p>Cari atau pilih daripada ${n} alat di atas atau di menu sisi.</p></div><div><b><em>2</em>Muat naik gambar</b><p>Seret &amp; lepas, klik, atau tampal (Ctrl+V). Fail kekal dalam peranti anda.</p></div><div><b><em>3</em>Simpan hasil</b><p>Pratonton, laraskan dan muat turun. Tutup tab untuk buang semua fail.</p></div></div></section>
@@ -71,7 +72,7 @@ function footer() {
     </div>
     <p class="vnote" id="vnote"></p>
     <div class="foot-brand">
-      <div><b class="foot-name">MALAYSIA IMAGE TOOLS</b><blockquote class="slogan">“Memacu Inovasi Digital Melalui Sistem Pintar, Kreatif dan Efisien.”</blockquote></div>
+      <div><span class="foot-id">${LOGO('ft')}<b class="foot-name">MALAYSIA IMAGE TOOLS</b></span><blockquote class="slogan">“Memacu Inovasi Digital Melalui Sistem Pintar, Kreatif dan Efisien.”</blockquote></div>
       <span class="foot-priv">${icon('shield')}Semua fail diproses dalam browser anda. Tiada muat naik, tiada simpanan.</span>
     </div>
     <div class="foot-bottom"><span>© Hak Cipta Terpelihara Genius Digital 2026</span><span>Alat Gambar Percuma untuk Semua</span></div>
