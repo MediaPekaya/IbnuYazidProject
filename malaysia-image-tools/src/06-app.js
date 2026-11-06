@@ -32,7 +32,7 @@ function renderHome() {
   const view = $('#view'); const q = '';
   const n = visibleTools().length;
   view.innerHTML = `${bannerHTML()}${previewNote()}
-    <section class="hero"><div class="hero-grid"><div>
+    <section class="hero"><div class="hero-photo" aria-hidden="true"></div><div class="hero-grid"><div>
       <span class="eyebrow"><i></i>100% percuma · tanpa daftar</span>
       <h1>MALAYSIA <span>IMAGE TOOLS</span></h1>
       <p class="sub">Alat Gambar Percuma, Lengkap &amp; Mudah Digunakan</p>

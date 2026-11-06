@@ -11,6 +11,7 @@
 | Fail | Kegunaan |
 |---|---|
 | `index.html` | Laman utama + semua 31 alat (satu fail lengkap HTML/CSS/JS) |
+| `hero-bg.jpg` | Gambar latar hero (letak dalam folder sama dengan index.html) |
 | `admin.html` | Panel admin (Firebase Auth): pengumuman, hidup/mati alat, statistik, maklum balas |
 | `firestore.rules` | Peraturan keselamatan Firestore |
 | `database.rules.json` | Peraturan keselamatan Realtime Database (statistik & pelawat) |
