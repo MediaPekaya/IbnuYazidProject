@@ -11,3 +11,9 @@ Extra BM video skills: `video-script-bm`, `video-hook-library`, `video-remotion-
 - When creating a NEW repo, run `.claude/scripts/sync-skills.sh <new-repo-path>` to copy these skills into it.
 
 Also included: 52 marketing skills from marketingskills (start with `product-marketing`; upstream `marketing-plan` is `marketing-plan-corey`) and `free-llm-apis`. Sources: `.claude/skills/SOURCES.md`.
+
+## Piawaian tetap: Buku Preview Sistem (WAJIB, tanpa perlu diarahkan)
+Setiap kali membina sistem / web app, gunakan skill `system-book-preview` secara automatik:
+- Buku preview dengan menu kiri TEPAT 5 bahagian: **Paparan Preview, HTML Index, HTML Admin, Rules Database, Rules Firestore**. Tiada bab lain.
+- HTML Index dan HTML Admin = SATU salinan kod lengkap setiap satu (HTML + CSS + JS inline), dengan butang Salin kod. JANGAN asingkan kod kepada fail CSS/JS.
+- Lalai sistem: bahasa BM (lalai) / BI / BA ditulis manual dengan betul; footer statistik pelawat (hari ini reset 12 malam, bulan ini reset akhir bulan, keseluruhan); "Hak Cipta Terpelihara Genius Digital <tahun>" + slogan "Memacu Inovasi Digital Melalui Sistem Pintar, Kreatif dan Efisien."; admin halaman berasingan tanpa butang dalam index.

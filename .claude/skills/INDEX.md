@@ -97,3 +97,9 @@ Templat tambahan: `templates/video/` (dokumen skrip/storyboard/senarai semak dan
 | `social` | When the user wants help creating, scheduling, or optimizing social media content for Link... |
 | `video` | When the user wants to create, generate, or produce video content using AI tools or progra... |
 | `free-llm-apis` | Pick and configure free LLM API providers. |
+
+## Piawaian tetap
+
+| Skill | Use for |
+|---|---|
+| `system-book-preview` | WAJIB untuk setiap sistem: buku preview 5 bahagian (Paparan Preview, HTML Index, HTML Admin, Rules Database, Rules Firestore) dengan kod satu salinan lengkap + piawaian BM/BI/BA, footer statistik, hak cipta Genius Digital. |
