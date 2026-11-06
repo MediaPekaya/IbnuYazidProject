@@ -37,12 +37,12 @@ function renderHome() {
       <h1>MALAYSIA <span>IMAGE TOOLS</span></h1>
       <p class="sub">Alat Gambar Percuma, Lengkap &amp; Mudah Digunakan</p>
       <label class="search"><span class="sr">Cari alat</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="homeSearch" type="search" placeholder="Cari: compress, resize, PDF, favicon..." autocomplete="off"></label>
-      <div class="quick"><a href="#remove-background">Buang latar (AI)</a><a href="#image-compressor">Mampat gambar</a><a href="#image-resizer">Ubah saiz</a><a href="#png-to-jpg">PNG → JPG</a><a href="#image-to-pdf">Gambar → PDF</a><a href="#passport-photo">Foto pasport</a></div>
+      <div class="quick"><a class="hot" href="#remove-background">Buang latar (AI)</a><a href="#image-compressor">Mampat gambar</a><a href="#image-resizer">Ubah saiz</a><a href="#png-to-jpg">PNG → JPG</a><a href="#image-to-pdf">Gambar → PDF</a><a href="#passport-photo">Foto pasport</a></div>
     </div><div class="hero-stats">
-      <div class="stat"><b class="g">${n}</b><span>alat gambar sedia guna</span></div>
-      <div class="stat"><b>0</b><span>gambar dimuat naik ke server</span></div>
-      <div class="stat"><b>RM0</b><span>tiada langganan, tiada iklan berbayar</span></div>
-      <div class="stat"><b>${CONFIG.maxImageMB} MB</b><span>had saiz setiap gambar</span></div>
+      <div class="stat t1"><span class="si">${icon('image')}</span><b>${n}</b><span>alat gambar sedia guna</span></div>
+      <div class="stat t2"><span class="si">${icon('shield')}</span><b>0</b><span>gambar dimuat naik ke server</span></div>
+      <div class="stat t3"><span class="si">${icon('star')}</span><b>RM0</b><span>tiada langganan, tiada iklan berbayar</span></div>
+      <div class="stat t4"><span class="si">${icon('upload')}</span><b>${CONFIG.maxImageMB} MB</b><span>had saiz setiap gambar</span></div>
     </div></div></section>
     <div id="homeGrids"></div>
     <section class="sec"><div class="sec-head"><div><h2>Cara guna</h2><p>Tiga langkah. Semua berlaku dalam browser anda.</p></div></div>

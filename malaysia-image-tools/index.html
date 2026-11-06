@@ -98,26 +98,41 @@ button,input,select,textarea{font:inherit;color:inherit}
 .banner.success{background:var(--ok-50);border-color:#b8ead2;color:var(--ok)}
 
 /* ---------- Hero ---------- */
-.hero{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:
-  radial-gradient(600px 260px at 92% -10%,rgba(123,63,228,.16),transparent 70%),
-  radial-gradient(520px 260px at -5% 110%,rgba(36,87,245,.14),transparent 70%),#fff;padding:clamp(22px,4vw,44px)}
+.hero{position:relative;isolation:isolate;border-radius:24px;overflow:hidden;color:#fff;padding:clamp(22px,4vw,44px);
+  background:
+    radial-gradient(520px 300px at 8% 0%,rgba(25,195,240,.55),transparent 65%),
+    radial-gradient(560px 340px at 100% 100%,rgba(236,72,153,.45),transparent 65%),
+    radial-gradient(500px 300px at 70% 10%,rgba(123,63,228,.7),transparent 70%),
+    linear-gradient(135deg,#1338c9 0%,#2457f5 38%,#5b3fe0 70%,#7b3fe4 100%);
+  box-shadow:0 30px 70px -30px rgba(52,62,220,.65)}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at 30% 40%,#000 30%,transparent 80%);mask-image:radial-gradient(ellipse at 30% 40%,#000 30%,transparent 80%)}
+.hero::after{content:"";position:absolute;z-index:-1;width:340px;height:340px;right:-90px;top:-120px;border-radius:50%;border:2px dashed rgba(255,255,255,.22);animation:spinslow 40s linear infinite}
+@keyframes spinslow{to{transform:rotate(360deg)}}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:center}
 @media (max-width:899px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--violet);background:var(--violet-50);padding:6px 11px;border-radius:999px}
-.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 0 4px rgba(123,63,228,.18)}
-.hero h1{font-size:clamp(30px,5.2vw,52px);font-weight:800;letter-spacing:-.02em;margin:14px 0 8px;line-height:1.04}
-.hero h1 span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p.sub{font-size:clamp(15px,1.8vw,18px);color:var(--ink-2);margin:0 0 20px;font-weight:500}
-.hero .search input{height:52px;font-size:15.5px;border-radius:13px;background:#fff;box-shadow:var(--shadow);padding-left:44px}
-.hero .search svg{left:15px;width:19px;height:19px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:999px;backdrop-filter:blur(6px)}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:#5ef2b0;box-shadow:0 0 0 4px rgba(94,242,176,.3),0 0 12px #5ef2b0}
+.hero h1{font-size:clamp(32px,5.4vw,56px);font-weight:800;letter-spacing:-.02em;margin:14px 0 8px;line-height:1.02;color:#fff;text-shadow:0 4px 24px rgba(10,20,90,.35)}
+.hero h1 span{background:linear-gradient(90deg,#7ff0ff 0%,#ffd36e 50%,#ff8fd1 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.hero p.sub{font-size:clamp(15px,1.8vw,18px);color:rgba(255,255,255,.9);margin:0 0 20px;font-weight:600}
+.hero .search input{height:54px;font-size:15.5px;border-radius:14px;background:#fff;border-color:transparent;box-shadow:0 14px 34px -14px rgba(5,10,60,.6);padding-left:46px;color:var(--ink)}
+.hero .search input:focus{box-shadow:0 0 0 4px rgba(255,255,255,.35)}
+.hero .search svg{left:16px;width:19px;height:19px;color:var(--violet)}
 .quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.quick a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--ink-2);border:1px solid var(--line);background:#fff;padding:6px 11px;border-radius:999px}
-.quick a:hover{border-color:var(--blue);color:var(--blue)}
+.quick a{font-size:12.5px;font-weight:650;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.14);padding:6px 12px;border-radius:999px;backdrop-filter:blur(6px);transition:.15s}
+.quick a:hover{background:#fff;color:var(--blue)}
+.quick a.hot{background:linear-gradient(90deg,#ffd36e,#ff8fd1);color:#3a1450;border-color:transparent}
 .hero-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-.stat b{display:block;font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.stat b.g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat{position:relative;background:rgba(255,255,255,.95);border-radius:18px;padding:16px;box-shadow:0 18px 40px -20px rgba(5,10,60,.7);overflow:hidden;color:var(--ink)}
+.stat::after{content:"";position:absolute;right:-24px;bottom:-24px;width:84px;height:84px;border-radius:50%;background:var(--tint);opacity:.16}
+.stat .si{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;background:var(--tint);margin-bottom:10px;box-shadow:0 8px 16px -8px var(--tint)}
+.stat .si svg{width:18px;height:18px}
+.stat b{display:block;font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--tint)}
 .stat span{font-size:12.5px;color:var(--muted);font-weight:600}
+.stat.t1{--tint:#2457f5}.stat.t2{--tint:#0f9d63}.stat.t3{--tint:#e0457b}.stat.t4{--tint:#7b3fe4}
+/* Warna kategori pada seksyen */
+.sec-head h2{display:flex;align-items:center;gap:10px}
+.sec-head h2::before{content:"";width:10px;height:26px;border-radius:4px;background:var(--grad)}
 
 /* ---------- Sections & cards ---------- */
 .sec{margin-top:36px}
@@ -2180,12 +2195,12 @@ function renderHome() {
       <h1>MALAYSIA <span>IMAGE TOOLS</span></h1>
       <p class="sub">Alat Gambar Percuma, Lengkap &amp; Mudah Digunakan</p>
       <label class="search"><span class="sr">Cari alat</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="homeSearch" type="search" placeholder="Cari: compress, resize, PDF, favicon..." autocomplete="off"></label>
-      <div class="quick"><a href="#remove-background">Buang latar (AI)</a><a href="#image-compressor">Mampat gambar</a><a href="#image-resizer">Ubah saiz</a><a href="#png-to-jpg">PNG → JPG</a><a href="#image-to-pdf">Gambar → PDF</a><a href="#passport-photo">Foto pasport</a></div>
+      <div class="quick"><a class="hot" href="#remove-background">Buang latar (AI)</a><a href="#image-compressor">Mampat gambar</a><a href="#image-resizer">Ubah saiz</a><a href="#png-to-jpg">PNG → JPG</a><a href="#image-to-pdf">Gambar → PDF</a><a href="#passport-photo">Foto pasport</a></div>
     </div><div class="hero-stats">
-      <div class="stat"><b class="g">${n}</b><span>alat gambar sedia guna</span></div>
-      <div class="stat"><b>0</b><span>gambar dimuat naik ke server</span></div>
-      <div class="stat"><b>RM0</b><span>tiada langganan, tiada iklan berbayar</span></div>
-      <div class="stat"><b>${CONFIG.maxImageMB} MB</b><span>had saiz setiap gambar</span></div>
+      <div class="stat t1"><span class="si">${icon('image')}</span><b>${n}</b><span>alat gambar sedia guna</span></div>
+      <div class="stat t2"><span class="si">${icon('shield')}</span><b>0</b><span>gambar dimuat naik ke server</span></div>
+      <div class="stat t3"><span class="si">${icon('star')}</span><b>RM0</b><span>tiada langganan, tiada iklan berbayar</span></div>
+      <div class="stat t4"><span class="si">${icon('upload')}</span><b>${CONFIG.maxImageMB} MB</b><span>had saiz setiap gambar</span></div>
     </div></div></section>
     <div id="homeGrids"></div>
     <section class="sec"><div class="sec-head"><div><h2>Cara guna</h2><p>Tiga langkah. Semua berlaku dalam browser anda.</p></div></div>
