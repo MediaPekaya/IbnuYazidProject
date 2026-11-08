@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Overlay - GLOBAL STREAMER</title>
+  <link rel="stylesheet" href="css/engine.css">
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+    body.preview { background: repeating-conic-gradient(#fff 0 25%, #dfe3ec 0 50%) 0 0 / 24px 24px; }
+    #root { position: absolute; left: 0; top: 0; }
+    #msg { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; font: 600 18px "Segoe UI", sans-serif; color: #33466B; text-align: center; padding: 24px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="msg"></div>
+  <script src="js/config.js"></script>
+  <script type="module" src="js/overlay.js"></script>
+</body>
+</html>

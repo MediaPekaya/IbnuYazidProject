@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio - GLOBAL STREAMER</title>
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/engine.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="appbar">
+    <a class="brand" href="#/templat"><img src="img/logo.svg" alt="" width="36" height="36"><span>GLOBAL STREAMER</span></a>
+    <nav aria-label="Menu utama" id="nav"></nav>
+    <div class="spacer"></div>
+    <a class="obs-pill" id="obs-pill" href="#/obs" data-s="disconnected" title="Sambungan OBS"><i></i><span>OBS: tidak bersambung</span></a>
+    <div class="userbox"><span>Log masuk sebagai</span><b id="user-email"></b><button class="btn secondary sm" id="logout">Log keluar</button></div>
+  </header>
+  <main id="view" class="view" tabindex="-1"><div class="loading">Memuatkan…</div></main>
+  <script src="js/config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+/* Halaman log masuk & daftar */
+.auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+.auth-side { position: relative; overflow: hidden; padding: 40px 48px; display: flex; flex-direction: column; gap: 28px; background: linear-gradient(160deg, #E8F0FF 0%, #F7FAFF 55%, #E4F8F6 100%); border-right: 1px solid var(--line); }
+.auth-side::before { content: ''; position: absolute; inset: 0; background: radial-gradient(rgba(31, 95, 255, .12) 1.5px, transparent 2px) 0 0/26px 26px; mask-image: linear-gradient(180deg, #000, transparent 75%); -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%); pointer-events: none; }
+.auth-side > * { position: relative; }
+.auth-side h2 { font-size: clamp(26px, 3vw, 38px); line-height: 1.15; max-width: 16em; }
+.auth-side .lead { color: var(--ink-2); font-size: 16px; max-width: 32em; }
+.ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ticks li { display: flex; gap: 10px; align-items: flex-start; color: var(--ink-2); font-weight: 600; }
+.ticks li::before { content: ''; flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-6.5' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% no-repeat; }
+.showcase { position: relative; margin-top: auto; height: 250px; }
+.showcase .shot { position: absolute; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid rgba(255, 255, 255, .9); background: #fff; }
+.auth-main { display: grid; place-items: center; padding: 32px 24px; background: var(--surface); }
+.auth-card { width: min(440px, 100%); display: grid; gap: 22px; }
+.auth-card h1 { font-size: 30px; }
+.auth-card .sub { color: var(--muted); margin-top: 6px; }
+.auth-card form { display: grid; gap: 16px; }
+.auth-foot { text-align: center; color: var(--muted); }
+.auth-foot a { font-weight: 700; }
+.strength { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 2px; }
+.strength i { height: 5px; border-radius: 9px; background: var(--line); transition: background .2s; }
+.strength[data-s="1"] i:nth-child(-n+1) { background: var(--danger); }
+.strength[data-s="2"] i:nth-child(-n+2) { background: #E08A00; }
+.strength[data-s="3"] i:nth-child(-n+3) { background: #7BB500; }
+.strength[data-s="4"] i { background: var(--ok); }
+.auth-top { display: none; }
+@media (max-width: 900px) {
+  .auth { grid-template-columns: 1fr; }
+  .auth-side { display: none; }
+  .auth-main { align-content: start; padding-top: 28px; }
+  .auth-top { display: block; margin-bottom: 8px; }
+}
