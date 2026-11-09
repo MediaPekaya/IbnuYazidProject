@@ -1,0 +1,38 @@
+{
+  "name": "global-streamer",
+  "productName": "Global Streamer",
+  "version": "0.1.0",
+  "description": "Studio live seperti OBS dengan template, efek dan chat untuk TikTok, Facebook dan YouTube.",
+  "main": "main/main.js",
+  "private": true,
+  "author": "Pekaya Media",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "web": "node scripts/serve.js",
+    "dist": "electron-builder --win --x64",
+    "check": "node scripts/check-syntax.js"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.pekaya.globalstreamer",
+    "productName": "Global Streamer",
+    "directories": { "output": "dist" },
+    "files": ["main/**", "renderer/**", "package.json"],
+    "asarUnpack": ["node_modules/ffmpeg-static/**"],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Global Streamer"
+    }
+  }
+}

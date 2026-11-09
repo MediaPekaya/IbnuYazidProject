@@ -1,0 +1,66 @@
+/* Global Streamer - susun atur (PC / laptop sahaja) */
+body { min-width: 1100px; min-height: 640px; }
+#app { display: grid; grid-template-rows: 62px minmax(0, 1fr) clamp(210px, 30vh, 300px); gap: 10px; height: 100vh; padding: 10px; opacity: 0; transform: translateY(8px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+body.ready #app { opacity: 1; transform: none; }
+
+/* ----- bar atas ----- */
+#topbar {
+  display: flex; align-items: center; gap: 16px; padding: 0 14px; border-radius: var(--r);
+  background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+}
+#topbar::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px; background: var(--grad-loop); background-size: 300% 100%; animation: shift 8s linear infinite; opacity: 0.8; border-radius: 2px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-logo { width: 34px; height: 34px; filter: drop-shadow(0 0 10px rgba(70, 150, 255, 0.6)); }
+.brand-name { font-weight: 800; letter-spacing: 0.16em; font-size: 15px; background: var(--grad-loop); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shift 9s linear infinite; white-space: nowrap; }
+.brand-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; padding: 3px 7px; border-radius: 6px; color: var(--gold); border: 1px solid rgba(255, 211, 107, 0.4); background: rgba(255, 211, 107, 0.08); white-space: nowrap; }
+.brand-tag.native { color: var(--green); border-color: rgba(59, 227, 154, 0.4); background: rgba(59, 227, 154, 0.08); }
+
+.mode-switch { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 12px; background: rgba(4, 10, 24, 0.7); border: 1px solid var(--line); }
+.mode-switch button { position: relative; z-index: 1; background: none; border: 0; padding: 7px 18px; border-radius: 9px; color: var(--muted); font-weight: 700; letter-spacing: 0.06em; font-size: 12px; text-transform: uppercase; transition: color 0.3s var(--ease); }
+.mode-switch button.on { color: #fff; }
+.mode-switch .thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 9px; background: var(--grad-loop); background-size: 300% 100%; animation: shift 7s linear infinite; box-shadow: 0 0 18px rgba(70, 130, 255, 0.5); transition: transform 0.45s var(--ease); }
+.mode-switch[data-mode='studio'] .thumb { transform: translateX(100%); }
+
+.game-pick { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.game-pick select { max-width: 210px; }
+.status { display: flex; align-items: center; gap: 8px; margin-left: auto; min-width: 0; }
+.chips { display: inline-flex; gap: 6px; }
+.actions { display: flex; align-items: center; gap: 8px; }
+
+/* ----- ruang kerja ----- */
+#workspace { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 380px); gap: 10px; min-height: 0; }
+#stage { min-height: 0; border-radius: var(--r); background: var(--panel); border: 1px solid var(--line); padding: 10px; display: flex; backdrop-filter: blur(14px); }
+.screens { flex: 1; display: flex; gap: 10px; min-width: 0; min-height: 0; align-items: stretch; }
+.screen { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; transition: flex 0.5s var(--ease), opacity 0.4s var(--ease); }
+.screen-label { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+.screen-label b { font-size: 11px; letter-spacing: 0.14em; padding: 2px 8px; border-radius: 6px; }
+.screen-label .pgm { background: rgba(255, 59, 92, 0.18); color: #ff8da1; }
+.screen-label .pvw { background: rgba(46, 168, 255, 0.18); color: var(--cyan); }
+.screen-view { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(2, 6, 16, 0.6); border: 1px solid var(--line); overflow: hidden; position: relative; }
+.screen-view canvas { display: block; border-radius: 4px; box-shadow: 0 0 0 1px rgba(120, 190, 255, 0.2), 0 12px 50px rgba(0, 0, 0, 0.55); }
+#screenProgram .screen-view { box-shadow: inset 0 0 0 1px rgba(255, 59, 92, 0.18); }
+
+#transitionCol { display: flex; flex-direction: column; justify-content: center; gap: 8px; width: 0; opacity: 0; overflow: hidden; transition: width 0.5s var(--ease), opacity 0.4s var(--ease); }
+.screens.studio #transitionCol { width: 112px; opacity: 1; }
+.screens.normal #screenPreview { flex: 0 0 0; opacity: 0; pointer-events: none; overflow: hidden; margin-right: -10px; }
+
+/* ----- panel kanan ----- */
+#right { min-height: 0; display: flex; flex-direction: column; border-radius: var(--r); background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px); overflow: hidden; }
+.rtabs { display: flex; gap: 4px; padding: 8px 8px 0; }
+.rtab { flex: 1; background: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 0; color: var(--muted); font-weight: 700; letter-spacing: 0.1em; font-size: 12px; text-transform: uppercase; transition: color 0.3s, border-color 0.3s; }
+.rtab.on { color: var(--text); border-bottom-color: var(--blue); }
+.rpanel { display: none; flex: 1; min-height: 0; flex-direction: column; }
+.rpanel.on { display: flex; animation: fadein 0.4s var(--ease); }
+.rbody { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 10px; gap: 8px; overflow: auto; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ----- dock bawah ----- */
+#docks { display: grid; grid-template-columns: 230px 270px 320px minmax(0, 1fr); gap: 10px; min-height: 0; }
+.dock { min-height: 0; min-width: 0; display: flex; flex-direction: column; border-radius: var(--r); background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px); overflow: hidden; }
+.dock-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 6px 12px; border-bottom: 1px solid var(--line); }
+.dock-head h3 { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.dock-tools { display: flex; gap: 2px; }
+.dock-body { flex: 1; min-height: 0; overflow: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.dock-body.mixer { flex-direction: row; gap: 8px; align-items: stretch; }

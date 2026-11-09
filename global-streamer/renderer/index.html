@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Global Streamer</title>
+  <meta name="description" content="Global Streamer: studio live seperti OBS dengan template, efek dan chat untuk TikTok, Facebook dan YouTube.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+
+  <div id="app">
+    <header id="topbar">
+      <div class="brand">
+        <svg class="brand-logo" viewBox="0 0 48 48" aria-hidden="true">
+          <defs>
+            <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#2ea8ff"/><stop offset=".55" stop-color="#7a5cff"/><stop offset="1" stop-color="#ff3b5c"/>
+            </linearGradient>
+          </defs>
+          <path d="M24 3l18 10.5v21L24 45 6 34.5v-21z" fill="none" stroke="url(#bg1)" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M31 19a8 8 0 1 0 0 10h-7" fill="none" stroke="#eaf4ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-name">GLOBAL STREAMER</span>
+        <span class="brand-tag" id="envTag">WEB DEMO</span>
+      </div>
+
+      <div class="mode-switch" data-mode="normal" role="group" aria-label="Mod paparan">
+        <i class="thumb"></i>
+        <button type="button" data-mode="normal" class="on">Normal</button>
+        <button type="button" data-mode="studio">Studio</button>
+      </div>
+
+      <label class="game-pick"><span>Game</span><select id="gameSelect" aria-label="Pilih game"></select></label>
+
+      <div class="status">
+        <span class="chip live hidden"><i></i>LIVE <b id="liveTimer">00:00:00</b></span>
+        <span class="chip rec hidden"><i></i>REC <b id="recTimer">00:00:00</b></span>
+        <span id="platformChips" class="chips"></span>
+        <span class="chip mute" id="fpsChip">0 FPS</span>
+        <span class="chip mute" id="resChip">1920×1080</span>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn ghost" id="btnSetup">Sediakan Live</button>
+        <button type="button" class="btn rec-btn" id="btnRec"></button>
+        <button type="button" class="btn primary live-btn" id="btnLive"></button>
+        <button type="button" class="icon-btn lg" id="btnSettings" aria-label="Tetapan" title="Tetapan"></button>
+      </div>
+    </header>
+
+    <main id="workspace">
+      <section id="stage" aria-label="Paparan siaran">
+        <div id="screens" class="screens normal">
+          <div class="screen" id="screenPreview">
+            <div class="screen-label"><b class="pvw">PRATONTON</b><span>Sunting scene di sini</span></div>
+            <div class="screen-view"><canvas id="cvPreview" width="960" height="540" aria-label="Pratonton"></canvas></div>
+          </div>
+          <div id="transitionCol">
+            <button type="button" class="btn primary" id="btnTransition">Peralihan</button>
+            <select id="selTransition" aria-label="Jenis peralihan">
+              <option value="fade">Pudar</option>
+              <option value="slide">Luncur</option>
+              <option value="cut">Potong</option>
+            </select>
+          </div>
+          <div class="screen" id="screenProgram">
+            <div class="screen-label"><b class="pgm">PROGRAM</b><span>Apa yang penonton nampak</span></div>
+            <div class="screen-view"><canvas id="cvProgram" width="1920" height="1080" aria-label="Program"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <aside id="right" aria-label="Chat dan kawalan game">
+        <div class="rtabs" role="tablist">
+          <button type="button" class="rtab on" data-panel="panelChat" role="tab">Chat</button>
+          <button type="button" class="rtab" data-panel="panelGame" role="tab">Game</button>
+        </div>
+        <div class="rpanel on" id="panelChat"><div id="chatBody" class="rbody"></div></div>
+        <div class="rpanel" id="panelGame"><div id="gameBody" class="rbody"></div></div>
+      </aside>
+    </main>
+
+    <footer id="docks">
+      <section class="dock" id="dockScenes">
+        <div class="dock-head"><h3>Scene</h3><div class="dock-tools"><button type="button" class="icon-btn" id="btnSceneAdd" aria-label="Tambah scene" title="Tambah scene"></button></div></div>
+        <div class="dock-body" id="scenesBody"></div>
+      </section>
+      <section class="dock" id="dockSources">
+        <div class="dock-head"><h3>Sumber</h3>
+          <div class="dock-tools">
+            <button type="button" class="icon-btn" id="btnSourceAdd" aria-label="Tambah sumber" title="Tambah sumber"></button>
+            <button type="button" class="icon-btn" id="btnSourceUp" aria-label="Naik satu lapisan" title="Naik"></button>
+            <button type="button" class="icon-btn" id="btnSourceDown" aria-label="Turun satu lapisan" title="Turun"></button>
+            <button type="button" class="icon-btn" id="btnSourceDel" aria-label="Padam sumber" title="Padam"></button>
+          </div>
+        </div>
+        <div class="dock-body" id="sourcesBody"></div>
+      </section>
+      <section class="dock" id="dockProps">
+        <div class="dock-head"><h3>Sifat</h3></div>
+        <div class="dock-body" id="propsBody"></div>
+      </section>
+      <section class="dock" id="dockMixer">
+        <div class="dock-head"><h3>Audio Mixer</h3></div>
+        <div class="dock-body mixer" id="mixer"></div>
+      </section>
+    </footer>
+  </div>
+
+  <div id="modalRoot"></div>
+
+  <script src="js/core.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="games/mlbb/heroes.js"></script>
+  <script src="games/mlbb/items.js"></script>
+  <script src="games/mlbb/game.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/media.js"></script>
+  <script src="js/widgets.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/compositor.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/platforms.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/gamedock.js"></script>
+  <script src="js/golive.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+/* Global Streamer - sumber media: capture card / kamera / skrin / imej */
+(function () {
+  'use strict';
+  const M = (GS.media = { videos: {}, images: {} });
+
+  const captureConstraints = (deviceId, kind) => ({
+    video: {
+      deviceId: deviceId ? { exact: deviceId } : undefined,
+      width: { ideal: kind === 'capture' ? 1920 : 1280 },
+      height: { ideal: kind === 'capture' ? 1080 : 720 },
+      frameRate: { ideal: kind === 'capture' ? 60 : 30 },
+    },
+    audio: false,
+  });
+
+  function makeVideoEl(stream) {
+    const v = document.createElement('video');
+    v.muted = true;
+    v.playsInline = true;
+    v.autoplay = true;
+    v.srcObject = stream;
+    v.play().catch(() => {});
+    return v;
+  }
+
+  M.open = async function (sourceId, kind, deviceId) {
+    M.close(sourceId);
+    // kongsi aliran jika peranti sama sudah dibuka (capture card biasanya hanya boleh dibuka sekali)
+    if (deviceId && kind !== 'screen') {
+      const shared = Object.values(M.videos).find((v) => v.deviceId === deviceId && v.kind === kind && v.stream.active);
+      if (shared) {
+        M.videos[sourceId] = shared;
+        GS.emit('media:changed', sourceId);
+        return shared;
+      }
+    }
+    let stream;
+    if (kind === 'screen') {
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 60 } }, audio: false });
+    } else {
+      stream = await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId, kind));
+    }
+    const video = makeVideoEl(stream);
+    const track = stream.getVideoTracks()[0];
+    const entry = { video, stream, kind, deviceId: deviceId || track.getSettings().deviceId || '', label: track.label, settings: track.getSettings() };
+    track.addEventListener('ended', () => {
+      Object.keys(M.videos).forEach((k) => { if (M.videos[k] === entry) delete M.videos[k]; });
+      entry.video.srcObject = null;
+      GS.toast('Isyarat video terputus. Semak sambungan capture card/kamera.', 'warn');
+      GS.emit('media:changed');
+    });
+    M.videos[sourceId] = entry;
+    GS.emit('media:changed', sourceId);
+    return entry;
+  };
+
+  M.close = function (sourceId) {
+    const v = M.videos[sourceId];
+    if (!v) return;
+    delete M.videos[sourceId];
+    if (Object.values(M.videos).includes(v)) return; // masih digunakan oleh sumber lain
+    v.stream.getTracks().forEach((t) => t.stop());
+    v.video.srcObject = null;
+  };
+
+  M.rename = function (oldId, newId) {
+    if (M.videos[oldId]) {
+      M.videos[newId] = M.videos[oldId];
+      delete M.videos[oldId];
+    }
+  };
+
+  M.listVideoDevices = async function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Pelayar tidak menyokong akses peranti.');
+    const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+    probe.getTracks().forEach((t) => t.stop());
+    return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+  };
+
+  /* pilih peranti + buka. kind: 'capture' | 'camera' | 'screen' */
+  M.pick = async function (source) {
+    const kind = source.props.kind;
+    if (kind === 'screen') {
+      try {
+        await M.open(source.id, 'screen');
+        return true;
+      } catch (e) {
+        if (e.name !== 'NotAllowedError') GS.toast('Gagal kongsi skrin: ' + e.message, 'warn');
+        return false;
+      }
+    }
+    let devs;
+    try {
+      devs = await M.listVideoDevices();
+    } catch (e) {
+      GS.toast('Tiada akses ke kamera/capture card: ' + (e.message || e.name), 'warn');
+      return false;
+    }
+    if (!devs.length) {
+      GS.toast('Tiada peranti video dijumpai. Pasang capture card dan cuba lagi.', 'warn');
+      return false;
+    }
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (v) => { if (!done) { done = true; resolve(v); } };
+      const list = GS.h('div', { class: 'device-list' }, devs.map((d, i) =>
+        GS.h('button', {
+          class: 'device',
+          onClick: async () => {
+            try {
+              await M.open(source.id, kind, d.deviceId);
+              source.props.deviceId = d.deviceId;
+              source.props.deviceLabel = d.label;
+              GS.save();
+              m.close();
+              finish(true);
+            } catch (e) {
+              GS.toast('Gagal buka peranti: ' + (e.message || e.name), 'warn');
+            }
+          },
+        }, GS.h('span', { html: GS.icon(kind === 'capture' ? 'monitor' : 'camera', 16) }), GS.h('span', null, d.label || 'Peranti video ' + (i + 1)))));
+      const m = GS.modal({
+        title: kind === 'capture' ? 'Pilih Capture Card' : 'Pilih Kamera',
+        body: GS.h('div', null,
+          GS.h('p', { class: 'muted' }, kind === 'capture' ? 'Capture card biasanya tersenarai seperti "USB Video", "HDMI", "Elgato", "AVerMedia" atau nama jenama anda.' : 'Pilih kamera/webcam anda.'),
+          list),
+        onClose: () => finish(false),
+      });
+    });
+  };
+
+  /* cuba sambung semula peranti tersimpan (senyap, jika kebenaran sudah diberi) */
+  M.autoReconnect = async function (scenes) {
+    for (const sc of scenes) {
+      for (const s of sc.sources) {
+        if (s.type === 'video' && s.props.deviceId && s.props.kind !== 'screen' && !M.videos[s.id]) {
+          try { await M.open(s.id, s.props.kind, s.props.deviceId); } catch (e) { /* peranti tiada / kebenaran belum diberi */ }
+        }
+      }
+    }
+  };
+
+  M.image = function (src) {
+    if (!src) return null;
+    let im = M.images[src];
+    if (!im) {
+      im = new Image();
+      im.src = src;
+      M.images[src] = im;
+    }
+    return im.complete && im.naturalWidth ? im : null;
+  };
+
+  M.readFile = (file) => new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = () => rej(fr.error);
+    fr.readAsDataURL(file);
+  });
+
+  /* kecilkan imej besar sebelum simpan (had storan) */
+  M.downscale = (dataUrl, max = 512) => new Promise((res) => {
+    const im = new Image();
+    im.onload = () => {
+      const r = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+      if (r >= 1) return res(dataUrl);
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * r);
+      c.height = Math.round(im.naturalHeight * r);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/png'));
+    };
+    im.onerror = () => res(dataUrl);
+    im.src = dataUrl;
+  });
+})();
