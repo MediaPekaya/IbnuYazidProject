@@ -526,7 +526,22 @@
 
 
   /* ================== BOT: gelembung komik (cakap) ================== */
-  const COMIC = '"Comic Sans MS","Comic Neue","Chalkboard SE","Segoe Print","Segoe UI",system-ui,sans-serif';
+  /* Fon komik "Bangers" (SIL OFL, dibundel dalam app: assets/fonts) untuk gelembung bot. Jika gagal dimuat: Comic Sans / sans-serif. */
+  const COMIC = '"GSComic","Comic Sans MS","Comic Neue","Chalkboard SE","Segoe Print","Segoe UI",system-ui,sans-serif';
+  FX.comicReady = false;
+  FX.loadFonts = async function () {
+    if (FX.comicReady || !window.FontFace) return FX.comicReady;
+    try {
+      const f = new FontFace('GSComic', 'url(assets/fonts/Bangers-Regular.ttf)');
+      await f.load();
+      document.fonts.add(f);
+      FX.comicReady = true;
+    } catch (e) { console.warn('[GS] fon komik tidak dapat dimuat, guna fon sandaran', e); }
+    return FX.comicReady;
+  };
+  /** Bangers hanya ada satu berat (tegal); fon sandaran guna tebal. Jarak huruf sedikit longgar untuk gaya komik. */
+  const cfont = (size, bold) => (FX.comicReady ? '400 ' : (bold ? '800 ' : '700 ')) + size + 'px ' + COMIC;
+  const spacing = (ctx, size) => { if ('letterSpacing' in ctx) ctx.letterSpacing = (FX.comicReady ? Math.max(0.5, size * 0.045) : 0) + 'px'; };
   const area = (r) => r.w * r.h;
   const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
 
@@ -566,11 +581,12 @@
     const maxW = Math.max(60, Math.min(box.w - 2 * m, Math.min(o.wCap, box.w * o.wRatio)));
     const maxH = Math.max(34, Math.min(box.h - 2 * m - tail, box.h * o.hRatio, (canvasH || box.h) * (o.hAbs || 1))); // lebar dahulu; tinggi dihadkan
     const name = String(params.name || 'BOT').toUpperCase().slice(0, 24);
-    const text = String(params.text || '').replace(/\s+/g, ' ').trim();
+    let text = String(params.text || '').replace(/\s+/g, ' ').trim();
+    if (FX.comicReady) text = text.toLocaleUpperCase(); // gaya komik: huruf besar
     const MIN = 12;
     ctx.save();
     const wrap = (size, lineW) => {
-      ctx.font = '700 ' + size + 'px ' + COMIC;
+      ctx.font = cfont(size); spacing(ctx, size);
       const out = []; let cur = '';
       text.split(' ').forEach((wd) => {
         while (ctx.measureText(wd).width > lineW && wd.length > 1) {
@@ -596,14 +612,15 @@
     if (lines.length > maxLines) {
       lines = lines.slice(0, maxLines);
       let last = lines[maxLines - 1];
-      ctx.font = '700 ' + size + 'px ' + COMIC;
+      ctx.font = cfont(size); spacing(ctx, size);
       while (last.length > 1 && ctx.measureText(last + '…').width > maxW - 2 * pad) last = last.slice(0, -1);
       lines[maxLines - 1] = last + '…';
     }
-    ctx.font = '700 ' + size + 'px ' + COMIC;
+    ctx.font = cfont(size); spacing(ctx, size);
     let cw = 0; lines.forEach((l) => { cw = Math.max(cw, ctx.measureText(l).width); });
-    ctx.font = '800 ' + Math.round(size * 0.62) + 'px ' + COMIC;
+    ctx.font = cfont(Math.round(size * 0.62), true); spacing(ctx, Math.round(size * 0.62));
     cw = Math.max(cw, ctx.measureText(name).width + 6);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
     ctx.restore();
     const w = lines.length > 1 ? maxW : Math.min(maxW, Math.ceil(cw + 2 * pad));
     const h = 2 * pad + nameH + lines.length * lh;
@@ -667,7 +684,7 @@
     const mid = mixc(top, bot, 0.5);
     const cDark = (lumOf(mid) + 0.05) / 0.05, cLight = 1.05 / (lumOf(mid) + 0.05);
     const darkText = cDark >= cLight;
-    return { top, bot, text: darkText ? '#10131c' : '#ffffff', sub: darkText ? 'rgba(16,19,28,0.72)' : 'rgba(255,255,255,0.85)', dots: darkText ? [0, 0, 0] : [255, 255, 255], ink: '#10131c', light: parseCol(pal && pal.light) || [255, 255, 255] };
+    return { top, bot, text: darkText ? '#10131c' : '#ffffff', sub: darkText ? 'rgba(16,19,28,0.72)' : 'rgba(255,255,255,0.85)', emboss: darkText ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.35)', dots: darkText ? [0, 0, 0] : [255, 255, 255], ink: '#10131c', light: parseCol(pal && pal.light) || [255, 255, 255] };
   };
 
   /** Animasi berasaskan MASA (ms), bukan bingkai, supaya licin pada 30/60/120 fps dan tajam pada 4K (vektor pada ruang reka bentuk):
@@ -749,19 +766,24 @@
     }
     // nama dan teks (teks ditaip perlahan-lahan selepas gelembung muncul)
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.font = '800 ' + Math.round(L.size * 0.62) + 'px ' + COMIC; ctx.fillStyle = C.sub;
+    const ns = Math.round(L.size * 0.62);
+    ctx.font = cfont(ns, true); spacing(ctx, ns); ctx.fillStyle = C.sub;
     ctx.fillText(L.name, L.x + L.w / 2, L.y + L.pad + L.nameH * 0.8);
     const total = L.lines.reduce((a, l) => a + l.length, 0);
     const typeMs = clamp(total * 24, 450, 1700);
     let show = Math.floor(total * clamp((el - 260) / typeMs, 0, 1));
-    ctx.font = '700 ' + L.size + 'px ' + COMIC; ctx.fillStyle = C.text;
+    ctx.font = cfont(L.size); spacing(ctx, L.size);
     L.lines.forEach((ln, i) => {
       const part = ln.slice(0, Math.max(0, Math.min(ln.length, show))); show -= ln.length;
       if (!part) return;
       // lebar penuh baris dikekalkan supaya teks tidak "bergerak" semasa ditaip
       const full = ctx.measureText(ln).width;
-      ctx.textAlign = 'left'; ctx.fillText(part, L.x + L.w / 2 - full / 2, L.y + L.pad + L.nameH + L.lh * (i + 0.82)); ctx.textAlign = 'center';
+      const tx = L.x + L.w / 2 - full / 2, ty = L.y + L.pad + L.nameH + L.lh * (i + 0.82);
+      ctx.textAlign = 'left';
+      if (FX.comicReady) { ctx.fillStyle = C.emboss; ctx.fillText(part, tx + Math.max(1, L.size * 0.05), ty + Math.max(1, L.size * 0.05)); } // bayang timbul gaya komik
+      ctx.fillStyle = C.text; ctx.fillText(part, tx, ty); ctx.textAlign = 'center';
     });
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
     ctx.restore();
   }
 

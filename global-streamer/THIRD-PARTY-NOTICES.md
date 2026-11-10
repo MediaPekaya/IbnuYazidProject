@@ -18,6 +18,10 @@ Global Streamer menyertakan atau menggunakan perisian pihak ketiga berikut. Noti
 
 * Apache 2.0. © Google LLC.
 
+## Fon
+
+* **Bangers** (c) 2010 The Bangers Project Authors, dilesenkan di bawah SIL Open Font License 1.1 (renderer/assets/fonts/OFL-Bangers.txt). Digunakan untuk gelembung bot gaya komik.
+
 ## Nota
 
 * Penggunaan pengekod H.264 secara komersial mungkin tertakluk kepada hak paten di sesetengah negara. Dapatkan nasihat undang-undang sebelum menjual.
