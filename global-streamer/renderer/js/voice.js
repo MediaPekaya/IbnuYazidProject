@@ -94,29 +94,104 @@
   };
 
   /* ---------- keluaran bot: paparan pada siaran + suara ---------- */
-  V.speak = async function (text) {
+  const ELEVEN = 'https://api.elevenlabs.io/v1';
+  const MODELS = ['eleven_multilingual_v2', 'eleven_flash_v2_5'];
+  const VOICE_ID = /^[A-Za-z0-9]{10,40}$/;
+  const audioCache = new Map(); // jawapan yang sama tidak menggunakan kuota ElevenLabs dua kali
+  const warned = new Map();
+  // setiap mesej ralat dipaparkan paling kerap sekali setiap 20 saat (tidak membanjiri skrin apabila bot menjawab berulang kali)
+  const warn = (msg) => { const n = Date.now(); if (n - (warned.get(msg) || 0) > 20000) { warned.set(msg, n); GS.toast(msg, 'warn', 6000); } };
+  V.resetWarn = () => warned.clear();
+  V.elevenKey = () => ((GS.platforms && GS.platforms.getKey('tts-elevenlabs')) || '').trim();
+  V.setElevenKey = (k) => GS.platforms.setKey('tts-elevenlabs', String(k || '').trim());
+
+  /** Ralat ElevenLabs -> mesej yang mudah difahami. */
+  const elevenError = async (r) => {
+    let det = null; try { det = (await r.json()).detail; } catch (e) { /* bukan JSON */ }
+    const st = det && (det.status || det.code) ? String(det.status || det.code) : '';
+    if (/quota/i.test(st) || /quota/i.test((det && det.message) || '')) return GS.t('Kuota percuma ElevenLabs bulan ini sudah habis.');
+    if (r.status === 401) return GS.t('Kunci API ElevenLabs tidak sah atau tiada kebenaran.');
+    if (r.status === 429) return GS.t('ElevenLabs: terlalu banyak permintaan. Cuba sebentar lagi.');
+    if (r.status === 402 || r.status === 403) return GS.t('Pelan ElevenLabs anda tidak membenarkan suara ini.');
+    return GS.t('ElevenLabs gagal (kod {0}).', r.status);
+  };
+
+  /** Jana suara melalui ElevenLabs (tier percuma). Mengembalikan ArrayBuffer audio. */
+  V.elevenFetch = async function (text) {
+    const t = cfg().bot.tts, key = V.elevenKey();
+    if (!key) throw new Error(GS.t('Kunci API ElevenLabs belum diisi.'));
+    const voice = t.gender === 'male' ? t.maleVoice : t.femaleVoice;
+    if (!VOICE_ID.test(String(voice || ''))) throw new Error(GS.t('ID suara ElevenLabs tidak sah.'));
+    const model = MODELS.includes(t.model) ? t.model : MODELS[0];
+    const spoken = String(text).slice(0, 280); // had aksara menjimatkan kuota
+    const ck = [voice, model, spoken].join('|');
+    if (audioCache.has(ck)) return audioCache.get(ck).slice(0);
+    const body = { text: spoken, model_id: model };
+    if (model === 'eleven_flash_v2_5') body.language_code = V.cultureFor().slice(0, 2).toLowerCase();
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
+    let r;
+    try {
+      r = await fetch(ELEVEN + '/text-to-speech/' + voice + '?output_format=mp3_44100_128', { method: 'POST', signal: ctl.signal, headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' }, body: JSON.stringify(body) });
+    } catch (e) { throw new Error(e && e.name === 'AbortError' ? GS.t('ElevenLabs tidak menjawab (tamat masa).') : GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.')); } finally { clearTimeout(to); }
+    if (!r.ok) throw new Error(await elevenError(r));
+    const ab = await r.arrayBuffer();
+    audioCache.set(ck, ab.slice(0));
+    if (audioCache.size > 30) audioCache.delete(audioCache.keys().next().value);
+    return ab;
+  };
+
+  /** Baki kuota aksara bulan ini. */
+  V.elevenQuota = async function () {
+    const key = V.elevenKey();
+    if (!key) throw new Error(GS.t('Kunci API ElevenLabs belum diisi.'));
+    let r;
+    try { r = await fetch(ELEVEN + '/user/subscription', { headers: { 'xi-api-key': key } }); } catch (e) { throw new Error(GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.')); }
+    if (!r.ok) throw new Error(await elevenError(r));
+    const j = await r.json();
+    return { used: j.character_count, limit: j.character_limit, tier: j.tier };
+  };
+
+  /** Pilih suara sistem mengikut jantina dan bahasa (Melayu diutamakan, kemudian Indonesia, kemudian Inggeris). */
+  const MALE_RE = /\b(david|mark|george|james|guy|ryan|rizwan|osman|richard|daniel|alex|fred|jorge|thomas|paul|stefan|male|lelaki)\b/i;
+  const FEMALE_RE = /\b(zira|hazel|susan|aria|jenny|yasmin|emma|samantha|victoria|karen|moira|ayu|gadis|siti|female|perempuan|helen|linda|catherine|sabina)\b/i;
+  V.pickSystemVoice = function (vs, gender, lang) {
+    const l = String(lang || 'ms').slice(0, 2).toLowerCase();
+    const rank = (v) => { const x = String(v.lang || '').toLowerCase(); return x.startsWith(l) ? 0 : x.startsWith('ms') ? 0 : x.startsWith('id') ? 1 : x.startsWith('en') ? 2 : 3; };
+    const isG = (v) => (gender === 'male' ? MALE_RE.test(v.name) && !FEMALE_RE.test(v.name) : FEMALE_RE.test(v.name) && !MALE_RE.test(v.name));
+    const sorted = vs.slice().sort((a, b) => rank(a) - rank(b));
+    return sorted.find((v) => isG(v) && rank(v) <= 2) || sorted.find((v) => isG(v)) || sorted.find((v) => rank(v) === 0) || sorted[0] || null;
+  };
+
+  async function playBuffer(ab, done) {
+    const ctx = GS.audio.ensure();
+    const buf = await ctx.decodeAudioData(ab);
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.connect(GS.audio.sfxBus); src.onended = done; src.start();
+  }
+
+  V.speak = async function (text, force) {
     const b = cfg().bot;
-    if (!b.voiceOn || !text) return;
+    if ((!b.voiceOn && !force) || !text) return;
     V.speaking = true;
     const done = () => { setTimeout(() => { V.speaking = false; GS.emit('voice:status'); }, 600); };
+    const tts = b.tts || {};
     try {
+      // 1) ElevenLabs (percuma): suara AI semula jadi, masuk terus ke dalam siaran
+      if (tts.provider === 'eleven') {
+        try { await playBuffer(await V.elevenFetch(text), done); return; } catch (e) { warn(String((e && e.message) || e) + ' ' + GS.t('Menggunakan suara sistem.')); }
+      }
+      // 2) suara Windows dijana sebagai WAV dan dicampur ke dalam siaran
       if (b.inStream && native()) {
-        // jana WAV (suara Windows) dan campurkan ke dalam siaran melalui bas efek; streamer juga mendengarnya
-        const r = await window.gsNative.voice.say(text, { voice: b.voiceName, culture: V.cultureFor(), rate: b.rate });
-        if (r && r.ok) {
-          const ctx = GS.audio.ensure();
-          const buf = await ctx.decodeAudioData(r.wav.buffer.slice(r.wav.byteOffset, r.wav.byteOffset + r.wav.byteLength));
-          const src = ctx.createBufferSource();
-          src.buffer = buf; src.connect(GS.audio.sfxBus); src.onended = done; src.start();
-          return;
-        }
+        const r = await window.gsNative.voice.say(text, { voice: b.voiceName, culture: V.cultureFor(), gender: tts.gender, rate: b.rate });
+        if (r && r.ok) { await playBuffer(r.wav.buffer.slice(r.wav.byteOffset, r.wav.byteOffset + r.wav.byteLength), done); return; }
         if (r && r.error) GS.toast(GS.t('Suara bot ke siaran gagal: {0}', r.error), 'warn');
       }
+      // 3) suara sistem melalui pembesar suara
       if ('speechSynthesis' in window) {
         const u = new SpeechSynthesisUtterance(text);
         const vs = speechSynthesis.getVoices();
-        const pick = (b.voiceName && vs.find((v) => v.name === b.voiceName)) || vs.find((v) => v.lang && v.lang.toLowerCase().startsWith(V.cultureFor().slice(0, 2).toLowerCase()));
-        if (pick) u.voice = pick;
+        const pick = (b.voiceName && vs.find((v) => v.name === b.voiceName)) || V.pickSystemVoice(vs, tts.gender, V.cultureFor());
+        if (pick) { u.voice = pick; u.lang = pick.lang; }
         u.rate = 1 + (Number(b.rate) || 0) / 10;
         u.onend = done; u.onerror = done;
         speechSynthesis.speak(u);
@@ -127,13 +202,13 @@
   };
   V.cultureFor = () => { const c = cfg().culture; return c && c !== 'auto' ? c : (GS.state.lang === 'en' ? 'en-US' : 'ms-MY'); };
 
-  V.say = function (text) {
+  V.say = function (text, force) {
     const b = cfg().bot;
     if (!text) return;
     V.log.unshift({ at: Date.now(), kind: 'bot', text });
     V.log.length = Math.min(V.log.length, 30);
     GS.fx.trigger('botsay', { name: b.name || 'BOT', text, dur: Math.min(12000, 3200 + text.length * 70), sound: false });
-    V.speak(text);
+    V.speak(text, force);
     GS.emit('voice:status');
   };
 

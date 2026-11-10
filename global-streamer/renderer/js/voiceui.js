@@ -105,6 +105,35 @@
       ? h('select', { onChange: (e) => { c.bot.voiceName = e.target.value; save(); } }, [h('option', { value: '' }, GS.t('Lalai sistem'))].concat(voices.map((n) => h('option', { value: n, selected: c.bot.voiceName === n }, n))))
       : h('input', { type: 'text', value: c.bot.voiceName, placeholder: 'cth Microsoft Zira Desktop (kosong = lalai)', onInput: (e) => { c.bot.voiceName = e.target.value.trim(); save(); } });
 
+    /* suara bot: jantina + penyedia */
+    const t = c.bot.tts;
+    const genderBtns = [['female', 'Perempuan'], ['male', 'Lelaki']].map(([g, l]) => h('button', { type: 'button', 'data-gender': g, class: t.gender === g ? 'on' : '', role: 'radio', 'aria-checked': t.gender === g ? 'true' : 'false',
+      onClick: () => { t.gender = g; save(); genderBtns.forEach((b) => { b.classList.toggle('on', b.dataset.gender === g); b.setAttribute('aria-checked', b.dataset.gender === g ? 'true' : 'false'); }); } }, l));
+    const gender = h('div', { class: 'seg-mini voice-gender', role: 'radiogroup', 'aria-label': GS.t('Jantina suara bot') }, genderBtns);
+    const elevenBox = h('div', { class: 'eleven-box', id: 'elevenBox' });
+    const quotaOut = h('div', { class: 'muted note', id: 'elevenQuota' });
+    const drawEleven = () => {
+      elevenBox.innerHTML = '';
+      elevenBox.hidden = t.provider !== 'eleven';
+      if (elevenBox.hidden) return;
+      const keyIn = h('input', { type: 'password', id: 'elevenKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk_… / xi-api-key', value: v.elevenKey(), onChange: (e) => { v.setElevenKey(e.target.value); } });
+      elevenBox.append(
+        h('p', { class: 'muted note' }, 'ElevenLabs (tier percuma): daftar di elevenlabs.io, kemudian Profile > API Keys > Create, dan tampal kunci di bawah. Pelan percuma ada 10,000 aksara sebulan (jawapan yang sama tidak menggunakan kuota dua kali). Bahasa Melayu disokong oleh model multilingual.'),
+        field('Kunci API ElevenLabs', keyIn, nat ? 'Disimpan disulitkan oleh Windows, bukan dalam fail tetapan.' : 'Versi web: hanya dalam memori, hilang apabila tab ditutup.'),
+        h('div', { class: 'grid2' },
+          field('Model', h('select', { id: 'elevenModel', onChange: (e) => { t.model = e.target.value; save(); } }, [['eleven_multilingual_v2', 'Multilingual v2 (kualiti terbaik, 1 kredit/aksara)'], ['eleven_flash_v2_5', 'Flash v2.5 (pantas, separuh kredit)']].map(([val, l]) => h('option', { value: val, selected: t.model === val }, l)))),
+          h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnElevenQuota', onClick: async () => { keyIn.dispatchEvent(new Event('change')); quotaOut.textContent = GS.t('Menyemak…'); try { const q = await v.elevenQuota(); quotaOut.textContent = GS.t('Digunakan {0} daripada {1} aksara bulan ini.', q.used, q.limit); } catch (e) { quotaOut.textContent = String(e.message || e); } } }, 'Semak kuota'))),
+        quotaOut,
+        h('details', { class: 'dev-adv' }, h('summary', null, GS.t('ID suara (lanjutan)')),
+          h('div', { class: 'grid2' },
+            field('ID suara lelaki', h('input', { type: 'text', id: 'elevenMale', value: t.maleVoice, onInput: (e) => { t.maleVoice = e.target.value.trim(); save(); } })),
+            field('ID suara perempuan', h('input', { type: 'text', id: 'elevenFemale', value: t.femaleVoice, onInput: (e) => { t.femaleVoice = e.target.value.trim(); save(); } })))));
+    };
+    drawEleven();
+    const provider = h('select', { id: 'ttsProvider', onChange: (e) => { t.provider = e.target.value; save(); drawEleven(); } },
+      [['system', 'Suara sistem (percuma, tanpa internet)'], ['eleven', 'ElevenLabs: suara AI semula jadi (percuma, perlu kunci API)']].map(([val, l]) => h('option', { value: val, selected: t.provider === val }, l)));
+
+    const keyBlur = () => { const k = GS.$('#elevenKey'); if (k) v.setElevenKey(k.value); };
     const body = h('div', { class: 'voice-modal' },
       h('div', { class: 'voice-top' }, h('div', { id: 'voiceModalStatus', class: 'voice-status big' }),
         h('button', { type: 'button', class: 'btn', id: 'voiceModalToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, 'Hidupkan')),
@@ -131,9 +160,13 @@
       h('div', { class: 'grid2' },
         field('Nama bot (kata panggilan)', h('input', { type: 'text', id: 'botName', value: c.bot.name, maxlength: 24, onInput: (e) => { c.bot.name = e.target.value.trim(); save(); } }), 'Cth Jarvis. Sebut nama ini, kemudian soalan: "Jarvis, siapa noob?"'),
         field('Nama lain / ejaan sebutan', h('input', { type: 'text', value: c.bot.aliases, placeholder: 'cth jarvis, jervis', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }))),
+      h('h4', null, 'Suara bot'),
+      h('div', { class: 'grid2' }, field('Jantina suara', gender), field('Penyedia suara', provider)),
+      elevenBox,
       h('div', { class: 'grid2' },
-        field('Suara bot', voiceCtl),
+        field('Suara sistem tertentu (lanjutan)', voiceCtl),
         field('Kelajuan suara', h('input', { type: 'range', min: -5, max: 5, value: c.bot.rate, onInput: (e) => { c.bot.rate = Number(e.target.value); save(); } }))),
+      h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn', id: 'btnVoiceSpeak', onClick: () => { keyBlur(); v.say(GS.t('Hai, saya {0}. Ini ujian suara saya.', c.bot.name || 'bot'), true); } }, 'Uji suara bot')),
       check('Masukkan suara bot ke dalam siaran (penonton dengar; app Windows)', () => c.bot.inStream, (x) => { c.bot.inStream = x; }, !nat),
       h('h4', null, 'Soalan dan jawapan'),
       h('p', { class: 'muted note' }, 'Pisahkan beberapa cara bertanya dengan |. Jawapan boleh menggunakan data game: {kill} {mati} {assist} {menang} {kalah} {streak} {toppick} {topban} {nama}.'),

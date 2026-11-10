@@ -646,17 +646,63 @@
     return L;
   };
 
+  /* ---- warna ---- */
+  const parseCol = (c) => {
+    c = String(c || '').trim();
+    let m = /^#([0-9a-f]{6})/i.exec(c); if (m) { const v = parseInt(m[1], 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255]; }
+    m = /^#([0-9a-f]{3})$/i.exec(c); if (m) return m[1].split('').map((x) => parseInt(x + x, 16));
+    m = /^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i.exec(c); if (m) return [+m[1], +m[2], +m[3]];
+    return null;
+  };
+  const mixc = (a, b, t) => a.map((v, k) => Math.round(v + (b[k] - v) * t));
+  const rgb = (a, al) => 'rgba(' + a[0] + ',' + a[1] + ',' + a[2] + ',' + (al == null ? 1 : al) + ')';
+  const lumOf = (a) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(a[0]) + 0.7152 * f(a[1]) + 0.0722 * f(a[2]); };
+  /** Warna gelembung diambil daripada tema semasa (BUKAN putih); teks hitam/putih dipilih ikut kontras. */
+  FX.botColors = function (pal) {
+    // tema kelabu (mono) tiada warna: ambil warna aksen; jika masih kelabu guna kuning-jingga komik
+    const sat = (a) => (a ? Math.max(...a) - Math.min(...a) : -1);
+    const cands = [pal && pal.main, pal && pal.accent, pal && pal.light].map(parseCol);
+    const base = cands.find((a) => sat(a) >= 60) || [255, 190, 60];
+    const top = mixc(base, [255, 255, 255], 0.38), bot = mixc(base, [0, 0, 0], 0.08);
+    const mid = mixc(top, bot, 0.5);
+    const cDark = (lumOf(mid) + 0.05) / 0.05, cLight = 1.05 / (lumOf(mid) + 0.05);
+    const darkText = cDark >= cLight;
+    return { top, bot, text: darkText ? '#10131c' : '#ffffff', sub: darkText ? 'rgba(16,19,28,0.72)' : 'rgba(255,255,255,0.85)', dots: darkText ? [0, 0, 0] : [255, 255, 255], ink: '#10131c', light: parseCol(pal && pal.light) || [255, 255, 255] };
+  };
+
+  /** Animasi berasaskan MASA (ms), bukan bingkai, supaya licin pada 30/60/120 fps dan tajam pada 4K (vektor pada ruang reka bentuk):
+   *  letup masuk dengan spring teredam + goyang kecil, terapung perlahan, tulisan ditaip, keluar mengecil dan pudar. */
+  FX.botMotion = function (el, dur) {
+    const tIn = 720, tOut = 340;
+    let sc = 1, rot = 0, alpha = 1, bob = 0, burst = 0;
+    if (el < tIn) {
+      const u = el / tIn;
+      sc = Math.max(0, 1 - Math.exp(-4.5 * u) * Math.cos(7.5 * u)); // spring teredam: melantun ~18% kemudian tenang
+      rot = Math.exp(-4 * u) * Math.sin(11 * u) * 0.06;
+      alpha = clamp(u * 7, 0, 1);
+      burst = u;
+    } else if (el > dur - tOut) {
+      const u = clamp((el - (dur - tOut)) / tOut, 0, 1), k = u * u * (3 - 2 * u);
+      sc = 1 - 0.22 * k; rot = -0.05 * k; alpha = 1 - k;
+    }
+    // bernafas perlahan; amplitud dilicinkan masuk/keluar supaya tiada lompatan antara fasa
+    sc *= 1 + 0.008 * Math.sin(el / 380) * clamp((el - tIn) / 300, 0, 1) * clamp((dur - tOut - el) / 200, 0, 1);
+    if (el >= tIn * 0.6) bob = Math.sin(el / 540) * 1.8 * clamp((el - tIn * 0.6) / 400, 0, 1);
+    return { sc, rot, alpha, bob, burst };
+  };
+
   function drawBotSay(ctx, e, p, now, W, H) {
     const pl = FX.botPlacement(W, H);
     const sig = pl.mode + JSON.stringify(pl.box) + JSON.stringify(pl.cam) + pl.obstacles.length;
-    if (!e.lay || e.laySig !== sig) { e.lay = FX.botPlace(ctx, e.params, W, H); e.laySig = sig; }
+    if (!e.lay || e.laySig !== sig) { e.lay = FX.botPlace(ctx, e.params, W, H); e.laySig = sig; e.dots = null; }
     const L = e.lay, box = L.box;
-    const inP = easeBack(p / 0.1), outP = easeOut((p - 0.92) / 0.08);
-    const sc = clamp(inP, 0, 1.08);
+    const el = now - e.t0;
+    const M = FX.botMotion(el, e.dur);
+    const C = e.col || (e.col = FX.botColors(e.pal));
     ctx.save();
     ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip(); // tidak pernah keluar daripada kotak hos
-    ctx.globalAlpha = 1 - outP;
-    ctx.translate(L.tipX, L.tipY); ctx.scale(sc, sc); ctx.translate(-L.tipX, -L.tipY); // "meletup" keluar dari ekor
+    ctx.globalAlpha = clamp(M.alpha, 0, 1);
+    ctx.translate(L.tipX, L.tipY + M.bob); ctx.rotate(M.rot); ctx.scale(M.sc, M.sc); ctx.translate(-L.tipX, -L.tipY); // berputar/membesar dari hujung ekor
     const path = (dx, dy) => {
       const { x, y, w, h, r } = L; const bx = x + dx, by = y + dy;
       ctx.beginPath();
@@ -669,15 +715,53 @@
       ctx.lineTo(bx, by + r); ctx.arcTo(bx, by, bx + r, by, r);
       ctx.closePath();
     };
-    const off = Math.max(2, Math.round(L.size * 0.12));
-    path(off, off); ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.fill();                      // bayang keras gaya komik
-    path(0, 0); ctx.fillStyle = '#ffffff'; ctx.fill();
-    ctx.lineWidth = Math.max(2.5, Math.round(L.size * 0.12)); ctx.lineJoin = 'round'; ctx.strokeStyle = '#111'; ctx.stroke();
+    const off = Math.max(2, Math.round(L.size * 0.13));
+    path(off, off); ctx.fillStyle = 'rgba(0,0,0,0.42)'; ctx.fill();                      // bayang keras gaya komik
+    const g = ctx.createLinearGradient(0, L.y, 0, L.y + L.h);
+    g.addColorStop(0, rgb(C.top)); g.addColorStop(1, rgb(C.bot));
+    path(0, 0); ctx.fillStyle = g; ctx.fill();
+    // tekstur titik separuh-ton (komik) dan kilauan
+    ctx.save(); path(0, 0); ctx.clip();
+    if (!e.dots) {
+      const st = Math.max(6, Math.round(L.size * 0.4)), d = new Path2D();
+      for (let yy = L.y + st / 2, row = 0; yy < L.y + L.h + st; yy += st * 0.86, row++) for (let xx = L.x + (row % 2 ? st / 2 : 0); xx < L.x + L.w + st; xx += st) {
+        const t = clamp(((xx - L.x) / L.w + (yy - L.y) / L.h) / 2, 0, 1); // makin besar ke sudut bawah-kanan
+        const rr = st * 0.07 + st * 0.2 * Math.pow(t, 1.6);
+        d.moveTo(xx + rr, yy); d.arc(xx, yy, rr, 0, Math.PI * 2);
+      }
+      e.dots = d;
+    }
+    ctx.fillStyle = rgb(C.dots, 0.13); ctx.fill(e.dots);
+    const gl = ctx.createLinearGradient(0, L.y, 0, L.y + L.h * 0.5);
+    gl.addColorStop(0, 'rgba(255,255,255,0.34)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gl; ctx.fillRect(L.x, L.y, L.w, L.h * 0.5);
+    ctx.restore();
+    path(0, 0); ctx.lineWidth = Math.max(2.5, Math.round(L.size * 0.13)); ctx.lineJoin = 'round'; ctx.strokeStyle = C.ink; ctx.stroke();
+    // garis "letupan" dari hujung ekor semasa muncul
+    if (M.burst > 0 && M.burst < 1) {
+      const a0 = L.up ? -Math.PI / 2 : Math.PI / 2, k = easeOut(M.burst);
+      ctx.save(); ctx.globalAlpha = clamp(M.alpha, 0, 1) * (1 - M.burst); ctx.lineCap = 'round'; ctx.strokeStyle = rgb(C.light); ctx.lineWidth = Math.max(2, L.size * 0.1);
+      for (let n = -3; n <= 3; n++) {
+        const a = a0 + n * 0.42, r0 = L.tail * (0.5 + 0.6 * k), r1 = L.tail * (1.1 + 1.5 * k);
+        ctx.beginPath(); ctx.moveTo(L.tipX + Math.cos(a) * r0, L.tipY + Math.sin(a) * r0); ctx.lineTo(L.tipX + Math.cos(a) * r1, L.tipY + Math.sin(a) * r1); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    // nama dan teks (teks ditaip perlahan-lahan selepas gelembung muncul)
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.font = '800 ' + Math.round(L.size * 0.62) + 'px ' + COMIC; ctx.fillStyle = '#d6262f';
+    ctx.font = '800 ' + Math.round(L.size * 0.62) + 'px ' + COMIC; ctx.fillStyle = C.sub;
     ctx.fillText(L.name, L.x + L.w / 2, L.y + L.pad + L.nameH * 0.8);
-    ctx.font = '700 ' + L.size + 'px ' + COMIC; ctx.fillStyle = '#111';
-    L.lines.forEach((ln, i) => ctx.fillText(ln, L.x + L.w / 2, L.y + L.pad + L.nameH + L.lh * (i + 0.82)));
+    const total = L.lines.reduce((a, l) => a + l.length, 0);
+    const typeMs = clamp(total * 24, 450, 1700);
+    let show = Math.floor(total * clamp((el - 260) / typeMs, 0, 1));
+    ctx.font = '700 ' + L.size + 'px ' + COMIC; ctx.fillStyle = C.text;
+    L.lines.forEach((ln, i) => {
+      const part = ln.slice(0, Math.max(0, Math.min(ln.length, show))); show -= ln.length;
+      if (!part) return;
+      // lebar penuh baris dikekalkan supaya teks tidak "bergerak" semasa ditaip
+      const full = ctx.measureText(ln).width;
+      ctx.textAlign = 'left'; ctx.fillText(part, L.x + L.w / 2 - full / 2, L.y + L.pad + L.nameH + L.lh * (i + 0.82)); ctx.textAlign = 'center';
+    });
     ctx.restore();
   }
 

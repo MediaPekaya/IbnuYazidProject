@@ -58,6 +58,9 @@ const until = (f, ms = 4000) => new Promise((res, rej) => { const t0 = Date.now(
   const info = JSON.parse(wav.slice(4).toString());
   ok(wav.slice(0, 4).toString() === 'RIFF' && info.t === 'Hai "dunia"; calc & echo $(x)', 'teks dihantar utuh melalui persekitaran (tiada suntikan)', JSON.stringify(info));
   ok(info.v === 'Microsoft David Desktop' && info.c === 'en-US' && info.r === '10', 'suara/budaya sah dipakai; kadar dihadkan kepada 10');
+  const gm = JSON.parse((await mk([]).say('x', { gender: 'male' })).slice(4).toString()), gf = JSON.parse((await mk([]).say('x', { gender: 'female' })).slice(4).toString()), gx = JSON.parse((await mk([]).say('x', { gender: 'x"; calc' })).slice(4).toString());
+  ok(gm.g === 'male' && gf.g === 'female' && gx.g === '', 'jantina suara (lelaki/perempuan) dihantar; nilai lain dibuang', JSON.stringify([gm.g, gf.g, gx.g]));
+  ok(/GS_VOICE_GENDER/.test(SYNTH_PS) && /SelectVoiceByHints/.test(SYNTH_PS), 'skrip sintesis memilih suara mengikut jantina');
   const bad = JSON.parse((await mk([]).say('x', { voice: 'a"; rm -rf /', culture: 'x y', rate: 'abc' })).slice(4).toString());
   ok(bad.v === '' && bad.c === '' && bad.r === '0', 'nama suara/budaya tidak sah dibuang');
   let err = null; try { await mk([]).say('GAGAL'); } catch (e) { err = e.message; }

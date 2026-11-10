@@ -118,6 +118,7 @@
       bot: {
         enabled: false, name: 'Jarvis', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
         fallback: 'Maaf, saya tak faham soalan itu.',
+        tts: { provider: 'system', gender: 'female', model: 'eleven_multilingual_v2', maleVoice: 'pNInz6obpgDQGcFmaJgB', femaleVoice: '21m00Tcm4TlvDq8ikWAM' },
         qa: [
           { q: 'siapa noob | siapa paling noob', a: 'Rahsia! Tapi pasti bukan saya.' },
           { q: 'berapa kill | kda saya', a: 'Setakat ini {kill} kill, {mati} mati dan {assist} assist.' },
@@ -168,7 +169,7 @@
       merged.platforms = Object.assign(defaults().platforms, s.platforms || {});
       merged.audio = Object.assign(defaults().audio, s.audio || {});
       merged.winloss = Object.assign(defaults().winloss, s.winloss || {});
-      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
+      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); merged.voice.bot.tts = Object.assign(defaults().voice.bot.tts, (sv.bot && sv.bot.tts) || {}); if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
       merged.ticker = Object.assign(defaults().ticker, s.ticker || {});
       ['status', 'boss', 'promo', 'queue', 'draft', 'tiers'].forEach((k) => { merged[k] = Object.assign(defaults()[k], s[k] || {}); });
       if (!Array.isArray(merged.toplike)) merged.toplike = defaults().toplike;

@@ -58,8 +58,13 @@ try {
   $v = $env:GS_VOICE
   if ($v) { try { $s.SelectVoice($v) } catch { } }
   else {
+    $g = $env:GS_VOICE_GENDER
     $c = $env:GS_VOICE_CULTURE
-    if ($c) { $m = $s.GetInstalledVoices() | Where-Object { $_.Enabled -and $_.VoiceInfo.Culture.Name -eq $c } | Select-Object -First 1; if ($m) { $s.SelectVoice($m.VoiceInfo.Name) } }
+    $gender = [System.Speech.Synthesis.VoiceGender]::NotSet
+    if ($g -eq 'male') { $gender = [System.Speech.Synthesis.VoiceGender]::Male } elseif ($g -eq 'female') { $gender = [System.Speech.Synthesis.VoiceGender]::Female }
+    $done = $false
+    if ($c) { try { $s.SelectVoiceByHints($gender, [System.Speech.Synthesis.VoiceAge]::NotSet, 0, (New-Object System.Globalization.CultureInfo($c))); $done = $true } catch { } }
+    if (-not $done) { try { $s.SelectVoiceByHints($gender) } catch { } }
   }
   $s.Rate = [int]$env:GS_RATE
   $s.SetOutputToWaveFile($env:GS_OUT)
@@ -150,13 +155,14 @@ class VoiceHost {
       if (!t) return reject(new Error('teks kosong'));
       const voice = VOICE_RE.test(String(opts.voice || '')) ? String(opts.voice) : '';
       const culture = CULTURE_RE.test(String(opts.culture || '')) ? String(opts.culture) : '';
+      const gender = opts.gender === 'male' || opts.gender === 'female' ? opts.gender : '';
       const rate = Math.max(-10, Math.min(10, Math.round(Number(opts.rate) || 0)));
       const out = path.join(this.tmp, 'gs-voice-' + process.pid + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.wav');
       const c = this.command('synth');
       let err = '';
       let child;
       try {
-        child = spawn(c.exe, c.args, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true, env: Object.assign({}, process.env, { GS_TEXT: t, GS_OUT: out, GS_VOICE: voice, GS_VOICE_CULTURE: culture, GS_RATE: String(rate) }) });
+        child = spawn(c.exe, c.args, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true, env: Object.assign({}, process.env, { GS_TEXT: t, GS_OUT: out, GS_VOICE: voice, GS_VOICE_CULTURE: culture, GS_VOICE_GENDER: gender, GS_RATE: String(rate) }) });
       } catch (e) { return reject(e); }
       const timer = setTimeout(() => { try { child.kill(); } catch (e) { /* abaikan */ } }, 20000);
       child.stderr.setEncoding('utf8');

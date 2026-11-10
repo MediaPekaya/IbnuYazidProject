@@ -442,3 +442,7 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .voice-log { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
 .vlog { display: flex; gap: 8px; color: var(--muted); }
 .vlog.bot { color: var(--cyan); }
+
+.voice-gender button { padding: 6px 14px; font-size: 12px; }
+.eleven-box { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(4, 10, 24, 0.45); }
+.eleven-box[hidden] { display: none; }

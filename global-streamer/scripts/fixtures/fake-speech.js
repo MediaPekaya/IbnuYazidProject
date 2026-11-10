@@ -4,7 +4,7 @@ const fs = require('fs');
 const kind = process.argv[2];
 if (kind === 'synth') {
   if (process.env.GS_TEXT === 'GAGAL') { console.error('suara tiada'); process.exit(3); }
-  fs.writeFileSync(process.env.GS_OUT, Buffer.concat([Buffer.from('RIFF'), Buffer.from(JSON.stringify({ t: process.env.GS_TEXT, v: process.env.GS_VOICE, c: process.env.GS_VOICE_CULTURE, r: process.env.GS_RATE }))]));
+  fs.writeFileSync(process.env.GS_OUT, Buffer.concat([Buffer.from('RIFF'), Buffer.from(JSON.stringify({ t: process.env.GS_TEXT, v: process.env.GS_VOICE, c: process.env.GS_VOICE_CULTURE, g: process.env.GS_VOICE_GENDER, r: process.env.GS_RATE }))]));
   process.exit(0);
 } else if (kind === 'crash') {
   console.log(JSON.stringify({ type: 'error', code: 'no-recognizer', message: 'Tiada pengecam' }));

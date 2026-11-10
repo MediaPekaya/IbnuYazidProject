@@ -18,7 +18,7 @@ const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.web
 /* ---------- simpanan key disulitkan (OS) ---------- */
 const vaultFile = () => path.join(app.getPath('userData'), 'vault.json');
 function readVault() { try { return JSON.parse(fs.readFileSync(vaultFile(), 'utf8')); } catch (e) { return {}; } }
-const VALID_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook']);
+const VALID_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs']);
 
 ipcMain.handle('vault:get', (_e, id) => {
   if (!VALID_IDS.has(id)) return '';
