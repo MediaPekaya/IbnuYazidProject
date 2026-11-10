@@ -345,3 +345,24 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .size-item.on { background: rgba(46, 168, 255, 0.22); }
 .pop-fps { display: flex; gap: 4px; padding: 4px 2px; }
 .size-pop .note { margin: 6px; }
+
+/* ---------- pengesan hero ---------- */
+.det-status.ok { border-color: rgba(59, 227, 154, 0.5); background: rgba(59, 227, 154, 0.08); color: #9df5cc; }
+.det-prevwrap canvas, .det-prev { width: 100%; border-radius: 10px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); }
+.det-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
+.det-card { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 6px; border-radius: 10px; border: 1px solid var(--line); background: rgba(20, 44, 88, 0.2); font-size: 11px; }
+.det-card.ok { border-color: rgba(59, 227, 154, 0.7); background: rgba(59, 227, 154, 0.08); }
+.det-card.pend { border-color: rgba(255, 211, 107, 0.7); }
+.det-card.lock::after { content: 'LOCK'; position: absolute; top: 5px; right: 6px; font-size: 8.5px; letter-spacing: 0.08em; color: var(--muted); }
+.det-card canvas { width: 56px; height: 56px; border-radius: 8px; align-self: center; background: rgba(0, 0, 0, 0.35); }
+.det-k { color: var(--muted); font-weight: 700; font-size: 10px; letter-spacing: 0.06em; }
+.det-card b { text-align: center; font-size: 12px; min-height: 16px; }
+.det-bar { display: block; height: 3px; border-radius: 2px; background: var(--cyan); }
+.det-sug { display: flex; flex-direction: column; gap: 2px; }
+.det-chip { padding: 2px 5px; border-radius: 6px; border: 1px solid var(--line); background: rgba(46, 168, 255, 0.1); color: var(--text); font-size: 10.5px; text-align: left; cursor: pointer; }
+.det-chip:hover { border-color: var(--cyan); }
+.det-chip.on { background: rgba(59, 227, 154, 0.2); border-color: rgba(59, 227, 154, 0.7); }
+.det-calib { border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.det-calib summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); }
+.det-adj { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 6px 0; border-top: 1px solid var(--line); margin-top: 6px; }
+.det-adj b { font-size: 11.5px; }

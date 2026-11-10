@@ -248,6 +248,33 @@
     'Galaksi · Dua Skrin': 'Galaxy · Dual Screen', 'Game dan kamera sama saiz bersebelahan. Panel bulat lembut bertema ungu-merah jambu.': 'Game and camera side by side at equal size. Soft rounded purple-pink panels.',
     'Monokrom · Skrin Penuh': 'Monochrome · Full Screen', 'Game memenuhi skrin dengan penanda minimal berbingkai garis nipis. Kamera tersembunyi.': 'Game fills the screen with minimal outlined markers. Camera hidden.',
 
+
+    /* ---- pengesan hero automatik ---- */
+    'Pengesan hero automatik (daripada capture card)': 'Automatic hero detector (from capture card)',
+    'Pengesan dimatikan.': 'Detector is off.', 'Memuat ikon hero…': 'Loading hero icons…',
+    'Tiada sumber capture card yang aktif. Sambung capture card pada sumber Game, atau muat imej ujian.': 'No active capture card source. Connect the capture card to the Game source, or load a test image.',
+    'Tiada isyarat video.': 'No video signal.',
+    'Skrin draft dikesan · {0} slot diterima ({1} kuat) · imbasan {2} ms': 'Draft screen detected · {0} slots accepted ({1} strong) · scan {2} ms',
+    'Mencari skrin draft… belum dikesan. ({0} ms setiap imbasan)': 'Looking for the draft screen… not detected yet. ({0} ms per scan)',
+    'Auto (sumber Game / capture card)': 'Auto (Game / capture card source)', 'Sumber video': 'Video source',
+    'Imej ujian dimuat. Pengesan kini membaca imej ini.': 'Test image loaded. The detector now reads this image.',
+    'Kalibrasi kawasan (jika peranti/skrin anda berbeza)': 'Region calibration (if your device/screen differs)',
+    'Slot Ally (kiri)': 'Ally slots (left)', 'Slot Enemy (kanan)': 'Enemy slots (right)', 'Ban Ally': 'Ally bans', 'Ban Enemy': 'Enemy bans',
+    'Skala': 'Scale', 'Tetapkan semula kalibrasi': 'Reset calibration',
+    'Hidupkan pengesan hero automatik': 'Turn on automatic hero detection',
+    'Uji dengan imej / tangkapan skrin…': 'Test with an image / screenshot…', 'Guna capture card semula': 'Use capture card again',
+    'Kepekaan (lebih tinggi = lebih banyak diterima, lebih mudah silap)': 'Sensitivity (higher = more accepted, more mistakes)',
+    'Kekerapan imbasan': 'Scan frequency',
+    'Papar widget draft secara automatik apabila draft dikesan': 'Show the draft widget automatically when a draft is detected',
+    'Kira ramalan menang daripada meta secara automatik': 'Calculate the win prediction from the meta automatically',
+    'Kemas kini fasa draft secara automatik': 'Update the draft phase automatically',
+    'Slot yang saya isi/betulkan sendiri tidak ditimpa pengesan': 'Slots I fill/correct myself are not overwritten by the detector',
+    'Buka kunci semua slot': 'Unlock all slots', 'Semua slot dibuka kunci.': 'All slots unlocked.',
+    'Draft baharu (kosongkan semua)': 'New draft (clear all)',
+    'Kotak hijau = hero disahkan, kuning = diterima tetapi belum stabil, kelabu = tidak yakin. Klik nama cadangan pada kad di bawah untuk membetulkan slot; sistem akan mengingati rupa potret itu (disimpan pada PC ini).': 'Green box = confirmed hero, yellow = accepted but not yet stable, grey = unsure. Click a suggested name on the cards below to correct a slot; the system remembers how that portrait looks (stored on this PC).',
+    'Tiada bingkai lagi': 'No frame yet', 'Templat dipelajari: {0}': 'Learned templates: {0}', 'Padam pembelajaran': 'Clear learning',
+    'Padam semua templat yang dipelajari?': 'Delete all learned templates?', 'Betul: {0} (ajar sistem)': 'Correct: {0} (teach the system)',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

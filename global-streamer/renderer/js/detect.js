@@ -15,9 +15,10 @@
   'use strict';
   const GS = window.GS;
   const G = 16;                 // grid ciri G x G
-  const VAR = [                 // varian potongan ikon: [skala, anjakan x, anjakan y]
+  let VAR = [                   // varian potongan ikon: [skala, anjakan x, anjakan y]
     [1, 0, 0], [0.84, 0, 0], [0.84, 0, -0.08], [0.84, 0, 0.08], [0.68, 0, 0], [0.68, 0, -0.1], [0.68, 0, 0.1], [0.9, 0.06, 0], [0.9, -0.06, 0],
   ];
+  const opt = { wv: 0.8 };
   const D = (GS.detect = {
     ready: false,
     db: [],            // { name, vec, hist, learned }
@@ -29,16 +30,18 @@
 
   /* ---------- pratetap ROI (unit tinggi) ---------- */
   // anchor: 'L' (dari kiri), 'R' (dari kanan). x,y,w,h dalam unit tinggi bingkai.
-  const slotsCol = (anchor, x0) => [0, 1, 2, 3, 4].map((i) => ({ a: anchor, x: x0, y: 0.116 + i * 0.1598, w: 0.174, h: 0.153 }));
-  const bansRow = (anchor, x0, n) => Array.from({ length: n }, (_, i) => ({ a: anchor, x: x0 + i * 0.102, y: 0.008, w: 0.072, h: 0.072 }));
+  // Diukur daripada rakaman draft sebenar 1280x588 (tinggi 588): potret ally 76px persegi bermula x=76,y=70 (elak lencana bendera dan nama),
+  // potret enemy ~90px persegi pada x=1135, ban ialah bulatan 42px berjarak 60px.
+  const slotsCol = (anchor, x0, size) => [0, 1, 2, 3, 4].map((i) => ({ a: anchor, x: x0, y: 0.119 + i * 0.1598, w: size, h: size }));
+  const bansRow = (anchor, x0, n, step) => Array.from({ length: n }, (_, i) => ({ a: anchor, x: x0 + i * step, y: 0.009, w: 0.071, h: 0.071 }));
   D.presets = {
     'mlbb-draft': {
       label: 'MLBB draft (lalai)',
       groups: {
-        ally: slotsCol('L', 0.08),
-        enemy: slotsCol('R', 0.2),
-        banAlly: bansRow('L', 0.037, 5),
-        banEnemy: bansRow('R', 0.2, 5),
+        ally: slotsCol('L', 0.129, 0.129),
+        enemy: slotsCol('R', 0.2466, 0.153),
+        banAlly: bansRow('L', 0.104, 5, 0.102),
+        banEnemy: bansRow('R', 0.483, 5, -0.102),
       },
     },
   };
@@ -110,7 +113,7 @@
   }
   const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
   const inter = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.min(a[i], b[i]); return s; };
-  const score = (f, t) => 0.8 * dot(f.vec, t.vec) + 0.2 * inter(f.hist, t.hist);
+  const score = (f, t) => opt.wv * dot(f.vec, t.vec) + (1 - opt.wv) * inter(f.hist, t.hist);
 
   /* ---------- pangkalan data ikon ---------- */
   function addIcon(name, img, learned) {
@@ -128,11 +131,12 @@
     if (D.ready) return D.db.length;
     const heroes = GS.data.mlbbHeroes.filter((h) => h.img);
     let done = 0;
+    D.icons = D.icons || {};
     const loadOne = (h) => new Promise((res) => {
       const im = new Image();
       im.crossOrigin = 'anonymous';
       im.referrerPolicy = 'no-referrer';
-      im.onload = () => { try { D.db.push(...addIcon(h.name, im)); } catch (e) { /* abaikan */ } res(); };
+      im.onload = () => { D.icons[h.name] = im; try { D.db.push(...addIcon(h.name, im)); } catch (e) { /* abaikan */ } res(); };
       im.onerror = () => res();
       im.src = GS.heroUrl(h.name, 128);
     });
@@ -151,6 +155,15 @@
     return D.heroCount;
   };
 
+  /** Bina semula pangkalan data dengan varian/pemberat lain (untuk penalaan dan ujian). */
+  D.tune = function (o) {
+    if (o.variants) VAR = o.variants;
+    if (o.wv != null) opt.wv = o.wv;
+    D.db = [];
+    Object.entries(D.icons || {}).forEach(([name, im]) => D.db.push(...addIcon(name, im)));
+    D.loadLearned();
+  };
+
   /* ---------- padanan ---------- */
   /** Kembalikan { name, score, margin, top:[{name,score}] } untuk satu potongan, atau null (kosong). */
   D.match = function (f) {
@@ -161,7 +174,7 @@
       if (!best.has(t.name) || best.get(t.name) < s) best.set(t.name, s);
     }
     const arr = [...best.entries()].sort((a, b) => b[1] - a[1]);
-    return { name: arr[0][0], score: arr[0][1], margin: arr[0][1] - arr[1][1], top: arr.slice(0, 4).map(([name, s]) => ({ name, score: s })) };
+    return { name: arr[0][0], score: arr[0][1], margin: arr[0][1] - arr[1][1], top: arr.slice(0, 6).map(([name, s]) => ({ name, score: s })) };
   };
 
   D.cfg = function () {
@@ -201,16 +214,22 @@
   };
 
   /* ---------- pembelajaran (pembetulan streamer) ---------- */
-  const LKEY = 'gs.detect.learned.v1';
+  // Disimpan terkuantiti (int8) supaya muat dalam localStorage: ~1 KB setiap templat.
+  const LKEY = 'gs.detect.learned.v2';
+  const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = (str) => { const s = atob(str); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+  const enc = (f) => ({ v: b64(new Uint8Array(Int8Array.from(f.vec, (x) => Math.round(x * 127)).buffer)), h: b64(Uint8Array.from(f.hist, (x) => Math.round(x * 255))) });
+  const dec = (e) => ({ vec: Float32Array.from(new Int8Array(unb64(e.v).buffer), (x) => x / 127), hist: Float32Array.from(unb64(e.h), (x) => x / 255) });
   D.learnedStore = () => { try { return JSON.parse(localStorage.getItem(LKEY) || '{}'); } catch (e) { return {}; } };
+  D.learnedCount = () => Object.values(D.learnedStore()).reduce((n, a) => n + a.length, 0);
   D.loadLearned = function () {
     D.db = D.db.filter((t) => !t.learned);
     const st = D.learnedStore();
-    Object.entries(st).forEach(([name, arr]) => arr.forEach((a) => D.db.push({ name, learned: true, vec: Float32Array.from(a.v), hist: Float32Array.from(a.h) })));
+    Object.entries(st).forEach(([name, arr]) => arr.forEach((e) => { try { D.db.push(Object.assign({ name, learned: true }, dec(e))); } catch (x) { /* abaikan */ } }));
   };
-  /** Simpan potongan semasa slot sebagai templat tambahan bagi hero (maks 6 setiap hero). */
+  /** Simpan potongan slot daripada bingkai (src) sebagai templat tambahan bagi hero (maks 6 setiap hero). */
   D.learn = function (key, hero, src) {
-    const name = GS.meta && GS.meta.canon(hero) || hero;
+    const name = (GS.meta && GS.meta.canon(hero)) || hero;
     const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
     const r = D.rects(D.cfg(), W, H)[key];
     if (!r || !name) return false;
@@ -218,11 +237,187 @@
     if (!f) return false;
     const st = D.learnedStore();
     const arr = st[name] || (st[name] = []);
-    arr.push({ v: Array.from(f.vec, (x) => Math.round(x * 1e4) / 1e4), h: Array.from(f.hist, (x) => Math.round(x * 1e3) / 1e3) });
+    arr.push(enc(f));
     while (arr.length > 6) arr.shift();
     try { localStorage.setItem(LKEY, JSON.stringify(st)); } catch (e) { return false; }
-    D.db.push({ name, learned: true, vec: f.vec, hist: f.hist });
+    D.loadLearned();
     return true;
   };
   D.clearLearned = function () { try { localStorage.removeItem(LKEY); } catch (e) { /* abaikan */ } D.loadLearned(); };
+
+  /* ---------- tetapan ---------- */
+  const DEFAULTS = { enabled: false, sensitivity: 0.5, interval: 1000, autoShow: true, autoPredict: true, autoPhase: true, lockManual: true, sourceId: 'auto' };
+  D.settings = function () {
+    const st = GS.state.detect || (GS.state.detect = {});
+    Object.keys(DEFAULTS).forEach((k) => { if (!(k in st)) st[k] = DEFAULTS[k]; });
+    if (!st.locks) st.locks = {};
+    if (!st.bans) st.bans = { banAlly: [], banEnemy: [] };
+    D.cfg();
+    return st;
+  };
+
+  /* ---------- sumber bingkai ---------- */
+  D.testImage = null;
+  D.setTestImage = (img) => { D.testImage = img || null; };
+  /** Senarai sumber video yang boleh diimbas. */
+  D.sources = function () {
+    const out = [];
+    (GS.state.scenes || []).forEach((sc) => sc.sources.forEach((s) => {
+      if (s.type === 'video' && !out.some((o) => o.id === s.id)) out.push({ id: s.id, name: s.name, kind: s.props.kind });
+    }));
+    return out;
+  };
+  D.source = function () {
+    if (D.testImage) return D.testImage;
+    const st = D.settings();
+    const list = D.sources().filter((s) => { const r = GS.media.videos[s.id]; return r && r.video.readyState >= 2 && r.video.videoWidth; });
+    const pick = (st.sourceId !== 'auto' && list.find((s) => s.id === st.sourceId)) || list.find((s) => s.kind === 'capture') || list.find((s) => s.kind === 'screen');
+    return pick ? GS.media.videos[pick.id].video : null;
+  };
+
+  /* ---------- enjin imbasan ---------- */
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  const conf = (score, margin) => clamp01((score - 0.35) / 0.45) * 0.6 + clamp01(margin / 0.12) * 0.4;
+  D.conf = conf;
+  D.threshold = () => 0.7 - 0.4 * D.settings().sensitivity;
+  D.state = { status: 'off', active: false, strong: 0, miss: 0, accepted: {}, slots: {}, frames: 0, ms: 0, W: 0, H: 0, committed: 0 };
+  D.snap = document.createElement('canvas');
+  const pend = {};
+
+  const SIDE = { ally: 'ally', enemy: 'enemy' };
+  const groupOf = (key) => key.replace(/\d+$/, '');
+  const idxOf = (key) => Number(key.match(/\d+$/)[0]);
+  const isLocked = (key) => { const st = D.settings(); return !!(st.locks[key] || st.locks[groupOf(key)]); };
+  /** Tandakan slot/kumpulan diubah manual (pengesan tidak akan menimpanya). */
+  D.noteManual = function (key) { const st = D.settings(); if (st.lockManual) { st.locks[key] = true; GS.save(); } };
+  D.unlockAll = function () { const st = D.settings(); st.locks = {}; GS.save(); };
+  D.resetDraft = function () {
+    const st = D.settings(), d = GS.state.draft;
+    d.ally = ['', '', '', '', '']; d.enemy = ['', '', '', '', '']; d.banAlly = ''; d.banEnemy = '';
+    st.bans = { banAlly: [], banEnemy: [] };
+    st.locks = {};
+    Object.keys(pend).forEach((k) => delete pend[k]);
+    GS.save();
+    GS.emit('detect:changed', null);
+  };
+
+  function current(key) {
+    const g = groupOf(key), i = idxOf(key), d = GS.state.draft;
+    if (g === 'ally') return d.ally[i] || '';
+    if (g === 'enemy') return d.enemy[i] || '';
+    return D.settings().bans[g][i] || '';
+  }
+  function write(key, name) {
+    const g = groupOf(key), i = idxOf(key), d = GS.state.draft, st = D.settings();
+    if (g === 'ally') d.ally[i] = name;
+    else if (g === 'enemy') d.enemy[i] = name;
+    else { st.bans[g][i] = name; d[g] = st.bans[g].filter(Boolean).join(', '); }
+  }
+
+  /** Imbas satu bingkai dan kemas kini draft. Kembalikan ringkasan (untuk UI/ujian). */
+  D.tick = function (forced) {
+    const st = D.settings();
+    const S = D.state;
+    const src = forced || D.source();
+    if (!src) { S.status = 'nosource'; return S; }
+    if (!D.ready) { S.status = 'loading'; return S; }
+    const r = D.analyze(src);
+    if (!r) { S.status = 'nosignal'; return S; }
+    // salinan bingkai untuk pratonton kalibrasi dan pembelajaran (maks 960 lebar)
+    const sk = Math.min(1, 960 / r.W);
+    if (D.snap.width !== Math.round(r.W * sk)) { D.snap.width = Math.round(r.W * sk); D.snap.height = Math.round(r.H * sk); }
+    D.snap.getContext('2d').drawImage(src, 0, 0, D.snap.width, D.snap.height);
+    S.W = r.W; S.H = r.H; S.ms = D.stats.ms; S.frames++;
+    const thr = D.threshold();
+    // penugasan unik: hero terbaik dahulu; setiap hero hanya satu slot
+    const keys = Object.keys(r.slots).filter((k) => r.slots[k]).sort((a, b) => r.slots[b].top[0].score - r.slots[a].top[0].score);
+    const used = new Set();
+    const accepted = {};
+    const slots = {};
+    keys.forEach((k) => {
+      const m = r.slots[k];
+      const cand = m.top.filter((c) => !used.has(c.name));
+      if (!cand.length) return;
+      const c = cand[0];
+      const margin = c.score - (cand[1] ? cand[1].score : c.score - 0.2);
+      const cf = conf(c.score, margin);
+      slots[k] = { name: c.name, score: c.score, margin, conf: cf, top: m.top, sd: m.sd };
+      // slot pick: potret dalam game berbeza seni/skin daripada ikon wiki, jadi ambang lebih ketat (ketepatan diutamakan; pembetulan sekali klik + pembelajaran melengkapkan)
+      const need = k.indexOf('ban') === 0 ? thr : thr + 0.3;
+      slots[k].need = need;
+      if (cf >= need) { accepted[k] = slots[k]; used.add(c.name); }
+    });
+    Object.keys(r.slots).forEach((k) => { if (!slots[k]) slots[k] = null; });
+    S.slots = slots;
+    S.accepted = accepted;
+    S.rects = r.rects;
+    // Pintu skrin draft: perlu sekurang-kurangnya 2 slot KUAT (skor >= 0.72 dan margin >= 0.1, cth ikon ban yang sama dengan ikon wiki)
+    // dan 3 slot diterima. Diuji pada rakaman sebenar: draft = 4..8 slot kuat; gameplay/keputusan/TikTok = 0.
+    const strong = Object.values(accepted).filter((a) => a.score >= 0.72 && a.margin >= 0.1).length;
+    S.strong = strong;
+    if (!S.active) {
+      if (strong >= 2 && Object.keys(accepted).length >= 3) { S.active = true; S.miss = 0; }
+    } else {
+      S.miss = strong === 0 ? (S.miss || 0) + 1 : 0;
+      if (S.miss >= 8) S.active = false; // draft tamat (permainan bermula)
+    }
+    if (!S.active) { S.status = 'idle'; Object.keys(pend).forEach((k) => delete pend[k]); return S; }
+    S.status = 'draft';
+    let committed = 0;
+    Object.keys(r.slots).forEach((k) => {
+      if (isLocked(k)) return;
+      const acc = accepted[k];
+      if (!acc) { delete pend[k]; return; }
+      const cur = current(k);
+      if (cur === acc.name) { delete pend[k]; return; }
+      const p = pend[k];
+      if (p && p.name === acc.name) p.count++; else pend[k] = { name: acc.name, count: 1 };
+      const need = cur ? 6 : 3;
+      if (pend[k].count < need) return;
+      // hero yang sama tidak boleh berada di dua slot: kosongkan slot lama yang dikuasai pengesan
+      ['ally0', 'ally1', 'ally2', 'ally3', 'ally4', 'enemy0', 'enemy1', 'enemy2', 'enemy3', 'enemy4'].concat(['banAlly0', 'banAlly1', 'banAlly2', 'banAlly3', 'banAlly4', 'banEnemy0', 'banEnemy1', 'banEnemy2', 'banEnemy3', 'banEnemy4'])
+        .forEach((o) => { if (o !== k && !isLocked(o) && current(o) === acc.name) write(o, ''); });
+      write(k, acc.name);
+      delete pend[k];
+      committed++;
+    });
+    if (committed) {
+      const d = GS.state.draft;
+      S.committed += committed;
+      if (st.autoShow && !d.show) d.show = true;
+      const na = d.ally.filter(Boolean).length, ne = d.enemy.filter(Boolean).length;
+      if (st.autoPhase) d.phase = na + ne >= 10 ? 'TEAM COMPLETE' : na + ne === 0 ? 'BAN PHASE' : 'DRAFT PICK';
+      if (st.autoPredict && GS.meta) {
+        const pr = GS.meta.predict(d.ally.map((n) => GS.meta.canon(n)).filter(Boolean), d.enemy.map((n) => GS.meta.canon(n)).filter(Boolean));
+        if (pr != null) d.winPct = pr;
+      }
+      GS.save();
+      GS.emit('detect:changed', S);
+    }
+    return S;
+  };
+
+  /** Betulkan slot secara manual dan ajar sistem (templat disimpan pada PC ini). */
+  D.correct = function (key, hero, learn) {
+    const name = (GS.meta && GS.meta.canon(hero)) || '';
+    if (!name) return false;
+    write(key, name);
+    D.noteManual(key);
+    if (learn !== false && D.snap.width) D.learn(key, name, D.snap);
+    delete pend[key];
+    GS.save();
+    GS.emit('detect:changed', D.state);
+    return true;
+  };
+
+  let timer = 0;
+  D.start = function () {
+    const st = D.settings();
+    clearInterval(timer);
+    if (!st.enabled) { D.state.status = 'off'; return; }
+    D.state.status = 'loading';
+    D.prepare().then(() => { D.state.status = 'idle'; GS.emit('detect:changed', D.state); });
+    timer = setInterval(() => { try { D.tick(); } catch (e) { console.error('[GS] ralat pengesan', e); } }, Math.max(400, st.interval));
+  };
+  D.setEnabled = function (on) { D.settings().enabled = !!on; GS.save(); D.start(); GS.emit('detect:changed', D.state); };
 })();

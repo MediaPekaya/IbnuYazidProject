@@ -409,7 +409,22 @@
         hexSlot(ctx, cx, rowY[r], hr, arr[i], col, !!arr[i]);
         if (arr[i]) W.text(ctx, arr[i], cx, rowY[r] + hr * 1.55, { size: hr * 0.42, weight: 700, align: 'center', color: C.text, maxW: hr * 2.2 });
       }
-      if (ban) W.text(ctx, 'BAN: ' + ban, x + w * 0.2, rowY[r] + hr * 2.25, { size: hr * 0.42, weight: 600, color: C.muted, maxW: w * 0.5 });
+      if (ban) {
+        const names = String(ban).split(/[,;]/).map((q) => q.trim()).filter(Boolean).slice(0, 5);
+        const known = names.every((q) => GS.hero && GS.hero(q));
+        if (known) {
+          W.text(ctx, 'BAN', x + w * 0.2 - hr * 0.2, rowY[r] + hr * 2.38, { size: hr * 0.4, weight: 800, color: C.muted, spacing: 1, align: 'right' });
+          names.forEach((q, i) => {
+            const ax = x + w * 0.2 + hr * 0.45 + i * hr * 1.25, ay = rowY[r] + hr * 2.25;
+            ctx.save();
+            ctx.globalAlpha = 0.85;
+            W.heroAvatar(ctx, q, ax, ay, hr * 0.5, '#444c60');
+            ctx.restore();
+            ctx.beginPath(); ctx.arc(ax, ay, hr * 0.5, 0, Math.PI * 2); ctx.lineWidth = Math.max(2, hr * 0.07); ctx.strokeStyle = C.red; ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ax - hr * 0.35, ay + hr * 0.35); ctx.lineTo(ax + hr * 0.35, ay - hr * 0.35); ctx.stroke();
+          });
+        } else W.text(ctx, 'BAN: ' + ban, x + w * 0.2, rowY[r] + hr * 2.25, { size: hr * 0.42, weight: 600, color: C.muted, maxW: w * 0.5 });
+      }
     });
     // ramalan menang
     const px = x + w * 0.7, pw2 = w * 0.26;

@@ -190,7 +190,9 @@
     const targets = [].concat([0, 1, 2, 3, 4].map((i) => ['a' + i, 'Ally ' + (i + 1)]), [0, 1, 2, 3, 4].map((i) => ['e' + i, 'Enemy ' + (i + 1)]), [['ba', 'Ban ally'], ['be', 'Ban enemy']]);
     let target = 'a0';
     const targetSel = h('select', { onChange: (e) => { target = e.target.value; } }, targets.map(([v, l]) => h('option', { value: v }, l)));
+    const manualKey = (key) => (key[0] === 'a' ? 'ally' + key[1] : key[0] === 'e' ? 'enemy' + key[1] : key === 'ba' ? 'banAlly' : 'banEnemy');
     const setVal = (key, val) => {
+      GS.detect.noteManual(manualKey(key));
       if (key[0] === 'a') d.ally[+key[1]] = val;
       else if (key[0] === 'e') d.enemy[+key[1]] = val;
       else { const f = key === 'ba' ? 'banAlly' : 'banEnemy'; const cur = M.parseList(d[f]); const i = cur.indexOf(val); if (i >= 0) cur.splice(i, 1); else cur.push(val); d[f] = cur.join(', '); }
@@ -209,8 +211,8 @@
       if (next != null) { target = side + next; targetSel.value = target; }
     };
     const pick = (name) => { setVal(target, name); advance(); };
-    const slot = (key, arr, i, ph) => (inputs[key] = h('input', { type: 'text', list: 'heroList', value: arr[i] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onInput: (e) => { arr[i] = e.target.value.trim(); GS.save(); }, onChange: (e) => { const c = M.canon(e.target.value); arr[i] = c || e.target.value.trim(); if (c) e.target.value = c; GS.save(); drawSuggest(); } }));
-    const banIn = (key, f, ph) => (inputs[key] = h('input', { type: 'text', value: d[f] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onChange: (e) => { d[f] = M.parseList(e.target.value).join(', ') || e.target.value; GS.save(); drawSuggest(); } }));
+    const slot = (key, arr, i, ph) => (inputs[key] = h('input', { type: 'text', list: 'heroList', value: arr[i] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onInput: (e) => { arr[i] = e.target.value.trim(); GS.detect.noteManual(manualKey(key)); GS.save(); }, onChange: (e) => { const c = M.canon(e.target.value); arr[i] = c || e.target.value.trim(); if (c) e.target.value = c; GS.save(); drawSuggest(); } }));
+    const banIn = (key, f, ph) => (inputs[key] = h('input', { type: 'text', value: d[f] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onChange: (e) => { d[f] = M.parseList(e.target.value).join(', ') || e.target.value; GS.detect.noteManual(manualKey(key)); GS.save(); drawSuggest(); } }));
 
     /* pemilih hero */
     let q = '', role = '', lane = '';
@@ -238,7 +240,7 @@
         rows.map((r) => h('div', { class: 'sug-row' }, avatar(r.name, 36, 'hav lg'), h('div', { class: 'sug-txt' }, h('b', null, r.name), h('span', { class: 'muted' }, ' ' + r.score), h('div', { class: 'muted small' }, r.why.slice(0, 4).join(' · '))),
           h('button', { class: 'btn tiny', onClick: () => act(r.name) }, label))));
       sugBox.append(
-        block('Cadangan PICK (ally)', M.suggestPick(c), (n) => { const i = d.ally.findIndex((x) => !x); if (i >= 0) { d.ally[i] = n; GS.save(); sync(); drawSuggest(); } }, 'Pick'),
+        block('Cadangan PICK (ally)', M.suggestPick(c), (n) => { const i = d.ally.findIndex((x) => !x); if (i >= 0) { d.ally[i] = n; GS.detect.noteManual('ally' + i); GS.save(); sync(); drawSuggest(); } }, 'Pick'),
         block('Cadangan BAN', M.suggestBan(c), (n) => { setVal('ba', n); }, 'Ban'));
     };
 
@@ -261,8 +263,9 @@
         field('Ramalan menang ally (%)', sliderEl), winVal,
         h('div', { class: 'btn-row' },
           h('button', { class: 'btn ghost', onClick: () => { const p = M.predict(draftCtx().ally, draftCtx().enemy); if (p == null) { GS.toast(GS.t('Perlu sekurang-kurangnya 1 hero ally dan 1 hero enemy serta data meta.'), 'warn'); return; } d.winPct = p; sliderEl.value = p; winVal.textContent = p + '%'; GS.save(); } }, 'Kira ramalan daripada meta'),
-          h('button', { class: 'btn ghost', onClick: () => { d.ally = ['', '', '', '', '']; d.enemy = ['', '', '', '', '']; d.banAlly = ''; d.banEnemy = ''; GS.save(); sync(); drawSuggest(); target = 'a0'; targetSel.value = 'a0'; } }, 'Kosongkan draft')),
+          h('button', { class: 'btn ghost', onClick: () => { GS.detect.resetDraft(); sync(); drawSuggest(); target = 'a0'; targetSel.value = 'a0'; } }, 'Kosongkan draft')),
         h('p', { class: 'muted note' }, 'Ramalan ialah anggaran statistik meta, bukan jaminan. Pengesanan hero automatik daripada capture card belum siap (Fasa 5): pilih hero di bawah.')),
+      GS.detectui.section(),
       sec('Pemilih hero', field('Masukkan ke', targetSel),
         h('div', { class: 'search' }, h('span', { html: icon('search', 16) }), h('input', { type: 'search', placeholder: 'Cari hero…', 'aria-label': 'Cari hero', onInput: (e) => { q = e.target.value.trim().toLowerCase(); drawGrid(); } })),
         chipRow(roleOpts(), role, (v) => { role = v; drawGrid(); }), chipRow(laneOpts(), lane, (v) => { lane = v; drawGrid(); }), grid),
@@ -271,6 +274,7 @@
       credit());
     drawSuggest();
     metaCb = drawSuggest;
+    const offDet = GS.on('detect:changed', () => { if (!root.isConnected) { offDet(); return; } sync(); winVal.textContent = d.winPct + '%'; sliderEl.value = d.winPct; phaseSel.value = d.phase; drawSuggest(); });
   }
 
   /* gantikan tab lama, dan tambah tab data */
