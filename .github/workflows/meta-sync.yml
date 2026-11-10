@@ -15,7 +15,7 @@ on:
     - cron: '17 * * * *'
 
 concurrency:
-  group: meta-sync
+  group: data-sync
   cancel-in-progress: false
 
 permissions:
@@ -39,6 +39,10 @@ jobs:
           cache-dependency-path: global-streamer/package-lock.json
       - name: Pasang kebergantungan (tanpa memuat turun Electron)
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Kumpul jadual perlawanan (penemuan tournament automatik)
+        run: node scripts/data/collect-matches.js
+      - name: Kumpul maklumat tournament dan pemenang (maks 2 halaman)
+        run: node scripts/data/collect-tournaments.js --max 2
       - name: Kumpul statistik tournament (Liquipedia, 1 halaman setiap ~30 saat)
         run: node scripts/data/collect-meta.js ${{ inputs.force && '--force' || '' }}
       - name: Bundel data

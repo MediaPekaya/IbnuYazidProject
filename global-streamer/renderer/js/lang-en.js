@@ -299,6 +299,26 @@
     'Item: {0} {1}': 'Item: {0} {1}', 'Item dimiliki: {0}/6': 'Items owned: {0}/6',
     'MATI': 'DEATH', 'ITEM': 'ITEM', 'ITEM PENUH': 'FULL BUILD', 'PERLAWANAN BARU': 'NEW MATCH',
 
+
+    /* ---- tournament automatik ---- */
+    'Turnamen': 'Tournaments',
+    'Pro (MPL, MSC, M-series)': 'Pro (MPL, MSC, M-series)', 'Semua tournament': 'All tournaments',
+    '{0} perlawanan · dikemas kini {1}': '{0} matches · updated {1}',
+    'Perlawanan semasa': 'Current match', 'Pilih perlawanan': 'Choose match', 'Automatik (ikut jadual)': 'Automatic (follow the schedule)',
+    'Tiada perlawanan sedang berlangsung atau bermula dalam 90 minit.': 'No match in progress or starting within 90 minutes.',
+    'Papar papan perlawanan pada siaran': 'Show the match board on stream', 'Papar keputusan & juara': 'Show results & champion',
+    'Guna nama pasukan pada widget draft (ganti ALLY / ENEMY)': 'Use team names on the draft widget (replace ALLY / ENEMY)',
+    'Tukar sisi (pasukan pertama = ENEMY)': 'Swap sides (first team = ENEMY)',
+    'Sedang berlangsung': 'In progress', 'Seterusnya': 'Next up', 'Keputusan terkini': 'Latest results', 'Juara tournament': 'Tournament champions',
+    'Tiada perlawanan akan datang dalam data.': 'No upcoming matches in the data.', 'Belum ada keputusan.': 'No results yet.',
+    'Belum ada tournament yang tamat dalam data.': 'No finished tournaments in the data yet.',
+    'Mula dalam {0}': 'Starts in {0}', 'TAMAT': 'FINISHED', 'Tidak dikemas kini': 'Not updated', 'Tamat {0}': 'Ended {0}',
+    'Data tournament disemak: {0}': 'Tournament data checked: {0}',
+    'Perlawanan semasa dipilih automatik daripada jadual (sedang berlangsung, kemudian yang bermula dalam 90 minit, kemudian yang baru tamat). App menyemak data setiap 5 minit; data itu dikemas kini oleh pengumpul pusat (Liquipedia, CC-BY-SA 3.0), bukan terus daripada app anda, jadi skor langsung mungkin lewat beberapa minit.': 'The current match is chosen automatically from the schedule (in progress, then one starting within 90 minutes, then one that just finished). The app checks the data every 5 minutes; that data is updated by the central collector (Liquipedia, CC-BY-SA 3.0), not directly by your app, so live scores may lag by a few minutes.',
+    'Widget: Perlawanan Tournament': 'Widget: Tournament Match', 'Widget: Keputusan Tournament': 'Widget: Tournament Results',
+    'Perlawanan Tournament': 'Tournament Match', 'Keputusan Tournament': 'Tournament Results',
+    'TIADA PERLAWANAN': 'NO MATCH', 'MULA': 'STARTS', 'SEBENTAR LAGI': 'STARTING SOON', 'KEPUTUSAN TERKINI': 'LATEST RESULTS', 'JUARA': 'CHAMPION', 'BELUM ADA KEPUTUSAN': 'NO RESULTS YET',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

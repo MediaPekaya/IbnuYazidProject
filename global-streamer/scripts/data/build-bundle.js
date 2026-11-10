@@ -21,3 +21,12 @@ function wrap(jsonFile, outFile, key, banner) {
 
 wrap('mlbb-static.json', 'mlbb-data.js', 'static', 'Data hero, item dan emblem MLBB. Sumber: Mobile Legends Wiki (Fandom), CC-BY-SA 3.0.');
 wrap('meta.json', 'meta-data.js', 'metaBundled', 'Statistik tournament MLBB. Sumber: Liquipedia, CC-BY-SA 3.0.');
+
+// perlawanan + maklumat tournament digabung dalam satu bundle
+(function () {
+  const rd = (f, d) => { try { return JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); } catch (e) { return d; } };
+  const data = { matches: rd('matches.json', { matches: [] }), info: rd('tournaments-info.json', { tournaments: [] }) };
+  const js = `/* Perlawanan dan maklumat tournament MLBB. Sumber: Liquipedia, CC-BY-SA 3.0.\n * JANGAN edit tangan. Dijana oleh scripts/data/build-bundle.js */\n(function(){var GS=window.GS=window.GS||{};GS.data=GS.data||{};GS.data.tourneyBundled=${JSON.stringify(data)};})();\n`;
+  fs.writeFileSync(path.join(dir, 'tourney-data.js'), js);
+  console.log('tourney-data.js', Math.round(js.length / 1024) + ' KB');
+})();

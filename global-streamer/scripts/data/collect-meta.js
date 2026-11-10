@@ -20,7 +20,50 @@ const CACHE = arg('--cache');
 const PARSE_GAP = 31000;
 
 /* live: masih berlangsung (sentiasa diambil semula). tier: 'pro' = liga serantau, 'intl' = antarabangsa. */
-const TOURNAMENTS = require('./tournaments.json');
+const STATIC = require('./tournaments.json');
+const DIR_DATA = path.join(__dirname, '..', '..', 'renderer', 'data');
+const REGION = { Indonesia: 'ID', Malaysia: 'MY', Philippines: 'PH', Cambodia: 'KH', Myanmar: 'MM', Singapore: 'SG', Vietnam: 'VN', Laos: 'LA', Thailand: 'TH' };
+const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/** Halaman statistik bagi satu halaman peringkat: sisip "Statistics" sebelum nama peringkat. */
+const statsPage = (p) => { const a = p.split('/'); return a.slice(0, -1).concat('Statistics', a[a.length - 1]).join('/'); };
+
+/**
+ * Penemuan tournament automatik: peringkat tournament pro daripada matches.json -> halaman statistik (disahkan wujud melalui API).
+ * Tanda live dikira semula daripada jadual perlawanan (belum tamat dalam tetingkap, atau baru tamat 36 jam lalu).
+ */
+async function buildList() {
+  let matches = [];
+  try { matches = JSON.parse(fs.readFileSync(path.join(DIR_DATA, 'matches.json'), 'utf8')).matches; } catch (e) { /* belum ada */ }
+  const now = Math.floor(Date.now() / 1000);
+  const pro = matches.filter((m) => m.tournament.series !== 'OTHER');
+  const liveOf = (page) => pro.some((m) => m.tournament.page === page && ((!m.done && m.ts < now + 36 * 3600 && m.ts > now - 12 * 3600) || (m.done && m.ts > now - 36 * 3600)));
+  const covered = new Set();
+  const list = STATIC.map((t) => {
+    const live = t.pages.some((p) => { covered.add(p); return liveOf(p.replace('/Statistics/', '/')); }) || !!t.live && !matches.length;
+    return Object.assign({}, t, { live });
+  });
+  // calon baharu
+  const stages = new Map();
+  pro.forEach((m) => { if (!stages.has(m.tournament.page)) stages.set(m.tournament.page, m); });
+  const cand = [];
+  stages.forEach((m, page) => { const sp = statsPage(page); if (!covered.has(sp)) cand.push({ page, sp, m }); });
+  if (cand.length) {
+    try {
+      const q = cand.map((c) => c.sp).slice(0, 40).join('|');
+      const j = JSON.parse(await require('./lib').get(`${BASE}/api.php?action=query&titles=${encodeURIComponent(q)}&format=json&formatversion=2`));
+      const exists = new Set((j.query.pages || []).filter((p) => !p.missing).map((p) => p.title));
+      cand.forEach((c) => {
+        if (!exists.has(c.sp)) return;
+        const parts = c.page.split('/');
+        const region = c.m.tournament.series === 'MPL' ? (REGION[parts[1]] || (parts[1] || '').slice(0, 3).toUpperCase()) : c.m.tournament.series === 'MSC' ? 'SEA' : 'WORLD';
+        list.push({ id: slug(c.page), label: c.m.tournament.name || c.page, region, tier: c.m.tournament.series === 'MPL' ? 'pro' : 'intl', live: liveOf(c.page), pages: [c.sp], auto: true });
+      });
+      console.error(`penemuan: ${cand.length} calon peringkat, ${list.filter((t) => t.auto).length} halaman statistik wujud`);
+    } catch (e) { console.error('  penemuan gagal: ' + e.message); }
+  }
+  return list;
+}
 
 function parseStats(html) {
   const $ = cheerio.load(html);
@@ -78,6 +121,7 @@ async function fetchPage(title) {
 }
 
 (async () => {
+  const TOURNAMENTS = await buildList();
   let prev = null;
   try { prev = JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) { /* pertama kali */ }
   const prevById = new Map(((prev && prev.tournaments) || []).map((t) => [t.id, t]));

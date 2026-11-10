@@ -379,3 +379,20 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .ev-row.victory b { color: #6be6ff; }
 .ev-row.defeat b { color: #ff3b5c; }
 .ev-row.newmatch b { color: var(--muted); }
+
+/* ---------- tournament ---------- */
+.tm-card { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(20, 44, 88, 0.22); }
+.tm-card.cur { border-color: var(--cyan); background: rgba(46, 168, 255, 0.14); }
+.tm-card.live { border-color: rgba(255, 59, 92, 0.6); }
+.tm-top { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; }
+.tm-st { font-weight: 800; letter-spacing: 0.08em; color: var(--gold); }
+.tm-card.live .tm-st { color: #ff8da1; }
+.tm-card.finished .tm-st { color: var(--muted); }
+.tm-teams { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; font-size: 12.5px; }
+.tm-teams b:last-child { text-align: right; }
+.tm-teams b.dim { color: var(--muted); font-weight: 600; }
+.tm-score { font-size: 15px; font-weight: 900; color: var(--cyan); font-variant-numeric: tabular-nums; }
+.tm-champ { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-top: 1px solid var(--line); }
+.tm-champ:first-of-type { border-top: 0; }
+.tm-pl { display: flex; flex-wrap: wrap; gap: 4px; }
+.ev-chip.gold { border-color: rgba(255, 211, 107, 0.6); color: var(--gold); }

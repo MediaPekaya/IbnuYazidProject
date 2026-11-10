@@ -401,7 +401,8 @@
     ctx.fill();
     W.text(ctx, GS.tov(d.phase || 'DRAFT PICK'), x + w * 0.19 + pw / 2, y + h * 0.115, { size: h * 0.065, weight: 800, align: 'center', color: '#fff', spacing: 1.5 });
     const rowY = [y + h * 0.35, y + h * 0.63];
-    [['ALLY', d.ally, d.banAlly, C.blue], ['ENEMY', d.enemy, d.banEnemy, C.red]].forEach(([lbl, arr, ban, col], r) => {
+    const TL = (GS.tourney && GS.tourney.labels()) || { ally: 'ALLY', enemy: 'ENEMY' };
+    [[TL.ally, d.ally, d.banAlly, C.blue], [TL.enemy, d.enemy, d.banEnemy, C.red]].forEach(([lbl, arr, ban, col], r) => {
       W.text(ctx, lbl, x + w * 0.04, rowY[r] + h * 0.02, { size: h * 0.065, weight: 800, spacing: 2, color: col });
       const hr = Math.min(h * 0.085, w * 0.052);
       for (let i = 0; i < 5; i++) {
@@ -438,8 +439,8 @@
     ctx.fillStyle = W.holoGrad(ctx, px, y, pw2, h * 0.05, t);
     W.rr(ctx, px, y + h * 0.48, Math.max(h * 0.05, pw2 * (win / 100)), h * 0.05, h * 0.025);
     ctx.fill();
-    W.text(ctx, 'ALLY', px, y + h * 0.62, { size: h * 0.055, weight: 700, color: C.blue });
-    W.text(ctx, 'ENEMY', px + pw2, y + h * 0.62, { size: h * 0.055, weight: 700, color: C.red, align: 'right' });
+    W.text(ctx, TL.ally, px, y + h * 0.62, { size: h * 0.055, weight: 700, color: C.blue, maxW: pw2 * 0.46 });
+    W.text(ctx, TL.enemy, px + pw2, y + h * 0.62, { size: h * 0.055, weight: 700, color: C.red, align: 'right', maxW: pw2 * 0.46 });
     if (d.suggest !== false && GS.draftSuggest) {
       const now = Date.now();
       if (!W._sug || now - W._sug.t > 1500) W._sug = { t: now, v: GS.draftSuggest(3) };
@@ -502,5 +503,77 @@
       });
     });
     W.text(ctx, 'Data: Liquipedia · CC-BY-SA', x + 18, y + h - 12, { size: Math.min(h * 0.04, 13), weight: 600, color: C.muted });
+  };
+
+  /* ---------- papan perlawanan tournament ---------- */
+  const clipTxt = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+  W.matchboard = function (ctx, s, t) {
+    const T = GS.tourney;
+    if (!T) return;
+    const { x, y, w, h } = s;
+    W.panel(ctx, x, y, w, h, t, { phase: 9, r: 20, opaque: true });
+    const m = T.current();
+    if (!m) {
+      W.text(ctx, GS.tov('TIADA PERLAWANAN'), x + w / 2, y + h / 2 + h * 0.04, { size: h * 0.12, weight: 800, align: 'center', color: C.muted, spacing: 2, maxW: w * 0.9 });
+      return;
+    }
+    const tm = m.tournament;
+    W.text(ctx, clipTxt((tm.name || '').toUpperCase(), 46), x + w / 2, y + h * 0.15, { size: h * 0.075, weight: 800, align: 'center', color: C.text, spacing: 2, maxW: w * 0.9 });
+    // lencana status
+    const st = m.state;
+    const label = st === 'live' ? 'LIVE' : st === 'finished' ? GS.tov('TAMAT') : (T.countdown(m) ? GS.tov('MULA') + ' ' + T.countdown(m) : GS.tov('SEBENTAR LAGI'));
+    const col = st === 'live' ? C.red : st === 'finished' ? C.muted : C.gold;
+    ctx.font = '800 ' + h * 0.06 + 'px ' + W.FONT;
+    const bw = ctx.measureText(label).width + h * 0.14;
+    ctx.fillStyle = col;
+    ctx.globalAlpha = st === 'live' ? 0.55 + 0.45 * Math.abs(Math.sin(t * 0.004)) : 0.9;
+    W.rr(ctx, x + w / 2 - bw / 2, y + h * 0.215, bw, h * 0.095, h * 0.045);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    W.text(ctx, label, x + w / 2, y + h * 0.285, { size: h * 0.06, weight: 800, align: 'center', color: '#050a18', spacing: 1.5 });
+    // pasukan dan skor
+    const a = m.teams[0], b = m.teams[1];
+    const sc = (v) => (v == null ? '' : String(v));
+    const sideW = w * 0.36;
+    const winA = m.done && m.winner === 0, winB = m.done && m.winner === 1;
+    W.text(ctx, a.short.toUpperCase(), x + w * 0.04 + sideW / 2, y + h * 0.58, { size: h * 0.17, weight: 900, align: 'center', color: m.done && !winA ? C.muted : C.text, maxW: sideW, shadow: winA ? C.gold : '' });
+    W.text(ctx, b.short.toUpperCase(), x + w * 0.96 - sideW / 2, y + h * 0.58, { size: h * 0.17, weight: 900, align: 'center', color: m.done && !winB ? C.muted : C.text, maxW: sideW, shadow: winB ? C.gold : '' });
+    const mid = a.score == null ? 'VS' : sc(a.score) + ' : ' + sc(b.score);
+    W.text(ctx, mid, x + w / 2, y + h * 0.6, { size: h * 0.22, weight: 900, align: 'center', color: C.cyan, maxW: w * 0.26 });
+    W.text(ctx, clipTxt(a.name, 24), x + w * 0.04 + sideW / 2, y + h * 0.74, { size: h * 0.06, weight: 600, align: 'center', color: C.muted, maxW: sideW });
+    W.text(ctx, clipTxt(b.name, 24), x + w * 0.96 - sideW / 2, y + h * 0.74, { size: h * 0.06, weight: 600, align: 'center', color: C.muted, maxW: sideW });
+    const stage = [tm.group && tm.group !== 'Playoffs' ? tm.group : '', m.bo ? 'Bo' + m.bo : ''].filter(Boolean).join(' · ');
+    W.text(ctx, stage, x + w / 2, y + h * 0.9, { size: h * 0.06, weight: 700, align: 'center', color: C.muted, spacing: 1.5 });
+  };
+
+  W.resultsboard = function (ctx, s, t) {
+    const T = GS.tourney;
+    if (!T) return;
+    const { x, y, w, h } = s;
+    W.panel(ctx, x, y, w, h, t, { phase: 10, r: 18, opaque: true });
+    W.text(ctx, GS.tov('KEPUTUSAN TERKINI'), x + 18, y + h * 0.1, { size: Math.min(h * 0.065, 22), weight: 800, spacing: 2.5, color: C.text });
+    const ch = T.champions()[0];
+    let top = y + h * 0.14;
+    if (ch && ch.champion) {
+      ctx.fillStyle = 'rgba(255,211,107,0.14)';
+      W.rr(ctx, x + 12, top, w - 24, h * 0.16, 10);
+      ctx.fill();
+      W.text(ctx, GS.tov('JUARA') + ' · ' + clipTxt(ch.name, 26), x + 24, top + h * 0.065, { size: h * 0.045, weight: 700, color: C.gold, maxW: w - 48 });
+      W.text(ctx, ch.champion, x + 24, top + h * 0.135, { size: h * 0.075, weight: 900, color: C.text, maxW: w - 48 });
+      top += h * 0.19;
+    }
+    const rows = T.recent(5);
+    const rh = (y + h - top - 10) / Math.max(1, 5);
+    rows.forEach((m, i) => {
+      const ry = top + i * rh;
+      const a = m.teams[0], b = m.teams[1];
+      const wa = m.winner === 0;
+      W.text(ctx, a.short, x + 20, ry + rh * 0.66, { size: rh * 0.42, weight: wa ? 900 : 600, color: wa ? C.text : C.muted, maxW: w * 0.3 });
+      W.text(ctx, a.score + ' : ' + b.score, x + w / 2, ry + rh * 0.66, { size: rh * 0.45, weight: 900, align: 'center', color: C.cyan });
+      W.text(ctx, b.short, x + w - 20, ry + rh * 0.66, { size: rh * 0.42, weight: wa ? 600 : 900, align: 'right', color: wa ? C.muted : C.text, maxW: w * 0.3 });
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(x + 16, ry + rh * 0.9, w - 32, 1.5);
+    });
+    if (!rows.length) W.text(ctx, GS.tov('BELUM ADA KEPUTUSAN'), x + w / 2, y + h * 0.55, { size: h * 0.07, weight: 700, align: 'center', color: C.muted });
   };
 })();

@@ -17,7 +17,10 @@
     "data:mlbb": "node scripts/data/collect-mlbb.js",
     "data:meta": "node scripts/data/collect-meta.js",
     "data:bundle": "node scripts/data/build-bundle.js",
-    "test:data": "node scripts/test-data.js"
+    "test:data": "node scripts/test-data.js",
+    "data:matches": "node scripts/data/collect-matches.js",
+    "data:tournaments": "node scripts/data/collect-tournaments.js",
+    "test:tourney": "node scripts/test-tourney.js"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0"

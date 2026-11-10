@@ -280,5 +280,5 @@
   /* gantikan tab lama, dan tambah tab data */
   D.extra = (D.extra || []).map((e) => (e[0] === 'draft' ? ['draft', 'Draft', draft] : e));
   D.override = { heroes, meta };
-  D.tail = [['auto', 'Auto', (root) => GS.eventsui.page(root)], ['items', 'Item', itemsPage], ['emblems', 'Emblem', emblemsPage]];
+  D.tail = [['tourney', 'Turnamen', (root) => GS.tourneyui.page(root)], ['auto', 'Auto', (root) => GS.eventsui.page(root)], ['items', 'Item', itemsPage], ['emblems', 'Emblem', emblemsPage]];
 })();
