@@ -10,7 +10,8 @@
 | 4.5 | Data MLBB sebenar: hero/peranan/lane, item, emblem (Fandom) dan meta tournament (Liquipedia), pemilih hero, cadangan pick/ban/ramalan, widget Meta | ✅ Siap. ⏳ Penyiaran data automatik ke Hosting perlu secret Firebase (lihat README) |
 | 5a | Pengesan hero draft automatik (padanan ikon, pintu skrin draft, kalibrasi, pembelajaran) | ✅ Siap, diuji pada rakaman sebenar (lihat docs/PENGESAN-HERO.md) |
 | 5b | Pengesan kill / mati / item / victory / defeat daripada capture card | ✅ Siap, diuji pada rakaman sebenar (lihat docs/PENGESAN-KEJADIAN.md) |
-| 5c | Pengesan tournament automatik (OCR nama pasukan), banner kill rasmi, FIRST BLOOD/SHUTDOWN | ⏳ |
+| 5c | Tournament automatik: penemuan, perlawanan semasa daripada jadual, skor, keputusan, juara, widget | ✅ Siap (lihat docs/TOURNAMENT.md) |
+| 5d | OCR nama pasukan daripada video, banner kill rasmi, FIRST BLOOD/SHUTDOWN, jadual kumpulan | ⏳ |
 | 6 | Auth, lesen, laman jualan dan muat turun, kemas kini automatik | ⏳ |
 
 ## Keputusan reka bentuk
