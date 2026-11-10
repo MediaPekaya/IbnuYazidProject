@@ -1,8 +1,11 @@
 rules_version = '2';
 
 // Global Streamer - peraturan Firestore (pelan percuma Spark).
-// Prinsip: tolak semua secara lalai; pengguna hanya boleh baca/tulis data MILIKNYA SENDIRI.
-// Lesen dan data meta hanya ditulis oleh pentadbir (Firebase Console / Admin SDK, yang tidak tertakluk pada rules ini).
+// Prinsip:
+//  * Tolak semua secara lalai.
+//  * SESIAPA yang log masuk (Firebase Authentication) boleh mengurus data MILIKNYA SENDIRI. Tiada senarai UID.
+//  * Admin ialah data: dokumen admins/{uid}. Ia hanya boleh ditambah melalui Firebase Console / Admin SDK
+//    (klien tidak boleh menulis), jadi pengguna tidak boleh menaikkan taraf diri sendiri.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -12,10 +15,19 @@ service cloud.firestore {
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Peranan admin: pengguna hanya boleh semak sama ada DIRINYA admin. Tiada penulisan dari klien.
+    match /admins/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
 
     // Profil pengguna: users/{uid}
     match /users/{uid} {
-      allow read: if isOwner(uid);
+      allow read: if isOwner(uid) || isAdmin();
       allow create, update: if isOwner(uid)
         && request.resource.data.keys().hasOnly(['displayName', 'email', 'game', 'templateId', 'createdAt', 'updatedAt'])
         && (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 80))
@@ -36,10 +48,13 @@ service cloud.firestore {
       }
     }
 
-    // Lesen: licenses/{uid}. Pengguna boleh BACA lesen sendiri sahaja. Tiada sesiapa boleh tulis dari klien.
+    // Lesen: licenses/{uid}. Pemilik boleh BACA lesen sendiri. Hanya admin boleh cipta/ubah/padam.
     match /licenses/{uid} {
-      allow read: if isOwner(uid);
-      allow write: if false;
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['active', 'plan', 'expiresAt', 'maxDevices', 'note', 'email', 'updatedAt'])
+        && request.resource.data.active is bool;
+      allow delete: if isAdmin();
     }
 
     // Data meta game/tournament (disalin oleh pentadbir). Pengguna log masuk boleh baca sahaja.

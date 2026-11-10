@@ -125,6 +125,7 @@
 
   A.init = async function () {
     staticIcons();
+    GS.auth.init().catch((e) => console.error('[GS] ralat log masuk', e)); // tidak menyekat permulaan; skrin log masuk dipaparkan bila SDK sedia
     await GS.platforms.loadKeys();
     GS.audio.channelsInit();
     GS.scenes.ensureDefaults();
