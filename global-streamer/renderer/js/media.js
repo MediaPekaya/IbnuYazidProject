@@ -23,7 +23,7 @@
     return v;
   }
 
-  M.open = async function (sourceId, kind, deviceId) {
+  M.open = async function (sourceId, kind, deviceId, opts) {
     M.close(sourceId);
     // kongsi aliran jika peranti sama sudah dibuka (capture card biasanya hanya boleh dibuka sekali)
     if (deviceId && kind !== 'screen') {
@@ -36,6 +36,12 @@
     }
     let stream;
     if (kind === 'screen') {
+      // app Windows: pemilih skrin/tetingkap sendiri (pelayar web guna pemilih bawaannya)
+      if (window.gsNative && window.gsNative.sources && !(opts && opts.skipPicker)) {
+        const id = await M.pickScreen();
+        if (!id) { const e = new Error('dibatalkan'); e.name = 'NotAllowedError'; throw e; }
+        await window.gsNative.sources.select(id);
+      }
       stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 60 } }, audio: false });
     } else {
       stream = await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId, kind));
@@ -78,6 +84,29 @@
   };
 
   /* pilih peranti + buka. kind: 'capture' | 'camera' | 'screen' */
+  /** Pemilih skrin/tetingkap (app Windows): kisi bergambar kecil; kembalikan id sumber atau '' jika dibatalkan. */
+  M.pickScreen = async function () {
+    let list;
+    try { list = await window.gsNative.sources.list(); } catch (e) { GS.toast(GS.t('Gagal kongsi skrin: {0}', GS.t(e.message)), 'warn'); return ''; }
+    if (!list.length) { GS.toast(GS.t('Tiada skrin atau tetingkap dijumpai.'), 'warn'); return ''; }
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (id, m) => { if (done) return; done = true; if (m) m.close(); resolve(id); };
+      let tab = 'screen';
+      const grid = GS.h('div', { class: 'src-grid' });
+      const draw = () => {
+        grid.innerHTML = '';
+        list.filter((s) => s.kind === tab).forEach((s) => grid.append(GS.h('button', { class: 'src-card', title: s.name, 'data-id': s.id, onClick: () => finish(s.id, modal) },
+          s.thumb ? GS.h('img', { src: s.thumb, alt: '' }) : GS.h('div', { class: 'src-empty' }, GS.icon('monitor', 28)), GS.h('span', null, s.name))));
+        if (!grid.children.length) grid.append(GS.h('div', { class: 'empty' }, GS.t('Tiada paparan.')));
+      };
+      const tabs = GS.h('div', { class: 'subtabs' }, [['screen', 'Skrin'], ['window', 'Tetingkap']].map(([k, l]) =>
+        GS.h('button', { class: 'subtab' + (k === tab ? ' on' : ''), 'data-tab': k, onClick: (e) => { tab = k; GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b === e.currentTarget)); draw(); } }, l)));
+      draw();
+      const modal = GS.modal({ title: 'Pilih skrin atau tetingkap', body: GS.h('div', null, tabs, grid), wide: true, onClose: () => finish('', null) });
+    });
+  };
+
   M.pick = async function (source) {
     const kind = source.props.kind;
     if (kind === 'screen') {

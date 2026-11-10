@@ -34,6 +34,19 @@ ipcMain.handle('vault:set', (_e, id, value) => {
   return true;
 });
 
+/* ---------- pemilih skrin / tetingkap ---------- */
+let pendingSource = '';
+const SRC_ID = /^(screen|window):\d+:\d+$/;
+ipcMain.handle('sources:list', async () => {
+  const list = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: false });
+  return list.slice(0, 40).map((s) => ({ id: s.id, name: String(s.name || '').slice(0, 120), kind: s.id.startsWith('screen:') ? 'screen' : 'window', thumb: s.thumbnail && !s.thumbnail.isEmpty() ? s.thumbnail.toDataURL() : '' }));
+});
+ipcMain.handle('sources:select', (_e, id) => {
+  if (id && !SRC_ID.test(String(id))) return false;
+  pendingSource = id ? String(id) : '';
+  return true;
+});
+
 /* ---------- siaran ---------- */
 ipcMain.handle('stream:start', (_e, cfg) => engine.start(cfg));
 ipcMain.on('stream:chunk', (_e, buf) => engine.write(buf));
@@ -60,9 +73,13 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   // izinkan kamera/mikrofon/skrin hanya untuk app ini
   session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(['media', 'display-capture', 'mediaKeySystem'].includes(permission)));
-  // kongsi skrin: ambil skrin utama (TODO Fasa 2: pemilih skrin/tetingkap)
+  // kongsi skrin: sumber yang dipilih pengguna (pemilih dalam app); jika tiada, skrin pertama
   session.defaultSession.setDisplayMediaRequestHandler((_req, cb) => {
-    desktopCapturer.getSources({ types: ['screen', 'window'] }).then((s) => cb(s.length ? { video: s[0] } : {})).catch(() => cb({}));
+    desktopCapturer.getSources({ types: ['screen', 'window'] }).then((s) => {
+      const pick = (pendingSource && s.find((x) => x.id === pendingSource)) || s.find((x) => x.id.startsWith('screen:')) || s[0];
+      pendingSource = '';
+      cb(pick ? { video: pick } : {});
+    }).catch(() => cb({}));
   });
   createWindow();
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });

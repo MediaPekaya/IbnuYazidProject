@@ -319,6 +319,16 @@
     'Perlawanan Tournament': 'Tournament Match', 'Keputusan Tournament': 'Tournament Results',
     'TIADA PERLAWANAN': 'NO MATCH', 'MULA': 'STARTS', 'SEBENTAR LAGI': 'STARTING SOON', 'KEPUTUSAN TERKINI': 'LATEST RESULTS', 'JUARA': 'CHAMPION', 'BELUM ADA KEPUTUSAN': 'NO RESULTS YET',
 
+
+    /* ---- sambung semula destinasi ---- */
+    '{0}: menyambung semula dalam {1} saat (percubaan {2})…': '{0}: reconnecting in {1} s (attempt {2})…',
+    '{0} bersambung semula.': '{0} reconnected.', 'Menyambung semula': 'Reconnecting',
+
+
+    /* ---- pemilih skrin / tetingkap ---- */
+    'Pilih skrin atau tetingkap': 'Choose a screen or window', 'Skrin': 'Screens', 'Tetingkap': 'Windows',
+    'Tiada skrin atau tetingkap dijumpai.': 'No screens or windows found.', 'Tiada paparan.': 'Nothing to show.',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

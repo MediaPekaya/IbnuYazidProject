@@ -154,9 +154,21 @@
         L.stats = ev;
         break;
       case 'target':
+        if (ev.state === 'reconnecting') {
+          if (ev.id) L.status[ev.id] = 'reconnecting';
+          render();
+          if (ev.attempt === 1 || ev.attempt % 5 === 0) GS.toast(GS.t('{0}: menyambung semula dalam {1} saat (percubaan {2})…', ev.name || 'Platform', ev.nextIn, ev.attempt), 'info', 5000);
+          break;
+        }
+        if (ev.state === 'live') {
+          if (ev.id) L.status[ev.id] = 'live';
+          render();
+          GS.toast(GS.t('{0} bersambung semula.', ev.name || 'Platform'), 'ok', 4000);
+          break;
+        }
         if (ev.id) L.status[ev.id] = 'failed';
         render();
-        GS.toast(GS.t('{0} terputus atau gagal disambung: {1}', ev.name || 'Platform', ev.message), 'warn', 8000);
+        if (!ev.reconnect) GS.toast(GS.t('{0} terputus atau gagal disambung: {1}', ev.name || 'Platform', ev.message), 'warn', 8000);
         if (ev.remaining === 0) endLive('Semua destinasi gagal. Semak Server URL dan Stream Key.');
         break;
       case 'warn':
@@ -187,7 +199,7 @@
     chips.innerHTML = '';
     Object.keys(L.status).forEach((id) => {
       const d = GS.platforms.defs[id];
-      chips.append(h('span', { class: 'chip pf ' + L.status[id], style: { '--pf': d.color }, title: GS.t(d.name) + ' · ' + GS.t({ connecting: 'Menyambung', live: 'Live', failed: 'Gagal' }[L.status[id]] || L.status[id]) }, h('i'), d.name.split(' ')[0]));
+      chips.append(h('span', { class: 'chip pf ' + L.status[id], style: { '--pf': d.color }, title: GS.t(d.name) + ' · ' + GS.t({ connecting: 'Menyambung', live: 'Live', failed: 'Gagal', reconnecting: 'Menyambung semula' }[L.status[id]] || L.status[id]) }, h('i'), d.name.split(' ')[0]));
     });
   }
   L.render = render;

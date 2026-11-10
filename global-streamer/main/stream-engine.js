@@ -6,9 +6,13 @@
  *  - Status setiap destinasi (satu gagal tidak menghentikan yang lain).
  *  - Statistik masa nyata (fps, kelajuan pengekodan, bingkai dilepaskan).
  *  - Pengekod perkakasan (NVENC / QSV / AMF) dengan sandaran automatik ke CPU (x264) jika gagal dimulakan.
+ *  - SAMBUNG SEMULA destinasi terputus (Fasa 2.1): pengekod turut memancar salinan FLV ke geganti setempat; setiap destinasi yang
+ *    gagal disambung semula oleh proses FFmpeg tersendiri (-c copy) dengan jeda berperingkat, tanpa mengganggu destinasi lain.
+ *    (Pengekod memancar salinan FLV ke geganti setempat; pekerja baharu mula pada bingkai kunci.)
  */
 'use strict';
 const { spawn, spawnSync } = require('child_process');
+const net = require('net');
 
 function ffmpegBinary() {
   if (process.env.GS_FFMPEG) return process.env.GS_FFMPEG;
@@ -58,9 +62,77 @@ function redact(text, targets) {
   return s;
 }
 
+/* Geganti TCP setempat: satu pengeluar (FFmpeg utama, aliran FLV), banyak pelanggan (proses sambung semula).
+ * Pelanggan baharu menerima: pengepala FLV + metadata + konfigurasi video/audio yang disimpan, kemudian bermula pada TAG KUNCI
+ * (bingkai kunci video) pertama. Dengan itu FFmpeg pekerja sentiasa memulakan aliran yang sah (tidak di tengah GOP).
+ * FLV dipilih (bukan MPEG-TS) kerana destinasi ialah FLV dan binari ffmpeg-static diuji terhempas pada MPEG-TS di Linux. */
+class Relay {
+  constructor() { this.port = 0; this.live = new Set(); this.pending = new Set(); this.server = null; this.reset(); }
+  reset() { this.rest = Buffer.alloc(0); this.head = null; this.script = null; this.vcfg = null; this.acfg = null; this.gotHeader = false; }
+  subscribe(fn) { this.pending.add(fn); }
+  unsubscribe(fn) { this.pending.delete(fn); this.live.delete(fn); }
+  get size() { return this.pending.size + this.live.size; }
+  listen() {
+    this.server = net.createServer((sock) => {
+      this.reset();
+      sock.on('data', (c) => { try { this.onData(c); } catch (e) { /* aliran rosak: abaikan, pengeluar akan disambung semula */ } });
+      sock.on('error', () => {});
+    });
+    this.server.on('error', () => { this.port = 0; });
+    this.server.listen(0, '127.0.0.1', () => { this.port = this.server.address().port; });
+    this.server.unref();
+  }
+  onData(c) {
+    this.rest = this.rest.length ? Buffer.concat([this.rest, c]) : c;
+    let buf = this.rest, off = 0;
+    if (!this.gotHeader) {
+      if (buf.length < 13) return;
+      if (buf.toString('latin1', 0, 3) !== 'FLV') { this.rest = Buffer.alloc(0); return; }
+      this.head = Buffer.from(buf.subarray(0, 13));
+      this.gotHeader = true; off = 13;
+    }
+    const out = [];
+    while (buf.length - off >= 15) {
+      const size = (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
+      const total = 11 + size + 4;
+      if (buf.length - off < total) break;
+      const tag = buf.subarray(off, off + total);
+      off += total;
+      const type = tag[0], d0 = tag[11], d1 = tag[12];
+      let key = false;
+      if (type === 18) this.script = Buffer.from(tag);
+      else if (type === 9) {
+        const codec = d0 & 0x0f, ftype = d0 >> 4;
+        if (codec === 7 && d1 === 0) this.vcfg = Buffer.from(tag);
+        else if (ftype === 1) key = true;
+      } else if (type === 8) { if ((d0 >> 4) === 10 && d1 === 0) this.acfg = Buffer.from(tag); }
+      out.push({ tag, key });
+    }
+    this.rest = buf.subarray(off);
+    if (!out.length) return;
+    // pelanggan sedia: terus hantar
+    if (this.live.size) { const chunk = Buffer.concat(out.map((o) => o.tag)); for (const f of this.live) f(chunk); }
+    // pelanggan menunggu: mula pada tag kunci pertama (perlu konfigurasi video sudah ada)
+    if (this.pending.size && this.vcfg) {
+      const i = out.findIndex((o) => o.key);
+      if (i >= 0) {
+        const first = Buffer.concat([this.head, this.script || Buffer.alloc(0), this.vcfg, this.acfg || Buffer.alloc(0)].concat(out.slice(i).map((o) => o.tag)));
+        for (const f of this.pending) { this.live.add(f); f(first); }
+        this.pending.clear();
+      }
+    }
+  }
+  close() { try { this.server && this.server.close(); } catch (e) { /* abaikan */ } }
+}
+
+const RETRY_SECONDS = [2, 4, 8, 15, 30];
+
 class StreamEngine {
   constructor(emit) {
     this.emit = emit || (() => {});
+    this.relay = new Relay();
+    this.relay.listen();
+    this.workers = new Map();
     this.reset();
   }
 
@@ -79,6 +151,13 @@ class StreamEngine {
     this.slowCount = 0;
     this.failed = new Set();
     this.gen = 0;
+    this.killWorkers();
+    this.relayPort = 0;
+  }
+
+  killWorkers() {
+    for (const w of this.workers.values()) { clearTimeout(w.timer); w.dead = true; if (w.proc) { const pr = w.proc; try { this.relay.unsubscribe(w.sub); pr.stdin.end(); pr.kill('SIGTERM'); const to = setTimeout(() => { try { pr.kill('SIGKILL'); } catch (e) { /* abaikan */ } }, 1500); pr.once('exit', () => clearTimeout(to)); } catch (e) { /* abaikan */ } } }
+    this.workers.clear();
   }
 
   static availableEncoders() { return availableEncoders(); }
@@ -95,12 +174,14 @@ class StreamEngine {
       fps: clampInt(cfg.fps, 15, 60, 30),
       vb: clampInt(cfg.vbitrate, 1000, 60000, 6000),
       ab: clampInt(cfg.abitrate, 64, 320, 160),
+      reconnect: cfg.reconnect !== false,
     };
     const want = ENCODERS[cfg.encoder] ? cfg.encoder : 'auto';
     const avail = availableEncoders();
     this.candidates = want === 'auto' ? AUTO_ORDER.filter((k) => avail.includes(k)) : [want, 'x264'].filter((k, i, a) => a.indexOf(k) === i);
     this.requested = want;
     this.encIdx = 0;
+    this.relayPort = this.cfg.reconnect === false ? 0 : this.relay.port;
     this.spawnProc();
     return { encoder: this.candidates[0], candidates: this.candidates.slice() };
   }
@@ -108,7 +189,9 @@ class StreamEngine {
   buildArgs(encKey) {
     const { fps, vb, ab, targets } = this.cfg;
     const enc = ENCODERS[encKey];
-    const tee = targets.map((t) => '[f=flv:onfail=ignore]' + t.url).join('|');
+    let tee = targets.map((t) => '[f=flv:onfail=ignore]' + t.url).join('|');
+    // salinan FLV ke geganti setempat (sumber untuk menyambung semula destinasi yang terputus)
+    if (this.relayPort) tee += '|[f=flv:flush_packets=1:onfail=ignore]tcp://127.0.0.1:' + this.relayPort;
     return [
       '-hide_banner', '-loglevel', 'warning', '-nostats', '-progress', 'pipe:1', '-stats_period', '1',
       '-fflags', '+genpts',
@@ -158,9 +241,61 @@ class StreamEngine {
           this.failed.add(idx);
           const t = this.cfg.targets[idx];
           this.emit({ type: 'target', index: idx, id: t && t.id, name: t && t.name, state: 'failed', message: redact(m[2], this.cfg.targets), remaining: m[3] != null ? Number(m[3]) : undefined });
+          if (t && this.relayPort && !this.stopping) this.scheduleReconnect(idx);
         }
       }
     }
+  }
+
+  /* ---------- sambung semula destinasi terputus ---------- */
+  scheduleReconnect(idx) {
+    if (this.stopping || !this.cfg || !this.proc) return;
+    const t = this.cfg.targets[idx];
+    const w = this.workers.get(idx) || { attempt: 0 };
+    this.workers.set(idx, w);
+    clearTimeout(w.timer);
+    w.attempt++;
+    const delay = RETRY_SECONDS[Math.min(w.attempt - 1, RETRY_SECONDS.length - 1)];
+    this.emit({ type: 'target', index: idx, id: t.id, name: t.name, state: 'reconnecting', attempt: w.attempt, nextIn: delay });
+    w.timer = setTimeout(() => this.spawnWorker(idx), delay * 1000);
+  }
+
+  spawnWorker(idx) {
+    const w = this.workers.get(idx);
+    if (!w || w.dead || this.stopping || !this.cfg || !this.proc) return;
+    const t = this.cfg.targets[idx];
+    const args = ['-hide_banner', '-loglevel', 'warning', '-nostats', '-progress', 'pipe:1', '-stats_period', '1',
+      '-probesize', '65536', '-analyzeduration', '1000000',
+      '-f', 'flv', '-i', 'pipe:0', '-c', 'copy', '-f', 'flv', t.url];
+    const p = spawn(ffmpegBinary(), args, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    w.proc = p; w.live = false; w.err = ''; w.startedAt = Date.now();
+    p.stdin.on('error', () => {});
+    w.sub = (chunk) => { if (p.stdin.writable) { if (p.stdin.writableLength > 8 * 1024 * 1024) { try { p.kill(); } catch (e) { /* abaikan */ } } else p.stdin.write(chunk); } };
+    this.relay.subscribe(w.sub);
+    let buf = '';
+    p.stdout.on('data', (d) => {
+      buf += d.toString();
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const l of lines) {
+        const m = /^(frame|total_size)=(\d+)/.exec(l.trim());
+        if (m && Number(m[2]) > 0 && !w.live) {
+          w.live = true; w.liveAt = Date.now();
+          this.emit({ type: 'target', index: idx, id: t.id, name: t.name, state: 'live', recovered: true, attempt: w.attempt });
+        }
+      }
+    });
+    p.stderr.on('data', (d) => { w.err = (w.err + d.toString()).slice(-1500); });
+    p.on('error', () => {});
+    p.on('exit', (code, sig) => {
+      this.relay.unsubscribe(w.sub);
+      if (process.env.GS_DEBUG) console.error('[worker exit]', idx, 'code', code, 'sig', sig, 'live', w.live, 'dur', Date.now() - w.startedAt, 'err', w.err.slice(-300));
+      if (w.dead || this.stopping || !this.proc) return;
+      const wasLive = w.live && Date.now() - w.liveAt > 15000;
+      if (wasLive) w.attempt = 0; // sambungan stabil: mulakan jeda dari awal
+      const detail = redact(w.err.trim().split('\n').slice(-2).join(' '), this.cfg.targets);
+      this.emit({ type: 'target', index: idx, id: t.id, name: t.name, state: 'failed', message: detail || ('FFmpeg destinasi berhenti (kod ' + code + ')'), reconnect: true });
+      this.scheduleReconnect(idx);
+    });
   }
 
   onProgress(txt) {
@@ -200,6 +335,7 @@ class StreamEngine {
       return;
     }
     this.proc = null;
+    this.killWorkers();
     if (this.stopping || code === 0 || code === null) this.emit({ type: 'ended' });
     else { const detail = redact(raw.trim().split('\n').slice(-3).join(' '), this.cfg.targets); this.emit({ type: 'error', code: 'exit', exitCode: code, detail, message: 'FFmpeg berhenti (kod ' + code + '). ' + detail }); }
   }
@@ -226,6 +362,7 @@ class StreamEngine {
     const p = this.proc;
     if (!p) return Promise.resolve(true);
     this.stopping = true;
+    this.killWorkers();
     return new Promise((resolve) => {
       const done = () => resolve(true);
       p.once('exit', done);

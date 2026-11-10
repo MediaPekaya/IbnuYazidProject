@@ -13,5 +13,9 @@ contextBridge.exposeInMainWorld('gsNative', {
     chunk: (buf) => ipcRenderer.send('stream:chunk', buf),
     stop: () => ipcRenderer.invoke('stream:stop'),
   },
+  sources: {
+    list: () => ipcRenderer.invoke('sources:list'),
+    select: (id) => ipcRenderer.invoke('sources:select', id),
+  },
   onStreamEvent: (cb) => ipcRenderer.on('stream:event', (_e, data) => cb(data)),
 });
