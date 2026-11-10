@@ -698,6 +698,7 @@
     'Bot menganalisis data yang dikesan app (hero, K/D/A, item, kejadian, keputusan). Nama pemain dan pasukan perlu ditulis di sini jika mahu bot menyebutnya; bot tidak akan mereka nama.': 'The bot analyses the data the app detects (heroes, K/D/A, items, events, results). Write player and team names here if you want the bot to mention them; the bot will not make names up.',
     'ejaan sebutan lain (pilihan)': 'other spelling (optional)',
     'Nama yang anda tetapkan ialah nama panggilan bot. Jika pengecam salah dengar nama anda, tekan "Latih nama" di bawah atau tulis ejaan yang didengarnya.': 'The name you set is the bot call name. If the recogniser mishears it, press "Train name" below or write the spelling it hears.',
+    '(Pilihan: ada key ElevenLabs sendiri? Masukkan untuk guna semua suara anda.)': '(Optional: have your own ElevenLabs key? Enter it to use all your voices.)',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

@@ -178,6 +178,7 @@
       const keyIn = h('input', { type: 'password', id: 'elevenKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk_… / xi-api-key', value: v.elevenKey(), onChange: (e) => { v.setElevenKey(e.target.value); v.prewarm(); } });
       elevenBox.append(
         h('p', { class: 'muted note' }, 'ElevenLabs (tier percuma): daftar di elevenlabs.io, kemudian Profile > API Keys > Create, dan tampal kunci di bawah. Pelan percuma ada 10,000 aksara sebulan (jawapan yang sama tidak menggunakan kuota dua kali). Bahasa Melayu disokong oleh model multilingual.'),
+        h('p', { class: 'key-note', id: 'keyNote' }, GS.t('(Pilihan: ada key ElevenLabs sendiri? Masukkan untuk guna semua suara anda.)')),
         field('Kunci API ElevenLabs', keyIn, nat ? 'Disimpan disulitkan oleh Windows, bukan dalam fail tetapan.' : 'Versi web: hanya dalam memori, hilang apabila tab ditutup.'),
         h('div', { class: 'grid2' },
           field('Model', h('select', { id: 'elevenModel', onChange: (e) => { t.model = e.target.value; save(); } }, [['eleven_multilingual_v2', 'Multilingual v2 (kualiti terbaik, 1 kredit/aksara)'], ['eleven_flash_v2_5', 'Flash v2.5 (pantas, separuh kredit)']].map(([val, l]) => h('option', { value: val, selected: t.model === val }, l)))),
@@ -195,6 +196,7 @@
       const qIn = h('input', { type: 'password', id: 'elevenQuickKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'Kunci API ElevenLabs (sk_…)' });
       quick.append(h('b', null, 'Suara lebih semula jadi: sambung ElevenLabs'),
         h('p', { class: 'muted note' }, 'Tampal kunci API ElevenLabs anda (elevenlabs.io > Profile > API Keys). Sistem akan mencari suara Melayu lelaki dan perempuan dan menetapkannya secara automatik.'),
+        h('p', { class: 'key-note', id: 'keyNoteQuick' }, GS.t('(Pilihan: ada key ElevenLabs sendiri? Masukkan untuk guna semua suara anda.)')),
         h('div', { class: 'key-row' }, qIn, h('button', { type: 'button', class: 'btn primary', id: 'btnElevenConnect', onClick: () => {
           if (!qIn.value.trim()) { GS.toast(GS.t('Tampal kunci API ElevenLabs dahulu.'), 'warn'); return; }
           v.setElevenKey(qIn.value.trim()); t.provider = 'eleven'; save(); provider.value = 'eleven'; drawEleven(); drawAzure(); drawSysInfo(); drawQuick();

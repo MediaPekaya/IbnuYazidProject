@@ -490,3 +490,5 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .ev-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ev-name small { color: var(--dim); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 720px) { .eleven-voices { grid-template-columns: 1fr; } }
+
+.key-note { margin: 2px 0; color: #ff5c6c; font-weight: 700; font-size: 13px; }
