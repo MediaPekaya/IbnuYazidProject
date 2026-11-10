@@ -185,6 +185,7 @@
   });
   /** Suara pilihan (sesuai untuk game/siaran, Melayu): dicari dan diutamakan. */
   const PREFERRED = { female: { id: 'jfD5mm5oPglFjL59x819', name: 'Aisyah – Video Game Character' }, male: { id: 'mPe1DSKUjbs1HQLfCR9S', name: 'Zain – Powerful Game Character' } };
+  V.PREFERRED = PREFERRED;
   const scoreV = (c) => (c.id === PREFERRED.female.id || c.id === PREFERRED.male.id ? 20 : 0) + (isMs(c.language) ? 4 : 0) + (isMs(c.accent) || isMs(c.name) ? 2 : 0) + (c.inAccount ? 2 : 0) + (c.free ? 1 : 0) + (c.category === 'premade' ? 0.5 : 0);
   /** Cari suara ElevenLabs untuk Bahasa Melayu: suara dalam akaun + perpustakaan awam (bahasa "ms") + suara premade sebagai sandaran. */
   V.findMalayVoices = async function () {

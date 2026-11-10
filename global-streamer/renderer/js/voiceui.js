@@ -109,6 +109,7 @@
     const t = c.bot.tts;
     const genderBtns = [['female', 'Perempuan'], ['male', 'Lelaki']].map(([g, l]) => h('button', { type: 'button', 'data-gender': g, class: t.gender === g ? 'on' : '', role: 'radio', 'aria-checked': t.gender === g ? 'true' : 'false',
       onClick: () => { t.gender = g; save(); v.prewarm(); drawSysInfo(); genderBtns.forEach((b) => { b.classList.toggle('on', b.dataset.gender === g); b.setAttribute('aria-checked', b.dataset.gender === g ? 'true' : 'false'); }); } }, l));
+    const syncGender = () => genderBtns.forEach((b) => { b.classList.toggle('on', b.dataset.gender === t.gender); b.setAttribute('aria-checked', b.dataset.gender === t.gender ? 'true' : 'false'); });
     const gender = h('div', { class: 'seg-mini voice-gender', role: 'radiogroup', 'aria-label': GS.t('Jantina suara bot') }, genderBtns);
     const elevenBox = h('div', { class: 'eleven-box', id: 'elevenBox' });
     const quotaOut = h('div', { class: 'muted note', id: 'elevenQuota' });
@@ -134,17 +135,23 @@
     const voiceList = h('div', { class: 'eleven-voices', id: 'elevenVoices' });
     const voiceMsg = h('div', { class: 'muted note', id: 'elevenFindMsg' });
     const playPreview = (url) => { try { if (U.prev) U.prev.pause(); U.prev = new Audio(url); U.prev.play().catch(() => GS.toast(GS.t('Pratonton tidak dapat dimainkan.'), 'warn')); } catch (e) { /* abaikan */ } };
+    /* hanya dua suara: Aisyah (perempuan) dan Zain (lelaki); pengguna memilih salah satu sahaja */
     const drawVoiceList = (res) => {
       voiceList.innerHTML = '';
-      [['female', 'Perempuan'], ['male', 'Lelaki']].forEach(([g, lab]) => {
-        const cur = g === 'male' ? t.maleVoice : t.femaleVoice;
-        const col = h('div', { class: 'ev-col', 'data-gender': g }, h('h5', null, lab));
-        (res[g] || []).slice(0, 6).forEach((c) => col.append(h('div', { class: 'ev-row' + (c.id === cur ? ' on' : ''), 'data-voice': c.id },
-          h('div', { class: 'ev-name' }, h('b', null, c.name), h('small', null, [c.malay ? GS.t('Melayu') : GS.t('Pelbagai bahasa'), c.accent, c.inAccount ? GS.t('dalam akaun') : ''].filter(Boolean).join(' · '))),
-          c.preview ? h('button', { type: 'button', class: 'btn tiny ghost', 'aria-label': GS.t('Dengar'), onClick: () => playPreview(c.preview) }, '▶') : null,
-          h('button', { type: 'button', class: 'btn tiny' + (c.id === cur ? '' : ' primary'), 'data-use': c.id, onClick: async () => { voiceMsg.textContent = GS.t('Menetapkan suara…'); try { await v.useElevenVoice(g, c); voiceMsg.textContent = GS.t('Suara {0} ditetapkan: {1}.', lab, c.name); drawVoiceList(res); } catch (e) { voiceMsg.textContent = String(e.message || e); } } }, c.id === cur ? GS.t('Digunakan') : GS.t('Guna')))));
-        if (!(res[g] || []).length) col.append(h('p', { class: 'muted note' }, GS.t('Tiada suara ditemui.')));
-        voiceList.append(col);
+      const P2 = v.PREFERRED;
+      [['female', 'Perempuan', 'Aisyah'], ['male', 'Lelaki', 'Zain']].forEach(([g, lab, nm]) => {
+        const pf = P2[g];
+        const found = ((res && res[g]) || []).find((c) => c.id === pf.id) || null;
+        const cur = (g === 'male' ? t.maleVoice : t.femaleVoice) || '';
+        const idNow = found ? found.id : pf.id;
+        const active = t.gender === g && (cur === idNow || (found && cur === found.id));
+        voiceList.append(h('div', { class: 'ev-row ev-pick' + (t.gender === g ? ' on' : ''), 'data-voice': pf.id, 'data-gender': g },
+          h('div', { class: 'ev-name' }, h('b', null, nm + ' · ' + lab), h('small', null, found ? GS.t('Suara game Melayu') : GS.t('Tekan "Cari suara" dahulu'))),
+          found && found.preview ? h('button', { type: 'button', class: 'btn tiny ghost', 'aria-label': GS.t('Dengar'), onClick: () => playPreview(found.preview) }, '▶') : null,
+          h('button', { type: 'button', class: 'btn tiny' + (active ? '' : ' primary'), 'data-use': pf.id, disabled: !found && !cur, onClick: async () => {
+            voiceMsg.textContent = GS.t('Menetapkan suara…');
+            try { if (found) await v.useElevenVoice(g, found); t.gender = g; save(); voiceMsg.textContent = GS.t('Suara {0} ditetapkan: {1}.', lab, nm); drawVoiceList(res); syncGender(); } catch (e) { voiceMsg.textContent = String(e.message || e); }
+          } }, active ? GS.t('Digunakan') : GS.t('Guna'))));
       });
     };
     /** Cari suara Melayu lelaki + perempuan; jika auto, terus tetapkan yang terbaik (cuba seterusnya jika suara perpustakaan tidak dibenarkan oleh pelan akaun). */
@@ -156,11 +163,12 @@
         const chosen = [];
         if (auto) {
           for (const g of ['male', 'female']) {
-            for (const c of (res[g] || []).slice(0, 4)) { try { await v.useElevenVoice(g, c); chosen.push(c.name); break; } catch (e) { res.notes.push(e.message); } }
+            const c = (res[g] || []).find((x) => x.id === v.PREFERRED[g].id);
+            if (c) { try { await v.useElevenVoice(g, c); chosen.push(c.name); } catch (e) { res.notes.push(e.message); } }
           }
         }
-        drawVoiceList(res);
-        voiceMsg.textContent = (auto && chosen.length ? GS.t('Siap: suara lelaki dan perempuan ditetapkan ({0}). Tekan "Uji suara bot".', chosen.join(', ')) : GS.t('Pilih suara lelaki dan perempuan di bawah.')) + (res.notes.length ? '  ' + res.notes.slice(0, 1).join('') : '');
+        U.lastRes = res; drawVoiceList(res);
+        voiceMsg.textContent = (auto && chosen.length ? GS.t('Siap: suara lelaki dan perempuan ditetapkan ({0}). Tekan "Uji suara bot".', chosen.join(', ')) : GS.t('Pilih Aisyah (perempuan) atau Zain (lelaki).')) + (res.notes.length ? '  ' + res.notes.slice(0, 1).join('') : '');
       } catch (e) { voiceMsg.textContent = String(e.message || e); }
     };
     const drawEleven = () => {
@@ -174,13 +182,10 @@
         h('div', { class: 'grid2' },
           field('Model', h('select', { id: 'elevenModel', onChange: (e) => { t.model = e.target.value; save(); } }, [['eleven_multilingual_v2', 'Multilingual v2 (kualiti terbaik, 1 kredit/aksara)'], ['eleven_flash_v2_5', 'Flash v2.5 (pantas, separuh kredit)']].map(([val, l]) => h('option', { value: val, selected: t.model === val }, l)))),
           h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnElevenQuota', onClick: async () => { keyIn.dispatchEvent(new Event('change')); quotaOut.textContent = GS.t('Menyemak…'); try { const q = await v.elevenQuota(); quotaOut.textContent = GS.t('Digunakan {0} daripada {1} aksara bulan ini.', q.used, q.limit); } catch (e) { quotaOut.textContent = String(e.message || e); } } }, 'Semak kuota'))),
-        h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn primary', id: 'btnElevenFind', onClick: () => findVoices(true) }, 'Cari suara Melayu (lelaki & perempuan)')),
+        h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn primary', id: 'btnElevenFind', onClick: () => findVoices(true) }, 'Sediakan suara Melayu (Aisyah & Zain)')),
         voiceMsg, voiceList,
-        quotaOut,
-        h('details', { class: 'dev-adv' }, h('summary', null, GS.t('ID suara (lanjutan)')),
-          h('div', { class: 'grid2' },
-            field('ID suara lelaki', h('input', { type: 'text', id: 'elevenMale', value: t.maleVoice, onInput: (e) => { t.maleVoice = e.target.value.trim(); save(); } })),
-            field('ID suara perempuan', h('input', { type: 'text', id: 'elevenFemale', value: t.femaleVoice, onInput: (e) => { t.femaleVoice = e.target.value.trim(); save(); } })))));
+        quotaOut);
+      drawVoiceList(U.lastRes || null);
     };
     drawEleven();
     /* sambung pantas: tampal kunci ElevenLabs sahaja, sistem terus tukar penyedia dan cari suara Melayu */

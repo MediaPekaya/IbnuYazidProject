@@ -674,6 +674,10 @@
     'Pilihan: dibiarkan kosong = guna lalai ': 'Optional: leave empty = use default ',
     'WAJIB. Server URL RTMP / RTMPS daripada platform ini (salin daripada dashboard platform).': 'REQUIRED. RTMP / RTMPS Server URL from this platform (copy from the platform dashboard).',
     'Kunci API {0} tiada kebenaran "{1}". Buat kunci baharu dan hidupkan kebenaran itu (atau pilih akses penuh).': 'The {0} API key is missing the "{1}" permission. Create a new key and enable it (or choose full access).',
+    'Suara game Melayu': 'Malay game voice',
+    'Tekan "Cari suara" dahulu': 'Press "Set up voices" first',
+    'Pilih Aisyah (perempuan) atau Zain (lelaki).': 'Choose Aisyah (female) or Zain (male).',
+    'Sediakan suara Melayu (Aisyah & Zain)': 'Set up Malay voices (Aisyah & Zain)',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();
