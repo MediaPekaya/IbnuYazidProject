@@ -399,7 +399,7 @@
       if (w.woke) q = w.question;
       else if (V.awaitUntil > now) q = text;
       if (q !== null) {
-        if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack) V.say(st.bot.ack, true); GS.emit('voice:status'); return { bot: 'menunggu' }; }
+        if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack && st.bot.voiceOn) V.speak(st.bot.ack, {}); GS.emit('voice:status'); return { bot: 'menunggu' }; }
         V.awaitUntil = 0;
         const a = V.answer(q);
         V.note({ source, text, result: a.text ? 'bot: ' + a.text : 'bot: tiada jawapan' });
