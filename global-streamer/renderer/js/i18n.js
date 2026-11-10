@@ -40,6 +40,18 @@
   GS.t = (s, ...args) => fmt(translate(s, GS.state.lang), args);
   GS.tov = (s, ...args) => fmt(translate(s, I.overlayLang()), args);
 
+  /* data contoh yang belum diubah pengguna (mesej bar teks, top like, giliran, promo) ditukar mengikut bahasa */
+  const mapStrings = (v, fn) => (typeof v === 'string' ? fn(v) : Array.isArray(v) ? v.map((x) => mapStrings(x, fn)) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, mapStrings(x, fn)])) : v);
+  function localizeDefaults(from, to) {
+    const def = GS.defaultState();
+    ['ticker', 'toplike', 'queue', 'promo', 'deviceLabel'].forEach((k) => {
+      const bm = def[k];
+      const en = mapStrings(bm, (x) => translate(x, 'en'));
+      const src = from === 'ms' ? bm : en;
+      if (JSON.stringify(GS.state[k]) === JSON.stringify(src)) GS.state[k] = JSON.parse(JSON.stringify(to === 'ms' ? bm : en));
+    });
+  }
+
   I.setLang = function (lang) {
     if (lang !== 'ms' && lang !== 'en') return;
     if (GS.state.lang === lang) return;
@@ -47,9 +59,7 @@
       GS.toast(GS.t('Tamatkan siaran/rakaman dahulu sebelum menukar bahasa.'), 'warn');
       return false;
     }
-    const D = { ms: ['FOLLOW AKAUN SAYA', 'WELCOME TO MY LIVE', 'KEDAI DIAMOND DI BIO', 'TERIMA KASIH SEMUA'], en: ['FOLLOW MY ACCOUNT', 'WELCOME TO MY LIVE', 'DIAMOND SHOP IN BIO', 'THANK YOU EVERYONE'] };
-    const cur = JSON.stringify((GS.state.ticker && GS.state.ticker.messages) || []);
-    if (cur === JSON.stringify(D[GS.state.lang])) GS.state.ticker.messages = D[lang].slice(); // hanya jika pengguna belum mengubah mesej lalai
+    localizeDefaults(GS.state.lang, lang);
     GS.state.lang = lang;
     GS.saveNow();
     location.reload();

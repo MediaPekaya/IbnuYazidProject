@@ -2,7 +2,6 @@
 (function () {
   'use strict';
   const clamp = GS.clamp;
-  const LW = 1920, LH = 1080;
   const HANDLE = 26; // saiz pengendali (unit logik)
 
   class Compositor {
@@ -38,6 +37,7 @@
     }
 
     render(now, scene) {
+      const LW = GS.design.w, LH = GS.design.h;
       const ctx = this.ctx;
       const k = this.canvas.width / LW;
       ctx.setTransform(k, 0, 0, k, 0, 0);
@@ -91,6 +91,7 @@
     }
 
     drawBackground(ctx, now) {
+      const LW = GS.design.w, LH = GS.design.h;
       // cahaya lembut dilukis pada kanvas kecil kemudian diregang (jauh lebih ringan, kelihatan sama)
       if (!this.bg) { this.bg = document.createElement('canvas'); this.bg.width = 320; this.bg.height = 180; }
       const b = this.bg.getContext('2d');
@@ -207,6 +208,7 @@
 
     /* koordinat peristiwa tetikus -> unit logik */
     toLogical(ev) {
+      const LW = GS.design.w, LH = GS.design.h;
       const r = this.canvas.getBoundingClientRect();
       return { x: ((ev.clientX - r.left) / r.width) * LW, y: ((ev.clientY - r.top) / r.height) * LH };
     }
@@ -228,17 +230,21 @@
     }
   }
 
-  Compositor.LW = LW;
-  Compositor.LH = LH;
+  Object.defineProperty(Compositor, 'LW', { get: () => GS.design.w });
+  Object.defineProperty(Compositor, 'LH', { get: () => GS.design.h });
 
   /* lukis sekali (contoh pratonton template) */
-  Compositor.thumb = function (canvas, sources) {
-    const c = new Compositor(canvas);
-    c.setResolution(canvas.width, canvas.height);
-    const ctx = c.ctx;
-    const k = canvas.width / LW;
-    ctx.setTransform(k, 0, 0, k, 0, 0);
-    c.drawScene(ctx, { sources }, 2500);
+  Compositor.thumb = function (canvas, sources, design) {
+    const prev = GS.design;
+    if (design) GS.design = design;
+    try {
+      const c = new Compositor(canvas);
+      c.setResolution(canvas.width, canvas.height);
+      const ctx = c.ctx;
+      const k = canvas.width / GS.design.w;
+      ctx.setTransform(k, 0, 0, k, 0, 0);
+      c.drawScene(ctx, { sources }, 2500);
+    } finally { GS.design = prev; }
   };
 
   GS.Compositor = Compositor;

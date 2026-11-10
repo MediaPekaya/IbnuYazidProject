@@ -57,8 +57,8 @@
     if (o.fill !== false) {
       rr(ctx, x, y, w, h, r);
       const g = ctx.createLinearGradient(x, y, x, y + h);
-      g.addColorStop(0, 'rgba(14,30,60,0.86)');
-      g.addColorStop(1, 'rgba(6,12,28,0.88)');
+      g.addColorStop(0, o.opaque ? 'rgba(14,30,60,0.99)' : 'rgba(14,30,60,0.86)');
+      g.addColorStop(1, o.opaque ? 'rgba(6,12,28,0.99)' : 'rgba(6,12,28,0.88)');
       ctx.fillStyle = g;
       ctx.fill();
     }

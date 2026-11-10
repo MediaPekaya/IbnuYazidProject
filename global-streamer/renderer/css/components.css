@@ -278,3 +278,13 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 11px; padding: 
 .lang-switch button.on { background: rgba(46, 168, 255, 0.28); color: #fff; }
 .auth-card .lang-switch { position: absolute; top: 16px; right: 16px; }
 .grid2 .span2 { grid-column: 1 / -1; }
+
+/* ---------- template menegak, spell ---------- */
+.tpl-group { margin: 16px 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.tpl-group em { margin-left: 10px; color: var(--cyan); font-style: normal; letter-spacing: 0.06em; }
+.cards.tpl.portrait { grid-template-columns: repeat(3, 1fr); }
+.cards.portrait .pick-card canvas { aspect-ratio: 9 / 16; width: auto; height: 300px; align-self: center; }
+.spells { display: flex; flex-direction: column; gap: 6px; }
+.spell-row { display: grid; grid-template-columns: 1.4fr 1.1fr 56px auto auto; gap: 4px; align-items: center; }
+.spell-row input, .spell-row select { padding: 5px 6px; font-size: 12px; }
+.gd-sec .field input[type='range'] { padding: 0; height: 6px; }

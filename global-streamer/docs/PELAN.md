@@ -6,7 +6,7 @@
 | 2 | Siaran sebenar melalui FFmpeg (app Windows): status, statistik, pengekod GPU + sandaran, ujian RTMP sebenar | ✅ Siap dan diuji ke penerima RTMP tempatan. ⏳ Ujian dengan TikTok/Facebook/YouTube sebenar dan GPU sebenar oleh pemilik |
 | 2.1 | Sambung semula destinasi terputus, pemilih skrin/tetingkap, log masuk Google dalam app Windows | ⏳ |
 | 3 | Chat gabungan sebenar (YouTube, Facebook, TikTok), alert follow/gift | ⏳ |
-| 4 | Lengkapkan data MLBB (hero, item, emblem), efek mengikut rujukan video, widget tambahan (boss game, giliran mabar, tier list) | ⏳ |
+| 4 | Susun atur menegak 9:16, widget mengikut rujukan (boss, top like, bar status, banner bermaskot, giliran mabar, draft, pemasa spell, tier list, notis item) | ✅ Siap (data manual). ⏳ Lengkapkan dan sahkan data hero/item/emblem |
 | 5 | Pengesan auto (OCR + padanan imej) daripada capture card, tournament setiap 5 minit, cadangan draft | ⏳ |
 | 6 | Auth, lesen, laman jualan dan muat turun, kemas kini automatik | ⏳ |
 

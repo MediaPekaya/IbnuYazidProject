@@ -162,7 +162,7 @@
   /* ---------- permulaan ---------- */
   A.init = async function () {
     const c = cfg();
-    if (!c.firebase || !c.firebase.apiKey) { A.enabled = false; return; }
+    if (!c.authEnabled || !c.firebase || !c.firebase.apiKey) { A.enabled = false; return; }
     A.enabled = true;
     try {
       await loadSdk();

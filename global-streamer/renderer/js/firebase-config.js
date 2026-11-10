@@ -14,7 +14,9 @@
     },
     sdkVersion: '10.14.1',
 
-    /* Dasar akses. TIADA senarai UID: sesiapa yang ada akaun Firebase Authentication boleh log masuk. */
+    /* Dasar akses. Buat masa ini app TERUS BOLEH DIGUNA tanpa daftar atau log masuk (authEnabled: false).
+     * Untuk menghidupkan log masuk semula, tukar authEnabled kepada true. Tiada senarai UID: sesiapa yang ada akaun boleh log masuk. */
+    authEnabled: false, // false = tiada log masuk, tiada pemuatan SDK Firebase, tiada chip pengguna
     requireLogin: true, // paparkan skrin log masuk sebelum app boleh digunakan
     allowSignup: true, // benarkan daftar akaun baharu (emel + kata laluan)
     allowGuest: true, // butang "Teruskan sebagai tetamu". Tukar kepada false sebelum menjual.

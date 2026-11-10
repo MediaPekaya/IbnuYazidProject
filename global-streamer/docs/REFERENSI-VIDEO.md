@@ -21,3 +21,26 @@ jadi hanya **fungsi** yang diambil. Susunan seni, maskot dan jenama mereka tidak
 
 ## Belum dikaji
 Audio (bunyi efek) dan senarai penuh banner kill MLBB. Gameplay disampel setiap 20 saat sahaja.
+
+
+## Status pelaksanaan berbanding rujukan
+Susun atur rujukan ialah **menegak 9:16 (TikTok LIVE)**. Global Streamer kini meniru **struktur dan fungsi**-nya dengan seni asli
+(maskot "GS-Bot", ikon dan gaya hologram sendiri; tiada aset atau jenama pihak lain disalin).
+
+| Fungsi dalam rujukan | Status |
+|---|---|
+| Susun atur menegak: kamera atas, bar status, game tengah, banner, panel bawah | ✅ |
+| Bar status (LIVE + pemasa, lagu, matlamat like, penonton) | ✅ (lagu dan penonton diisi manual) |
+| Boss game (HP, level, bar kedua) | ✅ visual + kawalan manual. ⏳ Sambungan automatik ke like/gift TikTok (Fasa 3) |
+| Top Like | ✅ diisi manual. ⏳ automatik (Fasa 3) |
+| Banner promosi bermaskot, banner hadiah | ✅ |
+| Giliran Mabar VIP (OPEN/CLOSED) | ✅ manual |
+| W/L, WR%, streak, label peranti | ✅ (kiraan W/L automatik bila efek Victory/Defeat dicetus) |
+| Banner kill (SOLO KILL dan lain-lain), Victory, Defeat | ✅ efek, dicetus manual/hotkey. ⏳ Pengesan auto (Fasa 5) |
+| Notis item ("GLOWING WAND – beli sekarang!") dan item penuh | ✅ efek, dicetus manual. ⏳ Pengesan auto (Fasa 5) |
+| Panel draft: ally/enemy, ban, ramalan menang, nota | ✅ diisi manual. ⏳ Pengesanan dan cadangan automatik (Fasa 5) |
+| Pemasa spell musuh | ✅ butang. ⏳ input suara |
+| Tier list timbul | ✅ data diisi sendiri (hanya nama teks) |
+| Handcam | ✅ sumber kamera kedua (tersembunyi lalai) |
+| Hero detector, item detector, kill detector, rate prediction automatik | ⏳ Fasa 5 |
+| Robot dikawal chat ("ROBO"), alert follow/gift sebenar | ⏳ Fasa 3 |

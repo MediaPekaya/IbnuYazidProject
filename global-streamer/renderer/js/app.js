@@ -6,8 +6,10 @@
 
   A.applyResolution = function () {
     const s = GS.state.settings;
+    document.body.classList.toggle('portrait', GS.design.h > GS.design.w);
     A.programComp.setResolution(s.width, s.height);
-    A.previewComp.setResolution(960, 540);
+    const pv = GS.design.w >= GS.design.h ? [960, 540] : [540, 960];
+    A.previewComp.setResolution(pv[0], pv[1]);
     const chip = $('#resChip');
     if (chip) chip.textContent = s.width + '×' + s.height + ' · ' + s.fps + ' fps';
   };
@@ -83,12 +85,14 @@
       const cv = view.querySelector('canvas');
       const r = view.getBoundingClientRect();
       if (r.width < 8 || r.height < 8) return;
-      let cw = r.width, ch = (r.width * 9) / 16;
-      if (ch > r.height) { ch = r.height; cw = (r.height * 16) / 9; }
+      const ar = GS.design.w / GS.design.h;
+      let cw = r.width, ch = r.width / ar;
+      if (ch > r.height) { ch = r.height; cw = r.height * ar; }
       cv.style.width = Math.floor(cw) + 'px';
       cv.style.height = Math.floor(ch) + 'px';
     });
   }
+  A.fit = () => fitCanvases();
   function bindFit() {
     const ro = new ResizeObserver(fitCanvases);
     $$('.screen-view').forEach((v) => ro.observe(v));

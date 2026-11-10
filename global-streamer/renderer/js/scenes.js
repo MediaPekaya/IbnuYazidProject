@@ -22,17 +22,53 @@
 
   S.ensureDefaults = function () {
     if (st().scenes.length) return;
-    const a = S.applyTemplate('holo-pro', null, 'Live · Hologram Pro');
-    const b = S.applyTemplate('game-penuh', null, 'Game Penuh');
-    const c = { id: GS.uid('scene'), name: 'Sebentar Lagi', fxStyle: 'holo', templateId: null, sources: [
-      mk('widget', 'Tajuk', 560, 400, 800, 200, { widget: 'brand', text: 'SEBENTAR LAGI' }),
-      mk('widget', 'Bar Teks', 40, 846, 1840, 96, { widget: 'ticker' }),
-    ] };
+    const por = GS.orient() === 'portrait';
+    const a = S.applyTemplate(por ? 'holo-portrait' : 'holo-pro', null);
+    const b = S.applyTemplate(por ? 'portrait-game' : 'game-penuh', null, por ? 'Fokus Game' : 'Game Penuh');
+    const brb = por
+      ? [mk('widget', 'Tajuk', 140, 760, 800, 260, { widget: 'brand', text: 'SEBENTAR LAGI' }), mk('widget', 'Banner Promosi', 0, 1484, 1080, 140, { widget: 'promo', style: 'info' })]
+      : [mk('widget', 'Tajuk', 560, 400, 800, 200, { widget: 'brand', text: 'SEBENTAR LAGI' }), mk('widget', 'Bar Teks', 40, 846, 1840, 96, { widget: 'ticker' })];
+    const c = { id: GS.uid('scene'), name: 'Sebentar Lagi', fxStyle: 'holo', templateId: null, sources: brb };
     st().scenes.push(c);
     st().programId = a.id;
     st().previewId = b.id;
-    st().templateId = 'holo-pro';
+    st().templateId = por ? 'holo-portrait' : 'holo-pro';
     GS.save();
+  };
+
+  /* tukar orientasi siaran (menegak 9:16 / mendatar 16:9). Scene diganti dengan susun atur lalai orientasi baharu;
+   * peranti video (capture card, kamera) dikekalkan supaya tidak perlu dipilih semula. */
+  S.setOrientation = function (o) {
+    if (o !== 'portrait' && o !== 'landscape') return false;
+    if (o === GS.orient()) return true;
+    if (GS.live && GS.live.state !== 'idle') { GS.toast(GS.t('Tamatkan siaran dahulu sebelum menukar orientasi.'), 'warn'); return false; }
+    const keep = {};
+    const oldIds = [];
+    st().scenes.forEach((sc) => sc.sources.forEach((s) => {
+      if (s.type !== 'video') return;
+      oldIds.push(s.id);
+      if (s.props.kind !== 'screen' && GS.media.videos[s.id] && !keep[s.props.kind]) keep[s.props.kind] = { entry: GS.media.videos[s.id], deviceId: s.props.deviceId, label: s.props.deviceLabel };
+    }));
+    const set = st().settings;
+    set.orientation = o;
+    GS.applyDesign();
+    set.width = o === 'portrait' ? 1080 : 1920;
+    set.height = o === 'portrait' ? 1920 : 1080;
+    set.fps = o === 'portrait' ? 30 : 60;
+    set.vbitrate = o === 'portrait' ? 5000 : 6000;
+    st().scenes = [];
+    st().programId = st().previewId = null;
+    selectedId = null;
+    S.ensureDefaults();
+    st().scenes.forEach((sc) => sc.sources.forEach((s) => {
+      const k = s.type === 'video' && keep[s.props.kind];
+      if (k) { GS.media.videos[s.id] = k.entry; s.props.deviceId = k.deviceId; s.props.deviceLabel = k.label; }
+    }));
+    oldIds.forEach((id) => GS.media.close(id));
+    if (GS.app && GS.app.programComp) { GS.app.programComp.transition = null; GS.app.applyResolution(); GS.app.fit(); }
+    GS.save();
+    GS.emit('scenes:changed');
+    return true;
   };
 
   /* ---------- template ---------- */
@@ -54,6 +90,8 @@
     sc.sources = fresh;
     sc.templateId = tpl.id;
     sc.fxStyle = tpl.fxStyle;
+    sc.fxAnchor = tpl.fxAnchor;
+    sc.alertY = tpl.alertY;
     st().templateId = tpl.id;
     selectedId = null;
     changed();
@@ -400,7 +438,7 @@
         return;
       }
       const dx = p.x - drag.start.x, dy = p.y - drag.start.y, s = drag.s, o = drag.orig;
-      const W = GS.Compositor.LW, H = GS.Compositor.LH;
+      const W = GS.design.w, H = GS.design.h;
       if (drag.mode === 'move') {
         let nx = o.x + dx, ny = o.y + dy;
         // tarik ke tepi/tengah kanvas

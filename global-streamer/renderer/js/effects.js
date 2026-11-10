@@ -36,7 +36,7 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     let tw = ctx.measureText(str).width;
-    const maxW = o.maxW || 1700;
+    const maxW = o.maxW || GS.design.w * 0.92;
     if (tw > maxW) { size *= maxW / tw; ctx.font = '900 ' + size + 'px ' + GS.widgets.FONT; tw = ctx.measureText(str).width; }
     const g = ctx.createLinearGradient(0, cy - size / 2, 0, cy + size / 2);
     g.addColorStop(0, o.top || '#ffffff');
@@ -134,7 +134,8 @@
     const label = (e.params.label || 'KILL').toUpperCase();
     const inP = easeBack(p / 0.14), outP = clamp((p - 0.82) / 0.18, 0, 1);
     const alpha = 1 - outP;
-    const cx = W / 2, cy = H * 0.6, bh = 170;
+    const sc0 = GS.scenes.program();
+    const cx = W / 2, cy = (sc0 && sc0.fxAnchor) || H * 0.6, bh = 170;
     // nyala di tepi skrin
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
@@ -412,7 +413,13 @@
     const alpha = 1 - outP;
     const items = (e.params.items && e.params.items.length ? e.params.items : defaultBuild()).slice(0, 6);
     const cw = 1240, ch = 330, cx = W / 2;
-    const cy = H * 0.46 + (1 - clamp(inP, 0, 1)) * -200 - outP * 120;
+    const baseY = H * 0.46;
+    const cy = baseY + (1 - clamp(inP, 0, 1)) * -200 - outP * 120;
+    const fitK = Math.min(1, (W - 40) / cw);
+    ctx.save();
+    ctx.translate(cx, baseY);
+    ctx.scale(fitK, fitK);
+    ctx.translate(-cx, -baseY);
     ctx.save();
     ctx.globalAlpha = alpha;
     GS.widgets.panel(ctx, cx - cw / 2, cy - ch / 2, cw, ch, now, { r: 26 });
@@ -471,6 +478,7 @@
     if (allDone && !e.burst) { e.burst = true; for (let i = 0; i < 60; i++) e.parts.push({ x: cx + rnd(-500, 500), y: cy, vx: rnd(-260, 260), vy: rnd(-420, -60), age: 0, life: rnd(0.8, 1.6), size: rnd(5, 12), rot: rnd(0, TAU), vr: rnd(-6, 6), col: ['#ffe9a8', '#ffffff', pal.main][i % 3], alpha: 1 }); }
     stepParts(e.parts, dt, 520);
     ctx.save(); ctx.globalAlpha = alpha; drawParts(ctx, e.parts, 'spark'); ctx.restore();
+    ctx.restore();
   }
   function defaultBuild() {
     const names = ['Blade of Despair', 'Windtalker', 'Berserker\'s Fury', 'Hunter Strike', 'Immortality', 'Warrior Boots'];
@@ -516,6 +524,105 @@
     ctx.restore();
   }
 
+
+  /* ================== NOTIS ITEM (banner "beli sekarang") ================== */
+  function drawItemAlert(ctx, e, p, now, W, H) {
+    const pal = e.pal;
+    const sc = GS.scenes.program();
+    const it = e.params.item || null;
+    const title0 = e.params.title || (it && it.name) || 'ITEM';
+    const cy = sc && sc.alertY != null ? sc.alertY + 70 : H * 0.78;
+    const inP = easeOut(p / 0.12), outP = easeOut((p - 0.86) / 0.14);
+    const bh = 140;
+    const x = (1 - inP) * W - outP * W;
+    ctx.save();
+    const g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, pal.band[0]); g.addColorStop(0.5, pal.accent); g.addColorStop(1, pal.band[2]);
+    ctx.fillStyle = g;
+    ctx.globalAlpha = 0.96;
+    ctx.fillRect(x, cy - bh / 2, W, bh);
+    ctx.globalAlpha = 1;
+    // garis terang atas/bawah + chevron bergerak
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillRect(x, cy - bh / 2, W, 4);
+    ctx.fillRect(x, cy + bh / 2 - 4, W, 4);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, cy - bh / 2, W, bh);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    const off = (now * 0.12) % 80;
+    for (let i = -2; i < W / 80 + 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x + i * 80 + off, cy - bh / 2); ctx.lineTo(x + i * 80 + off + 40, cy - bh / 2); ctx.lineTo(x + i * 80 + off + 10, cy + bh / 2); ctx.lineTo(x + i * 80 + off - 30, cy + bh / 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    // ikon item
+    const hx = x + 96;
+    GS.widgets.hex(ctx, hx, cy, 52);
+    const col = (it && catColor[it.cat]) || '#ffffff';
+    ctx.fillStyle = col; ctx.shadowColor = '#000'; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke();
+    GS.widgets.text(ctx, initials(title0), hx, cy + 12, { size: 38, weight: 900, align: 'center', color: '#0a1230' });
+    const tx = x + 190, tw = W - 190 - 40;
+    GS.widgets.text(ctx, GS.tov(title0).toUpperCase(), tx, cy - 6, { size: 56, weight: 900, color: '#fff', maxW: tw, shadow: 'rgba(0,0,0,.6)', blur: 10, spacing: 1 });
+    GS.widgets.text(ctx, GS.tov(e.params.sub || 'BELI SEKARANG!'), tx, cy + 44, { size: 32, weight: 800, color: '#ffe9a8', maxW: tw, spacing: 1.5 });
+    ctx.restore();
+  }
+
+  /* ================== TIER LIST (timbul) ================== */
+  const TIER_COL = { S: '#ff3b5c', A: '#ffb13b', B: '#ffe45c', C: '#3be39a', D: '#2ea8ff' };
+  function drawTierList(ctx, e, p, now, W, H) {
+    const tiers = GS.state.tiers || {};
+    const inP = easeBack(p / 0.08), outP = easeOut((p - 0.93) / 0.07);
+    const alpha = 1 - outP;
+    const pw = Math.min(W - 60, 1500), rows = ['S', 'A', 'B', 'C', 'D'];
+    const rowH = Math.min(150, (H * 0.62) / 5), ph = rowH * 5 + 120;
+    const px = (W - pw) / 2;
+    const py = H * 0.5 - ph / 2 + (1 - clamp(inP, 0, 1)) * -160;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    GS.widgets.panel(ctx, px, py, pw, ph, now, { r: 26, opaque: true });
+    GS.widgets.text(ctx, GS.tov(tiers.label || 'TIER LIST').toUpperCase(), px + pw / 2, py + 70, { size: 52, weight: 900, align: 'center', spacing: 6, color: '#fff', shadow: e.pal.glow, blur: 16, maxW: pw - 80 });
+    rows.forEach((r, i) => {
+      const ry = py + 100 + i * rowH;
+      const reveal = easeOut((p - 0.06 - i * 0.03) / 0.08);
+      ctx.save();
+      ctx.globalAlpha = alpha * clamp(reveal, 0, 1);
+      ctx.fillStyle = TIER_COL[r];
+      GS.widgets.rr(ctx, px + 20, ry + 6, rowH * 0.7, rowH - 12, 14);
+      ctx.fill();
+      GS.widgets.text(ctx, r, px + 20 + rowH * 0.35, ry + rowH * 0.64, { size: rowH * 0.46, weight: 900, align: 'center', color: '#07122a' });
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      GS.widgets.rr(ctx, px + 30 + rowH * 0.7, ry + 6, pw - 50 - rowH * 0.7, rowH - 12, 14);
+      ctx.fill();
+      // chip nama hero (teks sahaja)
+      const list = tiers[r] || [];
+      const fs = Math.max(16, rowH * 0.2);
+      ctx.font = '700 ' + fs + 'px ' + GS.widgets.FONT;
+      let cx = px + 44 + rowH * 0.7, cy = ry + 14, maxX = px + pw - 36, shown = 0;
+      const chipH = fs * 1.7;
+      for (const name of list) {
+        const w = ctx.measureText(name).width + fs * 1.2;
+        if (cx + w > maxX) { cx = px + 44 + rowH * 0.7; cy += chipH + 6; }
+        if (cy + chipH > ry + rowH - 4) break;
+        ctx.fillStyle = 'rgba(46,168,255,0.22)';
+        GS.widgets.rr(ctx, cx, cy, w, chipH, chipH / 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(107,230,255,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        GS.widgets.text(ctx, name, cx + w / 2, cy + chipH * 0.68, { size: fs, weight: 700, align: 'center', color: '#eaf4ff' });
+        cx += w + 8;
+        shown++;
+      }
+      if (!list.length) GS.widgets.text(ctx, '—', px + 50 + rowH * 0.7, ry + rowH * 0.62, { size: fs * 1.2, weight: 700, color: 'rgba(255,255,255,0.3)' });
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+
   const defs = {
     kill: { dur: 2900, draw: drawKill, sfx: 'kill' },
     death: { dur: 2600, draw: drawDeath, sfx: 'death' },
@@ -524,6 +631,8 @@
     fullitem: { dur: 4600, draw: drawFullItem, sfx: 'fullitem' },
     itembuy: { dur: 3400, draw: drawItemBuy, sfx: 'itembuy' },
     alert: { dur: 3400, draw: drawAlert, sfx: 'alert' },
+    itemalert: { dur: 4400, draw: drawItemAlert, sfx: 'itembuy' },
+    tierlist: { dur: 9000, draw: drawTierList, sfx: 'alert' },
   };
   FX.names = Object.keys(defs);
 
@@ -536,7 +645,7 @@
     }
     const now = performance.now();
     const style = params.style || FX.styleNow();
-    FX.active.push({ name, dur: def.dur, t0: now, last: now, params, pal: PAL[style] || PAL.holo, parts: [], draw: def.draw });
+    FX.active.push({ name, dur: params.dur || def.dur, t0: now, last: now, params, pal: PAL[style] || PAL.holo, parts: [], draw: def.draw });
     if (params.sound !== false) GS.audio.sfx(def.sfx);
     GS.emit('fx:trigger', { name, params });
     return true;

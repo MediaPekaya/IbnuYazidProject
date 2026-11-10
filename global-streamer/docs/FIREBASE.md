@@ -23,6 +23,10 @@ Projek: **global-streamer** (akaun Google **mediapc2026@gmail.com**). Hosting: h
 | `meta/{doc}` | pengguna log masuk | **tiada klien** |
 | selain itu | tutup | tutup |
 
+## Log masuk: DIMATIKAN buat masa ini
+App terus boleh digunakan tanpa daftar atau log masuk (`authEnabled: false` dalam `renderer/js/firebase-config.js`). Tiada SDK Firebase dimuat.
+Untuk menghidupkan semula, tukar `authEnabled` kepada `true`. Bahagian di bawah menerangkan cara ia berfungsi apabila dihidupkan.
+
 ## Log masuk: tiada senarai UID
 Sesiapa yang berdaftar dalam Firebase Authentication boleh log masuk. **Tiada UID dikodkan** dalam kod atau rules.
 Akaun baharu (daftar sendiri, Google, atau ditambah melalui Console > Authentication > Users > Add user) terus berfungsi,

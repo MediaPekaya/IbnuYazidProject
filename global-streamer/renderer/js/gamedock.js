@@ -5,6 +5,7 @@
   const D = (GS.gamedock = {});
   let killLabel = 'KILL';
   let itemName = 'Blade of Despair';
+  let alertMsg = 'BELI SEKARANG!';
 
   const roleColor = { Tank: '#2ea8ff', Fighter: '#ff8a3b', Assassin: '#ff3b5c', Mage: '#9a7bff', Marksman: '#ffd36b', Support: '#3be39a' };
 
@@ -14,7 +15,8 @@
     if (!def) return;
     const params = Object.assign({}, def.params || {});
     if (id === 'kill') params.label = killLabel;
-    if (id === 'itembuy') params.item = GS.data.mlbbItems.find((i) => i.name === itemName) || GS.data.mlbbItems[0];
+    if (id === 'itembuy' || id === 'itemalert') params.item = GS.data.mlbbItems.find((i) => i.name === itemName) || GS.data.mlbbItems[0];
+    if (id === 'itemalert') { params.title = params.item.name; params.sub = alertMsg; }
     GS.fx.trigger(id, params);
   };
 
@@ -35,6 +37,7 @@
         h('div', { class: 'grid2' },
           h('label', { class: 'field' }, h('span', null, 'Jenis kill'), killSel),
           h('label', { class: 'field' }, h('span', null, 'Item untuk "Beli Item"'), itemSel)),
+        h('label', { class: 'field' }, h('span', null, 'Mesej "Notis Item"'), h('input', { type: 'text', value: alertMsg, placeholder: 'cth Midlane, beli sekarang!', onInput: (e) => { alertMsg = e.target.value || 'BELI SEKARANG!'; } })),
         h('p', { class: 'muted note' }, 'Cetus manual, hotkey Alt+1…6, atau (Fasa 5) pengesan auto daripada capture card.')),
       h('div', { class: 'gd-sec' },
         h('h4', null, 'Menang / Kalah'),
@@ -100,15 +103,18 @@
     const root = GS.$('#gameBody');
     if (!root) return;
     const pages = { controls, heroes, meta };
-    const tabs = h('div', { class: 'subtabs' });
+    const order = [['controls', 'Kawalan']];
+    (D.extra || []).forEach(([id, label, fn]) => { pages[id] = fn; order.push([id, label]); });
+    order.push(['heroes', 'Hero'], ['meta', 'Meta']);
+    const tabs = h('div', { class: 'subtabs wrap' });
     const body = h('div', { class: 'gd-body' });
-    const show = (id) => {
+    D.show = (id) => {
       GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b.dataset.id === id));
       body.innerHTML = '';
       pages[id](body);
     };
-    [['controls', 'Kawalan'], ['heroes', 'Hero'], ['meta', 'Meta']].forEach(([id, label]) => tabs.append(h('button', { class: 'subtab', dataset: { id }, onClick: () => show(id) }, label)));
+    order.forEach(([id, label]) => tabs.append(h('button', { class: 'subtab', dataset: { id }, onClick: () => D.show(id) }, label)));
     root.append(tabs, body);
-    show('controls');
+    D.show('controls');
   };
 })();

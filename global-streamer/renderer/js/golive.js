@@ -229,19 +229,25 @@
 
     function go(n) {
       if (n < 0 || n > 3) return;
-      if (wiz.step === 1 && n > 1) applyTemplate(); // simpan pilihan template apabila meninggalkan langkah
+      if (wiz.step === 1 && n > 1 && applyTemplate() === false) { draw(); return; } // simpan pilihan template apabila meninggalkan langkah
       wiz.step = n;
       draw();
     }
 
     function applyTemplate() {
       const game = GS.games[wiz.game];
-      if (!game || !wiz.tpl) return;
+      const tpl = game && game.templates.find((t) => t.id === wiz.tpl);
+      if (!tpl) return true;
+      if (tpl.orientation !== GS.orient()) {
+        if (!confirm(GS.t('Menukar orientasi akan menggantikan scene sedia ada dengan susun atur lalai. Teruskan?'))) { wiz.tpl = GS.state.templateId; return false; }
+        if (!GS.scenes.setOrientation(tpl.orientation)) { wiz.tpl = GS.state.templateId; return false; }
+      }
       const pg = GS.scenes.program();
-      if (pg && pg.templateId === wiz.tpl) return; // template sama: kekalkan suntingan pengguna
+      if (pg && pg.templateId === wiz.tpl) return true; // template sama: kekalkan suntingan pengguna
       const target = pg && pg.templateId ? pg.id : null;
       const sc = GS.scenes.applyTemplate(wiz.tpl, target);
       if (sc && !target) { GS.state.programId = sc.id; GS.state.previewId = sc.id; GS.save(); GS.emit('scenes:changed'); }
+      return true;
     }
 
     function draw() {
@@ -266,15 +272,21 @@
     function stepTemplate() {
       const game = GS.games[wiz.game];
       stage.append(h('p', { class: 'lead' }, 'Pilih template paparan live. Setiap template ada gaya efek sendiri (kill, victory, defeat dan lain-lain).'));
-      const grid = h('div', { class: 'cards tpl' });
-      game.templates.forEach((t) => {
-        const cv = h('canvas', { width: 480, height: 270 });
-        GS.Compositor.thumb(cv, t.build());
-        grid.append(h('button', { class: 'pick-card tpl' + (wiz.tpl === t.id ? ' sel' : ''), onClick: () => { wiz.tpl = t.id; draw(); } },
-          cv, h('strong', null, t.name), h('span', null, t.desc),
-          h('span', { class: 'fxtag' }, GS.t('Gaya efek: {0}', GS.t({ holo: 'Hologram biru-merah', crimson: 'Merah menyala', gold: 'Emas' }[t.fxStyle])))));
+      [['portrait', 'Menegak 9:16 · TikTok LIVE'], ['landscape', 'Mendatar 16:9 · YouTube / Facebook']].forEach(([o, title]) => {
+        const list = game.templates.filter((t) => t.orientation === o);
+        if (!list.length) return;
+        const por = o === 'portrait';
+        stage.append(h('h4', { class: 'tpl-group' }, title, o === GS.orient() ? h('em', null, 'Orientasi semasa') : null));
+        const grid = h('div', { class: 'cards tpl ' + o });
+        list.forEach((t) => {
+          const cv = h('canvas', { width: por ? 270 : 480, height: por ? 480 : 270 });
+          GS.Compositor.thumb(cv, t.build(), por ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 });
+          grid.append(h('button', { class: 'pick-card tpl' + (wiz.tpl === t.id ? ' sel' : ''), onClick: () => { wiz.tpl = t.id; draw(); } },
+            cv, h('strong', null, t.name), h('span', null, t.desc),
+            h('span', { class: 'fxtag' }, GS.t('Gaya efek: {0}', GS.t({ holo: 'Hologram biru-merah', crimson: 'Merah menyala', gold: 'Emas' }[t.fxStyle])))));
+        });
+        stage.append(grid);
       });
-      stage.append(grid);
     }
 
     function stepPlatform() {
@@ -321,7 +333,7 @@
     const s = GS.state.settings;
     const sel = (key, opts, parse = Number) => h('select', { onChange: (e) => { s[key] = parse(e.target.value); GS.save(); if (key === 'width') applyRes(); } },
       opts.map(([v, l]) => h('option', { value: v, selected: String(s[key]) === String(v) }, l)));
-    const applyRes = () => { s.height = Math.round((s.width * 9) / 16); GS.app.applyResolution(); };
+    const applyRes = () => { s.height = Math.round((s.width * GS.design.h) / GS.design.w); GS.app.applyResolution(); };
     const body = h('div', { class: 'settings' },
       h('h3', null, 'Bahasa'),
       h('div', { class: 'grid2' },
@@ -332,7 +344,11 @@
       h('p', { class: 'muted note' }, 'Teks pada skrin siaran (cth "MASA MAIN", efek) menggunakan bahasa overlay. Menukar bahasa antara muka memuat semula halaman.'),
       h('h3', null, 'Output video'),
       h('div', { class: 'grid2' },
-        h('label', { class: 'field' }, h('span', null, 'Resolusi'), sel('width', [[1280, '1280×720 (HD)'], [1920, '1920×1080 (Full HD)'], [2560, '2560×1440 (2K)'], [3840, '3840×2160 (4K)']])),
+        h('label', { class: 'field' }, h('span', null, 'Orientasi siaran'), h('select', { onChange: (e) => {
+          const ok = confirm(GS.t('Menukar orientasi akan menggantikan scene sedia ada dengan susun atur lalai. Teruskan?')) && GS.scenes.setOrientation(e.target.value);
+          if (ok) { GS.saveNow(); location.reload(); } else e.target.value = GS.orient();
+        } }, [['portrait', 'Menegak 9:16 (TikTok LIVE)'], ['landscape', 'Mendatar 16:9 (YouTube / Facebook)']].map(([v, l]) => h('option', { value: v, selected: GS.orient() === v }, l)))),
+        h('label', { class: 'field' }, h('span', null, 'Resolusi'), sel('width', GS.orient() === 'portrait' ? [[720, '720×1280 (HD)'], [1080, '1080×1920 (Full HD)']] : [[1280, '1280×720 (HD)'], [1920, '1920×1080 (Full HD)'], [2560, '2560×1440 (2K)'], [3840, '3840×2160 (4K)']])),
         h('label', { class: 'field' }, h('span', null, 'Bingkai sesaat (FPS)'), sel('fps', [[30, '30 fps'], [60, '60 fps']])),
         h('label', { class: 'field' }, h('span', null, 'Bitrate video (kbps)'), h('input', { type: 'number', min: 1000, max: 60000, step: 500, value: s.vbitrate, onChange: (e) => { s.vbitrate = GS.clamp(Number(e.target.value) || 6000, 1000, 60000); GS.save(); } })),
         h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']])),

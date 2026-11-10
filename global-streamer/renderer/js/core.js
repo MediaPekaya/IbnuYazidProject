@@ -87,14 +87,16 @@
 
   /* ---------- state ---------- */
   const KEY = 'globalstreamer.v1';
+  const STATE_V = 3; // naikkan apabila susun atur lalai berubah (scene lama diganti, tetapan platform dikekalkan)
   const defaults = () => ({
+    v: STATE_V,
     mode: 'normal',
     game: 'mlbb',
-    templateId: 'holo-pro',
+    templateId: 'holo-portrait',
     scenes: [],
     programId: null,
     previewId: null,
-    settings: { width: 1920, height: 1080, fps: 60, vbitrate: 6000, abitrate: 160, encoder: 'auto', transition: 'fade', transitionMs: 500 },
+    settings: { orientation: 'portrait', width: 1080, height: 1920, fps: 30, vbitrate: 5000, abitrate: 160, encoder: 'auto', transition: 'fade', transitionMs: 500 },
     platforms: {
       tiktok: { enabled: false, server: '' },
       facebook: { enabled: false, server: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
@@ -106,7 +108,32 @@
     ticker: { messages: ['FOLLOW AKAUN SAYA', 'WELCOME TO MY LIVE', 'KEDAI DIAMOND DI BIO', 'TERIMA KASIH SEMUA'] },
     logo: null,
     sessionStart: Date.now(),
+    /* data widget siaran (diedit dalam panel Game; kandungan contoh, ganti dengan data anda) */
+    status: { nowPlaying: '', likeLabel: 'LIKE GOAL', likeCur: 0, likeMax: 200, viewers: 0 },
+    boss: { enabled: true, name: 'TITAN TURTLE', level: 1, hp: 100000, max: 100000, shieldName: 'PLASMA GLOW', shield: 0, shieldMax: 500000 },
+    toplike: [{ name: 'Penonton 1', n: 0 }, { name: 'Penonton 2', n: 0 }, { name: 'Penonton 3', n: 0 }],
+    promo: {
+      items: [
+        { icon: 'heart', title: 'FOLLOW & SHARE', sub: 'Terima kasih sokongan anda' },
+        { icon: 'bag', title: 'KEDAI DIAMOND', sub: 'Murah & dipercayai · pautan di bio' },
+        { icon: 'crown', title: 'JOKI RANK', sub: 'Murah & pantas' },
+      ],
+      gift: [
+        { icon: 'gift', title: 'GIFT ADA LAGU', sub: 'lain gift lain lagu' },
+        { icon: 'star', title: 'NAK TENGOK ANIMASI GIFT?', sub: 'cuba 5 coin sekali' },
+      ],
+    },
+    queue: { open: false, title: 'MABAR VIP', badgeOpen: 'OPEN', badgeClosed: 'CLOSED', rows: [{ name: 'Pemain 1', games: 3 }, { name: 'Pemain 2', games: 2 }], note: 'RM5 / 1 GAME · RM15 / 3 GAME' },
+    deviceLabel: 'DEVICE: —',
+    draft: { show: false, ally: ['', '', '', '', ''], enemy: ['', '', '', '', ''], banAlly: '', banEnemy: '', winPct: 50, phase: 'DRAFT PICK', note: '' },
+    spells: [
+      { hero: '', spell: 'Flicker', cd: 120, until: 0 }, { hero: '', spell: 'Flicker', cd: 120, until: 0 }, { hero: '', spell: 'Retribution', cd: 35, until: 0 },
+      { hero: '', spell: 'Inspire', cd: 75, until: 0 }, { hero: '', spell: 'Flicker', cd: 120, until: 0 },
+    ],
+    tiers: { label: 'TIER LIST', S: [], A: [], B: [], C: [], D: [] },
   });
+
+  GS.defaultState = defaults;
 
   function load() {
     const d = defaults();
@@ -120,6 +147,18 @@
       merged.audio = Object.assign(defaults().audio, s.audio || {});
       merged.winloss = Object.assign(defaults().winloss, s.winloss || {});
       merged.ticker = Object.assign(defaults().ticker, s.ticker || {});
+      ['status', 'boss', 'promo', 'queue', 'draft', 'tiers'].forEach((k) => { merged[k] = Object.assign(defaults()[k], s[k] || {}); });
+      if (!Array.isArray(merged.toplike)) merged.toplike = defaults().toplike;
+      if (!Array.isArray(merged.spells)) merged.spells = defaults().spells;
+      // migrasi: susun atur lalai baharu (menegak 9:16). Platform, ticker, W/L, logo, bahasa dikekalkan.
+      if (s.v !== STATE_V) {
+        merged.v = STATE_V;
+        merged.scenes = [];
+        merged.programId = null;
+        merged.previewId = null;
+        merged.templateId = defaults().templateId;
+        Object.assign(merged.settings, defaults().settings);
+      }
       return merged;
     } catch (e) {
       console.warn('[GS] gagal baca state', e);
@@ -127,6 +166,15 @@
     }
   }
   GS.state = load();
+  /* ruang reka bentuk (unit logik) mengikut orientasi; output sebenar ialah skala daripadanya */
+  GS.design = { w: 1080, h: 1920 };
+  GS.applyDesign = function () {
+    const portrait = GS.state.settings.orientation !== 'landscape';
+    GS.design = portrait ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 };
+    return GS.design;
+  };
+  GS.orient = () => (GS.state.settings.orientation === 'landscape' ? 'landscape' : 'portrait');
+  GS.applyDesign();
   GS.resetState = () => {
     try { localStorage.removeItem(KEY); } catch (e) { /* abaikan */ }
     location.reload();

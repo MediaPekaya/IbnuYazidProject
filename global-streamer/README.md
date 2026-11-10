@@ -1,6 +1,7 @@
 # Global Streamer
 
 Studio live seperti OBS, dengan template siap, efek skrin dan chat gabungan untuk **TikTok, Facebook dan YouTube**.
+**Terus boleh guna tanpa daftar atau log masuk.**
 Dibina dengan HTML, CSS dan JavaScript vanilla. Untuk **PC dan laptop (Windows)** sahaja.
 
 Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
@@ -12,7 +13,9 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | Antara muka studio (Normal / Studio), scene, sumber, sifat, seret dan ubah saiz pada kanvas | ✅ Siap, diuji dalam pelayar |
 | Capture card / kamera / kongsi skrin sebagai sumber | ✅ Siap (diuji dengan peranti palsu; **belum dengan capture card sebenar**) |
 | Audio mixer (meter, kelantangan, bisu, banyak input) | ✅ Siap (diuji dengan mikrofon palsu) |
-| 3 template MLBB siap + aliran "Sediakan Live" 4 langkah | ✅ Siap |
+| **Susun atur MENEGAK 9:16 untuk TikTok LIVE** (lalai) dan mendatar 16:9 untuk YouTube/Facebook, boleh ditukar | ✅ Siap |
+| 6 template MLBB siap (3 menegak, 3 mendatar) + aliran "Sediakan Live" 4 langkah | ✅ Siap |
+| Widget siaran: bar status, boss game, top like, banner promosi bermaskot, giliran mabar, label peranti, W/L, banner hadiah, draft, pemasa spell, tier list, notis item | ✅ Siap (data diisi manual; panel kawalan dalam tab Game) |
 | Widget: jam, masa main, menang/kalah, logo, bar teks, bingkai | ✅ Siap |
 | Efek: Kill (api), Mati (petir), Victory, Defeat, Item Penuh, Beli Item | ✅ Siap, dicetus manual atau Alt+1…6 |
 | Rakaman tempatan (WebM) | ✅ Siap |
@@ -26,7 +29,7 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | Chat TikTok / Facebook / YouTube sebenar | ⏳ Fasa 3 (antara muka siap, penyambung belum) |
 | Pengesan auto kill / item / hero / victory daripada capture card | ⏳ Fasa 5 |
 | Analisis tournament MPL/MAL setiap 5 minit, cadangan draft | ⏳ Fasa 5 |
-| Log masuk (Google / emel), profil, peranan admin, semakan lesen | ✅ Siap di web (diuji dengan SDK tiruan; log masuk sebenar oleh pemilik). App Windows: emel + kata laluan sahaja buat masa ini. |
+| Log masuk (Google / emel), profil, peranan admin, semakan lesen | ⏸ **Dimatikan lalai** (`authEnabled: false`): app terus boleh guna tanpa daftar. Kod dan peraturan Firestore sedia jika mahu dihidupkan semula. |
 | Installer Windows (.exe) | ⏳ Dibina oleh GitHub Actions pada setiap push (lihat tab Actions). Belum dipasang pada PC Windows sebenar. |
 
 Data hero/item/emblem MLBB ialah **dataset awal** dan perlu disahkan mengikut patch semasa.
