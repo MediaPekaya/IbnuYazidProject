@@ -80,6 +80,7 @@
     }
 
     drawScene(ctx, scene, now) {
+      GS.theme.use(GS.theme.sceneTheme(scene));
       this.drawBackground(ctx, now);
       if (!scene) return;
       for (const s of scene.sources) {
@@ -96,7 +97,8 @@
       if (!this.bg) { this.bg = document.createElement('canvas'); this.bg.width = 320; this.bg.height = 180; }
       const b = this.bg.getContext('2d');
       b.setTransform(this.bg.width / LW, 0, 0, this.bg.height / LH, 0, 0);
-      b.fillStyle = '#050a18';
+      const th = GS.theme.cur;
+      b.fillStyle = th.bgBase;
       b.fillRect(0, 0, LW, LH);
       const a = now * 0.0002;
       const orb = (x, y, r, c0) => {
@@ -106,12 +108,12 @@
         b.fillStyle = g;
         b.fillRect(0, 0, LW, LH);
       };
-      orb(LW * (0.28 + 0.1 * Math.sin(a)), LH * 0.3, 820, 'rgba(46,168,255,0.28)');
-      orb(LW * (0.78 + 0.08 * Math.cos(a * 1.3)), LH * 0.78, 760, 'rgba(255,59,92,0.2)');
-      orb(LW * 0.5, LH * (0.5 + 0.1 * Math.sin(a * 0.8)), 600, 'rgba(122,92,255,0.14)');
+      orb(LW * (0.28 + 0.1 * Math.sin(a)), LH * 0.3, 820, th.orbs[0]);
+      orb(LW * (0.78 + 0.08 * Math.cos(a * 1.3)), LH * 0.78, 760, th.orbs[1]);
+      orb(LW * 0.5, LH * (0.5 + 0.1 * Math.sin(a * 0.8)), 600, th.orbs[2]);
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(this.bg, 0, 0, LW, LH);
-      ctx.strokeStyle = 'rgba(90,160,255,0.06)';
+      ctx.strokeStyle = th.grid;
       ctx.lineWidth = 1;
       const off = (now * 0.012) % 80;
       ctx.beginPath();
@@ -234,7 +236,7 @@
   Object.defineProperty(Compositor, 'LH', { get: () => GS.design.h });
 
   /* lukis sekali (contoh pratonton template) */
-  Compositor.thumb = function (canvas, sources, design) {
+  Compositor.thumb = function (canvas, sources, design, theme) {
     const prev = GS.design;
     if (design) GS.design = design;
     try {
@@ -243,7 +245,7 @@
       const ctx = c.ctx;
       const k = canvas.width / GS.design.w;
       ctx.setTransform(k, 0, 0, k, 0, 0);
-      c.drawScene(ctx, { sources }, 2500);
+      c.drawScene(ctx, { sources, theme }, 2500);
     } finally { GS.design = prev; }
   };
 

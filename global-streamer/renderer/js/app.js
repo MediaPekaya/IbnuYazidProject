@@ -147,6 +147,8 @@
     GS.audio.renderMixer();
     GS.chat.init();
     GS.meta.start();
+    const rc = GS.$('#resChip');
+    if (rc) rc.addEventListener('click', () => GS.sizes.openMenu(rc));
     GS.gamedock.init();
     GS.live.render();
     A.setMode(GS.state.mode);

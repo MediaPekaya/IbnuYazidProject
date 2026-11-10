@@ -89,7 +89,8 @@
     if (!sc) { sc = { id: GS.uid('scene'), name: newName || 'Live · ' + tpl.name, sources: [] }; st().scenes.push(sc); }
     sc.sources = fresh;
     sc.templateId = tpl.id;
-    sc.fxStyle = tpl.fxStyle;
+    sc.theme = tpl.theme || tpl.fxStyle;
+    sc.fxStyle = sc.theme;
     sc.fxAnchor = tpl.fxAnchor;
     sc.alertY = tpl.alertY;
     st().templateId = tpl.id;

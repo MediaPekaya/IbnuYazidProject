@@ -23,9 +23,10 @@
     const cx = x + w / 2, cy = y + h / 2, r = Math.max(w, h) / 2;
     const g = ctx.createLinearGradient(cx - Math.cos(a) * r, cy - Math.sin(a) * r, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
     const m = 0.5 + 0.22 * Math.sin(t * 0.0009 + phase);
-    g.addColorStop(0, C.blue);
-    g.addColorStop(m, C.violet);
-    g.addColorStop(1, C.red);
+    const th = GS.theme && GS.theme.cur;
+    g.addColorStop(0, th ? th.g[0] : C.blue);
+    g.addColorStop(m, th ? th.g[1] : C.violet);
+    g.addColorStop(1, th ? th.g[2] : C.red);
     return g;
   };
 
@@ -52,13 +53,16 @@
   };
 
   W.panel = function (ctx, x, y, w, h, t, o = {}) {
-    const r = o.r != null ? o.r : 16;
+    const th = GS.theme.cur;
+    const r = (o.r != null ? o.r : 16) * th.rscale;
+    const a0 = th.mode === 'outline' ? (o.opaque ? 0.93 : 0.42) : th.mode === 'solid' ? 0.97 : o.opaque ? 0.99 : 0.86;
+    const a1 = th.mode === 'outline' ? (o.opaque ? 0.95 : 0.5) : th.mode === 'solid' ? 0.99 : o.opaque ? 0.99 : 0.88;
     ctx.save();
     if (o.fill !== false) {
       rr(ctx, x, y, w, h, r);
       const g = ctx.createLinearGradient(x, y, x, y + h);
-      g.addColorStop(0, o.opaque ? 'rgba(14,30,60,0.99)' : 'rgba(14,30,60,0.86)');
-      g.addColorStop(1, o.opaque ? 'rgba(6,12,28,0.99)' : 'rgba(6,12,28,0.88)');
+      g.addColorStop(0, 'rgba(' + th.panel[0] + ',' + a0 + ')');
+      g.addColorStop(1, 'rgba(' + th.panel[1] + ',' + a1 + ')');
       ctx.fillStyle = g;
       ctx.fill();
     }
@@ -70,16 +74,16 @@
     const sx = x + sweep * w * 1.2;
     const sg = ctx.createLinearGradient(sx - w * 0.15, y, sx + w * 0.15, y + h);
     sg.addColorStop(0, 'rgba(255,255,255,0)');
-    sg.addColorStop(0.5, 'rgba(180,225,255,0.13)');
+    sg.addColorStop(0.5, th.sweep);
     sg.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = sg;
     ctx.fillRect(x, y, w, h);
     ctx.restore();
     // sempadan bergradien
     rr(ctx, x + 1.5, y + 1.5, w - 3, h - 3, r);
-    ctx.lineWidth = o.lineWidth || 3;
+    ctx.lineWidth = o.lineWidth || th.line;
     ctx.strokeStyle = W.holoGrad(ctx, x, y, w, h, t, o.phase || 0);
-    ctx.shadowColor = 'rgba(70,150,255,0.55)';
+    ctx.shadowColor = th.glow;
     ctx.shadowBlur = 16;
     ctx.stroke();
     ctx.restore();
@@ -103,7 +107,7 @@
     ctx.lineWidth = 4;
     ctx.lineCap = 'round';
     ctx.strokeStyle = W.holoGrad(ctx, x, y, w, h, t);
-    ctx.shadowColor = 'rgba(70,150,255,0.7)';
+    ctx.shadowColor = GS.theme.cur.glow;
     ctx.shadowBlur = 14;
     ctx.beginPath();
     ctx.moveTo(x, y + L); ctx.lineTo(x, y); ctx.lineTo(x + L, y);

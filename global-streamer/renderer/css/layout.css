@@ -68,8 +68,7 @@ body.ready #app { opacity: 1; transform: none; }
 .dock-body.mixer { flex-direction: row; gap: 8px; align-items: stretch; }
 
 /* bar atas pada skrin lebih kecil: kurangkan hiasan, kekalkan butang utama */
-@media (max-width: 1640px) { #resChip { display: none; } }
-@media (max-width: 1500px) { #fpsChip { display: none; } .game-pick span { display: none; } .game-pick select { max-width: 170px; } .user-chip .who { max-width: 110px; } }
+@media (max-width: 1500px) { #fpsChip, #resChip { display: none; } .game-pick span { display: none; } .game-pick select { max-width: 170px; } .user-chip .who { max-width: 110px; } }
 @media (max-width: 1360px) { .brand-tag { display: none; } .brand-name { font-size: 13px; letter-spacing: 0.1em; } #topbar { gap: 10px; padding: 0 10px; } .user-chip .who small { display: none; } .live-btn { padding: 9px 14px; } }
 /* skrin laptop kecil: status LIVE dan platform diutamakan */
 @media (max-width: 1420px) { .game-pick, .brand-name, #encChip { display: none; } .user-chip .who { display: none; } .mode-switch button { padding: 7px 12px; } }

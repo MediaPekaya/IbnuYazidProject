@@ -647,7 +647,7 @@
     }
     const now = performance.now();
     const style = params.style || FX.styleNow();
-    FX.active.push({ name, dur: params.dur || def.dur, t0: now, last: now, params, pal: PAL[style] || PAL.holo, parts: [], draw: def.draw });
+    FX.active.push({ name, dur: params.dur || def.dur, t0: now, last: now, params, pal: (GS.fxPal && GS.fxPal[style]) || PAL[style] || PAL.holo, parts: [], draw: def.draw });
     if (params.sound !== false) GS.audio.sfx(def.sfx);
     GS.emit('fx:trigger', { name, params });
     return true;

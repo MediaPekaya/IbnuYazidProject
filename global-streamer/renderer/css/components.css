@@ -326,3 +326,22 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .lb-name { display: flex; align-items: center; gap: 7px; }
 .sug-row .sug-txt { flex: 1; min-width: 0; }
 .sug-row { gap: 10px; }
+
+/* ---------- tema dan saiz ---------- */
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.theme-btn { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); background: rgba(20, 44, 88, 0.25); color: var(--text); font-size: 11.5px; font-weight: 700; cursor: pointer; text-align: left; }
+.theme-btn:hover { border-color: var(--line-strong); }
+.theme-btn.on { border-color: var(--cyan); background: rgba(46, 168, 255, 0.22); }
+.theme-btn .sw, .fxtag .sw { width: 28px; height: 16px; border-radius: 5px; flex: none; box-shadow: 0 0 8px rgba(255, 255, 255, 0.15); }
+.fxtag { display: inline-flex; align-items: center; gap: 6px; }
+.size-chip { cursor: pointer; font-family: inherit; color: var(--muted); transition: border-color 0.25s, color 0.25s; }
+.size-chip:hover { color: var(--text); border-color: var(--line-strong); }
+.size-pop { min-width: 290px; padding: 8px; }
+.size-pop h5 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 2px 6px 6px; }
+.size-item { display: grid !important; grid-template-columns: 92px 1fr auto; gap: 8px; align-items: center; width: 100%; text-align: left; }
+.size-item b { font-variant-numeric: tabular-nums; }
+.size-item span { color: var(--muted); font-size: 11.5px; }
+.size-item em { font-style: normal; color: var(--dim); font-size: 11px; }
+.size-item.on { background: rgba(46, 168, 255, 0.22); }
+.pop-fps { display: flex; gap: 4px; padding: 4px 2px; }
+.size-pop .note { margin: 6px; }

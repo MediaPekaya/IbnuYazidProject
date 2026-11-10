@@ -280,10 +280,10 @@
         const grid = h('div', { class: 'cards tpl ' + o });
         list.forEach((t) => {
           const cv = h('canvas', { width: por ? 270 : 480, height: por ? 480 : 270 });
-          GS.Compositor.thumb(cv, t.build(), por ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 });
+          GS.Compositor.thumb(cv, t.build(), por ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 }, t.theme || t.fxStyle);
           grid.append(h('button', { class: 'pick-card tpl' + (wiz.tpl === t.id ? ' sel' : ''), onClick: () => { wiz.tpl = t.id; draw(); } },
             cv, h('strong', null, t.name), h('span', null, t.desc),
-            h('span', { class: 'fxtag' }, GS.t('Gaya efek: {0}', GS.t({ holo: 'Hologram biru-merah', crimson: 'Merah menyala', gold: 'Emas' }[t.fxStyle])))));
+            h('span', { class: 'fxtag' }, h('i', { class: 'sw', style: { background: GS.theme.swatch(GS.themes[t.theme || t.fxStyle]) } }), GS.t('Tema: {0}', GS.t(GS.themes[t.theme || t.fxStyle].name)))));
         });
         stage.append(grid);
       });
@@ -334,6 +334,7 @@
     const sel = (key, opts, parse = Number) => h('select', { onChange: (e) => { s[key] = parse(e.target.value); GS.save(); if (key === 'width') applyRes(); } },
       opts.map(([v, l]) => h('option', { value: v, selected: String(s[key]) === String(v) }, l)));
     const applyRes = () => { s.height = Math.round((s.width * GS.design.h) / GS.design.w); GS.app.applyResolution(); };
+    let bitrateIn;
     const body = h('div', { class: 'settings' },
       h('h3', null, 'Bahasa'),
       h('div', { class: 'grid2' },
@@ -348,9 +349,9 @@
           const ok = confirm(GS.t('Menukar orientasi akan menggantikan scene sedia ada dengan susun atur lalai. Teruskan?')) && GS.scenes.setOrientation(e.target.value);
           if (ok) { GS.saveNow(); location.reload(); } else e.target.value = GS.orient();
         } }, [['portrait', 'Menegak 9:16 (TikTok LIVE)'], ['landscape', 'Mendatar 16:9 (YouTube / Facebook)']].map(([v, l]) => h('option', { value: v, selected: GS.orient() === v }, l)))),
-        h('label', { class: 'field' }, h('span', null, 'Resolusi'), sel('width', GS.orient() === 'portrait' ? [[720, '720×1280 (HD)'], [1080, '1080×1920 (Full HD)']] : [[1280, '1280×720 (HD)'], [1920, '1920×1080 (Full HD)'], [2560, '2560×1440 (2K)'], [3840, '3840×2160 (4K)']])),
+        h('label', { class: 'field' }, h('span', null, 'Resolusi'), h('select', { onChange: (e) => { GS.sizes.apply(Number(e.target.value)); bitrateIn.value = s.vbitrate; } }, GS.sizes.list().map((z) => h('option', { value: z.w, selected: s.width === z.w }, GS.sizes.label(z))))),
         h('label', { class: 'field' }, h('span', null, 'Bingkai sesaat (FPS)'), sel('fps', [[30, '30 fps'], [60, '60 fps']])),
-        h('label', { class: 'field' }, h('span', null, 'Bitrate video (kbps)'), h('input', { type: 'number', min: 1000, max: 60000, step: 500, value: s.vbitrate, onChange: (e) => { s.vbitrate = GS.clamp(Number(e.target.value) || 6000, 1000, 60000); GS.save(); } })),
+        h('label', { class: 'field' }, h('span', null, 'Bitrate video (kbps)'), (bitrateIn = h('input', { type: 'number', min: 500, max: 60000, step: 500, value: s.vbitrate, onChange: (e) => { s.vbitrate = GS.clamp(Number(e.target.value) || 6000, 500, 60000); GS.save(); } }))),
         h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']])),
         h('label', { class: 'field span2' }, h('span', null, 'Pengekod video (app Windows)'), sel('encoder', [['auto', 'Auto (GPU jika ada, sandaran CPU)'], ['x264', 'CPU (x264)'], ['nvenc', 'NVIDIA NVENC'], ['qsv', 'Intel Quick Sync'], ['amf', 'AMD AMF']], String))),
       h('p', { class: 'muted note' }, 'TikTok dan Facebook biasanya menghadkan 1080p. 4K hanya sesuai untuk YouTube dan memerlukan PC yang kuat.'),

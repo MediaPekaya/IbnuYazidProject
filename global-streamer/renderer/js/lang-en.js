@@ -229,6 +229,25 @@
     'Widget: Meta Tournament': 'Widget: Tournament Meta', 'Meta Tournament': 'Tournament Meta',
     'META TOURNAMENT': 'TOURNAMENT META', 'TOP PICK': 'TOP PICK', 'TOP BAN': 'TOP BAN',
 
+
+    /* ---- tema, saiz, template baharu ---- */
+    'Tema warna & rekaan': 'Colour & design theme',
+    'Tema ditukar untuk scene program semasa: warna sempadan, cahaya, latar, bentuk panel dan efek (kill, victory dll). Setiap template ada tema lalai sendiri.': 'The theme changes for the current program scene: border colours, glow, background, panel shape and effects (kill, victory, etc.). Each template has its own default theme.',
+    'Hologram Biru': 'Blue Hologram', 'Merah Menyala': 'Blazing Red', 'Emas Mewah': 'Luxury Gold', 'Neon Arena': 'Neon Arena', 'Galaksi Ungu': 'Purple Galaxy', 'Matahari Terbenam': 'Sunset', 'Ais Segar': 'Fresh Ice', 'Monokrom Bersih': 'Clean Monochrome',
+    'Tema: {0}': 'Theme: {0}',
+    'Saiz menegak 9:16': 'Portrait sizes 9:16', 'Saiz mendatar 16:9': 'Landscape sizes 16:9',
+    'SD · hemat data': 'SD · saves data', 'HD': 'HD', 'Full HD · TikTok LIVE': 'Full HD · TikTok LIVE', '2K': '2K', '4K · PC kuat': '4K · powerful PC', 'Full HD': 'Full HD',
+    'Saiz output': 'Output size',
+    'Saiz output: {0}×{1} (bitrate dicadangkan {2} kbps)': 'Output size: {0}×{1} (suggested bitrate {2} kbps)',
+    'Tamatkan siaran dahulu sebelum menukar saiz.': 'End the stream before changing the size.',
+    'Orientasi ditukar dalam Tetapan. TikTok dan Facebook biasanya menghadkan 1080p; 4K hanya untuk YouTube.': 'Orientation is changed in Settings. TikTok and Facebook usually cap at 1080p; 4K is for YouTube only.',
+    'Neon · Game Atas': 'Neon · Game on Top', 'Game besar di atas, kamera di bawah. Panel tajam bergaya neon hijau-biru. Sesuai untuk analisis dan komentar.': 'Big game on top, camera below. Sharp neon green-blue panels. Good for analysis and commentary.',
+    'Galaksi · Kamera Besar': 'Galaxy · Big Camera', 'Kamera besar di atas, game di bawah, giliran mabar jelas. Panel bulat lembut bertema ungu-merah jambu.': 'Big camera on top, game below, clear play-with queue. Soft rounded purple-pink panels.',
+    'Monokrom · Bersih': 'Monochrome · Clean', 'Rekaan minimal berbingkai garis nipis, hitam-putih. Widget sedikit supaya game dan muka lebih jelas.': 'Minimal design with thin outlined frames, black and white. Few widgets so the game and your face stay clear.',
+    'Game paling besar, kamera dan statistik di sisi kanan. Panel tajam neon hijau-biru.': 'Largest game view, camera and stats on the right. Sharp neon green-blue panels.',
+    'Galaksi · Dua Skrin': 'Galaxy · Dual Screen', 'Game dan kamera sama saiz bersebelahan. Panel bulat lembut bertema ungu-merah jambu.': 'Game and camera side by side at equal size. Soft rounded purple-pink panels.',
+    'Monokrom · Skrin Penuh': 'Monochrome · Full Screen', 'Game memenuhi skrin dengan penanda minimal berbingkai garis nipis. Kamera tersembunyi.': 'Game fills the screen with minimal outlined markers. Camera hidden.',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

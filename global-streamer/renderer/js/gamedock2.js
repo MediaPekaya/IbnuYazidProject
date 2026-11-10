@@ -35,7 +35,16 @@
       GS.save();
       redrawBoss();
     };
+    const themeBox = h('div', { class: 'theme-grid' });
+    const drawThemes = () => {
+      themeBox.innerHTML = '';
+      const cur = GS.theme.sceneTheme(GS.scenes.program());
+      GS.theme.list.forEach((d) => themeBox.append(h('button', { class: 'theme-btn' + (cur === d.id ? ' on' : ''), title: GS.t(d.name), onClick: () => { GS.theme.setScene(d.id); drawThemes(); } },
+        h('i', { class: 'sw', style: { background: GS.theme.swatch(d) } }), h('span', null, d.name))));
+    };
+    drawThemes();
     root.append(
+      sec('Tema warna & rekaan', themeBox, h('p', { class: 'muted note' }, 'Tema ditukar untuk scene program semasa: warna sempadan, cahaya, latar, bentuk panel dan efek (kill, victory dll). Setiap template ada tema lalai sendiri.')),
       sec('Bar status',
         field('Lagu sedang dimainkan', text(st.status, 'nowPlaying', 'cth Nama lagu - Artis')),
         h('div', { class: 'grid2' }, field('Label matlamat like', text(st.status, 'likeLabel')), field('Penonton', num(st.status, 'viewers'))),
