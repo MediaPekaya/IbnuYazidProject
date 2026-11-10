@@ -105,6 +105,28 @@
     },
     audio: { channels: [] },
     winloss: { win: 0, loss: 0, streak: 0 },
+    voice: {
+      enabled: false, culture: 'auto', minConf: 0.5, cooldownMs: 3000,
+      mic: { on: true, channel: 'auto' },      // suara streamer (mikrofon)
+      game: { on: false, channel: 'auto' },    // bunyi/suara pengumum game (capture card / audio skrin)
+      triggers: [
+        { fx: 'kill', phrases: 'first blood, double kill, triple kill, maniac, savage, killing spree, legendary, shutdown, kill' },
+        { fx: 'death', phrases: 'you have been slain, mati, i died, dah mati' },
+        { fx: 'victory', phrases: 'victory, menang, we won' },
+        { fx: 'defeat', phrases: 'defeat, kalah, we lost' },
+      ],
+      bot: {
+        enabled: false, name: 'Jarvis', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
+        fallback: 'Maaf, saya tak faham soalan itu.',
+        qa: [
+          { q: 'siapa noob | siapa paling noob', a: 'Rahsia! Tapi pasti bukan saya.' },
+          { q: 'berapa kill | kda saya', a: 'Setakat ini {kill} kill, {mati} mati dan {assist} assist.' },
+          { q: 'berapa menang | rekod menang kalah', a: 'Rekod hari ini {menang} menang dan {kalah} kalah.' },
+          { q: 'hero apa meta | top pick', a: 'Hero paling popular dalam tournament sekarang ialah {toppick}.' },
+          { q: 'apa nak ban | top ban', a: 'Hero paling kerap diban ialah {topban}.' },
+        ],
+      },
+    },
     ticker: { messages: ['FOLLOW AKAUN SAYA', 'WELCOME TO MY LIVE', 'KEDAI DIAMOND DI BIO', 'TERIMA KASIH SEMUA'] },
     logo: null,
     sessionStart: Date.now(),
@@ -146,6 +168,7 @@
       merged.platforms = Object.assign(defaults().platforms, s.platforms || {});
       merged.audio = Object.assign(defaults().audio, s.audio || {});
       merged.winloss = Object.assign(defaults().winloss, s.winloss || {});
+      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
       merged.ticker = Object.assign(defaults().ticker, s.ticker || {});
       ['status', 'boss', 'promo', 'queue', 'draft', 'tiers'].forEach((k) => { merged[k] = Object.assign(defaults()[k], s[k] || {}); });
       if (!Array.isArray(merged.toplike)) merged.toplike = defaults().toplike;

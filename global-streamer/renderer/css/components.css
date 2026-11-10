@@ -422,3 +422,23 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .chip.upd.bad { color: #ff9aa8; border-color: rgba(255, 90, 120, 0.5); }
 .chip.upd.ready { color: #07122a; background: var(--gold); font-weight: 800; }
 .upd-sec { display: flex; flex-direction: column; gap: 6px; }
+
+/* ----- Suara & Bot ----- */
+.voice-strip { flex: 0 0 160px; }
+.voice-strip.on { border-color: rgba(59, 227, 154, 0.5); }
+.voice-dot { width: 9px; height: 9px; border-radius: 50%; background: #55627a; flex: none; }
+.voice-dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 1.6s ease-in-out infinite; }
+.voice-status { font-size: 11px; color: var(--dim); text-align: left; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.voice-status.ok { color: var(--green); }
+.voice-status.bad { color: #ff9aa8; }
+.voice-status.big { font-size: 13px; -webkit-line-clamp: 4; }
+.voice-modal { display: flex; flex-direction: column; gap: 8px; max-height: 72vh; overflow: auto; padding-right: 4px; }
+.voice-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.voice-trig { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.qa-list { display: flex; flex-direction: column; gap: 6px; }
+.qa-row { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 6px; align-items: center; }
+.voice-test { display: flex; gap: 8px; align-items: center; }
+.voice-test input { flex: 1; }
+.voice-log { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.vlog { display: flex; gap: 8px; color: var(--muted); }
+.vlog.bot { color: var(--cyan); }

@@ -525,6 +525,32 @@
   }
 
 
+  /* ================== BOT: gelembung jawapan pada siaran ================== */
+  function drawBotSay(ctx, e, p, now, W) {
+    const pal = e.pal;
+    const inP = easeBack(p / 0.1), outP = easeOut((p - 0.9) / 0.1);
+    const w = Math.min(W - 80, 860), lines = (e.lines = e.lines || (() => {
+      ctx.save(); ctx.font = '700 28px ' + GS.widgets.FONT;
+      const out = []; let cur = '';
+      String(e.params.text || '').split(/\s+/).forEach((wd) => { const t = cur ? cur + ' ' + wd : wd; if (ctx.measureText(t).width > w - 150 && cur) { out.push(cur); cur = wd; } else cur = t; });
+      if (cur) out.push(cur);
+      ctx.restore();
+      return out.slice(0, 4);
+    })());
+    const h = 78 + lines.length * 36;
+    const x = W / 2 - w / 2, y = 150 - (1 - clamp(inP, 0, 1)) * 260 - outP * 260;
+    ctx.save();
+    GS.widgets.panel(ctx, x, y, w, h, now, { r: 26 });
+    // avatar bot (lencana "GS" bercahaya)
+    ctx.beginPath(); ctx.arc(x + 54, y + 52, 28, 0, Math.PI * 2);
+    const g = ctx.createLinearGradient(x + 26, y + 24, x + 82, y + 80); g.addColorStop(0, pal.accent); g.addColorStop(1, pal.light);
+    ctx.fillStyle = g; ctx.fill();
+    GS.widgets.text(ctx, 'GS', x + 54, y + 62, { size: 22, weight: 900, align: 'center', color: '#06101f' });
+    GS.widgets.text(ctx, String(e.params.name || 'BOT').toUpperCase(), x + 100, y + 36, { size: 18, weight: 800, spacing: 5, color: pal.light });
+    lines.forEach((ln, i) => GS.widgets.text(ctx, ln, x + 100, y + 72 + i * 36, { size: 28, weight: 700, maxW: w - 130 }));
+    ctx.restore();
+  }
+
   /* ================== NOTIS ITEM (banner "beli sekarang") ================== */
   function drawItemAlert(ctx, e, p, now, W, H) {
     const pal = e.pal;
@@ -633,6 +659,7 @@
     fullitem: { dur: 4600, draw: drawFullItem, sfx: 'fullitem' },
     itembuy: { dur: 3400, draw: drawItemBuy, sfx: 'itembuy' },
     alert: { dur: 3400, draw: drawAlert, sfx: 'alert' },
+    botsay: { dur: 5000, draw: drawBotSay, sfx: 'alert' },
     itemalert: { dur: 4400, draw: drawItemAlert, sfx: 'itembuy' },
     tierlist: { dur: 9000, draw: drawTierList, sfx: 'alert' },
   };

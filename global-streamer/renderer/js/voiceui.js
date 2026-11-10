@@ -1,0 +1,158 @@
+/* Global Streamer - antara muka Suara & Bot: jalur kecil dalam Audio Mixer + tetingkap tetapan. */
+(function () {
+  'use strict';
+  const GS = window.GS;
+  const { h } = GS;
+  const U = (GS.voiceui = { modal: null });
+  const V = () => GS.voice;
+  const cfg = () => GS.state.voice;
+  const save = () => GS.save();
+  const FX_LABEL = { kill: 'Kill', death: 'Mati', victory: 'Victory', defeat: 'Defeat' };
+
+  const short = (t, n) => { t = String(t || ''); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
+  function statusText() {
+    const v = V();
+    if (v.error) return { cls: 'bad', text: v.error };
+    if (v.running) {
+      const last = v.last ? GS.t('Didengar: "{0}"', short(v.last.text, 40)) : GS.t('Mendengar…');
+      return { cls: 'ok', text: last };
+    }
+    return { cls: '', text: GS.t('Mati. Tekan Hidupkan untuk kawalan suara.') };
+  }
+
+  /** Jalur dalam Audio Mixer. */
+  U.strip = function () {
+    const v = V();
+    const s = statusText();
+    return h('div', { class: 'strip voice-strip' + (v.running ? ' on' : ''), id: 'voiceStrip' },
+      h('div', { class: 'strip-head' }, h('span', { class: 'strip-name', title: GS.t('Kawalan suara dan bot') }, 'Suara & Bot'), h('i', { class: 'voice-dot ' + (v.running ? 'on' : '') })),
+      h('div', { class: 'strip-note voice-status ' + s.cls, id: 'voiceStripStatus' }, s.text),
+      h('button', { type: 'button', class: 'btn tiny' + (v.running ? '' : ' primary'), id: 'btnVoiceToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, v.running ? 'Matikan' : 'Hidupkan'),
+      h('button', { type: 'button', class: 'btn tiny ghost', id: 'btnVoiceOpen', onClick: () => U.open() }, 'Atur…'));
+  };
+
+  function refresh() {
+    const el = GS.$('#voiceStrip');
+    if (el) { const n = U.strip(); el.replaceWith(n); }
+    if (U.modal && U.modal.card && U.modal.card.isConnected) U.drawLive();
+  }
+
+  /* ---------- tetingkap tetapan ---------- */
+  const field = (label, ctl, hint) => h('label', { class: 'field' }, h('span', null, label), ctl, hint ? h('small', { class: 'muted' }, hint) : null);
+  const check = (label, get, set, disabled) => h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!get(), disabled: !!disabled, onChange: (e) => { set(e.target.checked); save(); } }), label);
+
+  function chanSelect(src) {
+    const A = GS.audio;
+    const opts = [['auto', GS.t('Automatik')]].concat(A.channels.filter((c) => c.kind !== 'sfx').map((c) => [c.id, c.label + (c.stream ? '' : ' · ' + GS.t('belum ada input'))]));
+    return h('select', { 'data-chan': src, onChange: (e) => { cfg()[src].channel = e.target.value; save(); V().retap(); } },
+      opts.map(([v, l]) => h('option', { value: v, selected: cfg()[src].channel === v }, l)));
+  }
+
+  U.drawLive = function () {
+    const card = U.modal && U.modal.card;
+    if (!card) return;
+    const st = GS.$('#voiceModalStatus', card);
+    const v = V();
+    const s = statusText();
+    if (st) {
+      const eng = v.engine === 'windows' ? GS.t('Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
+      const inf = Object.keys(v.info).map((k) => (k === 'mic' ? GS.t('Suara saya') : GS.t('Bunyi game')) + ': ' + (v.info[k].name || v.info[k].culture || '')).join(' · ');
+      st.className = 'voice-status big ' + s.cls;
+      st.textContent = [s.text, v.running ? eng : '', v.running ? inf : ''].filter(Boolean).join('  ·  ');
+    }
+    const btn = GS.$('#voiceModalToggle', card);
+    if (btn) { btn.textContent = GS.t(v.running ? 'Matikan' : 'Hidupkan'); btn.classList.toggle('primary', !v.running); }
+    const log = GS.$('#voiceLog', card);
+    if (log) {
+      log.innerHTML = '';
+      v.log.slice(0, 8).forEach((e) => log.append(h('div', { class: 'vlog ' + e.kind }, h('b', null, e.kind === 'bot' ? '🤖' : e.source === 'game' ? '🎮' : '🎤'), h('span', null, e.kind === 'bot' ? e.text : '"' + short(e.text, 60) + '"' + (e.result ? '  →  ' + e.result : '')))));
+      if (!log.children.length) log.append(h('div', { class: 'muted note' }, 'Belum ada. Cuba sebut sesuatu atau guna kotak Uji di atas.'));
+    }
+  };
+
+  U.open = function () {
+    if (U.modal && U.modal.card && U.modal.card.isConnected) return;
+    const v = V();
+    const nat = !!(window.gsNative && window.gsNative.voice);
+    const c = cfg();
+
+    /* efek */
+    const trig = h('div', { class: 'voice-trig' }, c.triggers.map((t) =>
+      field(GS.t(FX_LABEL[t.fx] || t.fx), h('textarea', { rows: 2, 'data-fx': t.fx, spellcheck: 'false', onInput: (e) => { t.phrases = e.target.value; save(); } }, Array.isArray(t.phrases) ? t.phrases.join(', ') : t.phrases))));
+
+    /* soalan & jawapan */
+    const qaBox = h('div', { class: 'qa-list' });
+    const drawQA = () => {
+      qaBox.innerHTML = '';
+      c.bot.qa.forEach((e, i) => qaBox.append(h('div', { class: 'qa-row' },
+        h('input', { type: 'text', value: e.q, 'data-qa': 'q', placeholder: 'soalan (pisahkan dengan |)', 'aria-label': GS.t('Soalan'), onInput: (x) => { e.q = x.target.value; save(); } }),
+        h('input', { type: 'text', value: e.a, 'data-qa': 'a', placeholder: 'jawapan', 'aria-label': GS.t('Jawapan'), onInput: (x) => { e.a = x.target.value; save(); } }),
+        h('button', { type: 'button', class: 'icon-btn sm', title: 'Padam', 'aria-label': GS.t('Padam'), onClick: () => { c.bot.qa.splice(i, 1); save(); drawQA(); }, html: GS.icon('trash', 14) }))));
+      qaBox.append(h('button', { type: 'button', class: 'btn ghost tiny', id: 'btnQaAdd', onClick: () => { c.bot.qa.push({ q: '', a: '' }); save(); drawQA(); } }, 'Tambah soalan'));
+    };
+    drawQA();
+
+    /* ujian */
+    const testIn = h('input', { type: 'text', id: 'voiceTestIn', placeholder: 'cth: double kill   atau   Jarvis siapa noob', 'aria-label': GS.t('Frasa ujian') });
+    const testOut = h('div', { class: 'muted note', id: 'voiceTestOut' });
+    const runTest = (source) => {
+      const r = v.handleText({ source, text: testIn.value, test: true });
+      testOut.textContent = r.fx ? GS.t('Dikesan: efek {0} ("{1}")', FX_LABEL[r.fx] || r.fx, r.phrase) : r.bot === 'jawab' ? GS.t('Bot menjawab: {0}', r.answer) : r.bot === 'menunggu' ? GS.t('Bot dipanggil. Sebut soalan seterusnya (uji lagi).') : r.bot === 'tiada' ? GS.t('Bot tiada jawapan untuk soalan itu (tetapkan jawapan lalai atau tambah soalan).') : GS.t('Tiada padanan ({0}).', r.ignored || '');
+      U.drawLive();
+    };
+    const voices = (window.speechSynthesis && speechSynthesis.getVoices ? speechSynthesis.getVoices() : []).map((x) => x.name);
+    const voiceCtl = voices.length && !c.bot.inStream
+      ? h('select', { onChange: (e) => { c.bot.voiceName = e.target.value; save(); } }, [h('option', { value: '' }, GS.t('Lalai sistem'))].concat(voices.map((n) => h('option', { value: n, selected: c.bot.voiceName === n }, n))))
+      : h('input', { type: 'text', value: c.bot.voiceName, placeholder: 'cth Microsoft Zira Desktop (kosong = lalai)', onInput: (e) => { c.bot.voiceName = e.target.value.trim(); save(); } });
+
+    const body = h('div', { class: 'voice-modal' },
+      h('div', { class: 'voice-top' }, h('div', { id: 'voiceModalStatus', class: 'voice-status big' }),
+        h('button', { type: 'button', class: 'btn', id: 'voiceModalToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, 'Hidupkan')),
+      h('p', { class: 'muted note' }, nat
+        ? 'App Windows: pengecam suara Windows berjalan di PC ini tanpa internet. Mikrofon dan bunyi game (capture card) dipilih daripada saluran Audio Mixer.'
+        : 'Versi web: pengecam suara pelayar (Chrome) menggunakan mikrofon lalai dan memerlukan internet. Bunyi game hanya tersedia dalam app Windows.'),
+
+      h('h3', null, 'Sumber suara'),
+      h('div', { class: 'grid2' },
+        h('div', null, check('Suara saya (mikrofon)', () => c.mic.on, (x) => { c.mic.on = x; }), nat ? field('Saluran mikrofon', chanSelect('mic')) : null),
+        h('div', null, check('Bunyi game (suara pengumum: "Double Kill", "Victory"…)', () => c.game.on, (x) => { c.game.on = x; }, !nat), nat ? field('Saluran bunyi game', chanSelect('game')) : h('small', { class: 'muted' }, 'Hanya app Windows'))),
+
+      h('h3', null, 'Efek melalui suara'),
+      h('p', { class: 'muted note' }, 'Tanpa papan kekunci. Sebut atau dengar frasa ini untuk mencetuskan efek. Pisahkan frasa dengan koma. Tambah ejaan sebutan jika perlu (cth untuk "mati": "mati, marty").'),
+      trig,
+      h('div', { class: 'grid2' },
+        field('Ketepatan minimum', h('input', { type: 'range', min: 0, max: 90, value: Math.round(c.minConf * 100), onInput: (e) => { c.minConf = e.target.value / 100; save(); } }), 'Naikkan jika efek keluar sendiri; turunkan jika suara anda tidak dikesan.'),
+        field('Jeda antara efek sama (saat)', h('input', { type: 'number', min: 0, max: 30, step: 1, value: Math.round(c.cooldownMs / 1000), onChange: (e) => { c.cooldownMs = GS.clamp(Number(e.target.value) || 0, 0, 30) * 1000; save(); } }))),
+
+      h('h3', null, 'Bot suara'),
+      h('div', { class: 'grid2' },
+        check('Hidupkan bot', () => c.bot.enabled, (x) => { c.bot.enabled = x; }),
+        check('Bot bercakap (suara)', () => c.bot.voiceOn, (x) => { c.bot.voiceOn = x; })),
+      h('div', { class: 'grid2' },
+        field('Nama bot (kata panggilan)', h('input', { type: 'text', id: 'botName', value: c.bot.name, maxlength: 24, onInput: (e) => { c.bot.name = e.target.value.trim(); save(); } }), 'Cth Jarvis. Sebut nama ini, kemudian soalan: "Jarvis, siapa noob?"'),
+        field('Nama lain / ejaan sebutan', h('input', { type: 'text', value: c.bot.aliases, placeholder: 'cth jarvis, jervis', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }))),
+      h('div', { class: 'grid2' },
+        field('Suara bot', voiceCtl),
+        field('Kelajuan suara', h('input', { type: 'range', min: -5, max: 5, value: c.bot.rate, onInput: (e) => { c.bot.rate = Number(e.target.value); save(); } }))),
+      check('Masukkan suara bot ke dalam siaran (penonton dengar; app Windows)', () => c.bot.inStream, (x) => { c.bot.inStream = x; }, !nat),
+      h('h4', null, 'Soalan dan jawapan'),
+      h('p', { class: 'muted note' }, 'Pisahkan beberapa cara bertanya dengan |. Jawapan boleh menggunakan data game: {kill} {mati} {assist} {menang} {kalah} {streak} {toppick} {topban} {nama}.'),
+      qaBox,
+      field('Jawapan jika tidak faham (kosong = diam)', h('input', { type: 'text', value: c.bot.fallback, onInput: (e) => { c.bot.fallback = e.target.value; save(); } })),
+
+      h('h3', null, 'Uji tanpa suara'),
+      h('div', { class: 'voice-test' }, testIn,
+        h('button', { type: 'button', class: 'btn', id: 'btnVoiceTest', onClick: () => runTest('mic') }, 'Uji (suara saya)'),
+        h('button', { type: 'button', class: 'btn ghost', id: 'btnVoiceTestGame', onClick: () => runTest('game') }, 'Uji (bunyi game)')),
+      testOut,
+      h('h4', null, 'Aktiviti terkini'),
+      h('div', { id: 'voiceLog', class: 'voice-log' }));
+    U.modal = GS.modal({ title: 'Suara & Bot', body, wide: true, onClose: () => { U.modal = null; } });
+    U.drawLive();
+  };
+
+  U.init = function () {
+    GS.on('voice:status', refresh);
+    GS.audio.renderMixer();
+  };
+})();

@@ -253,6 +253,7 @@
           : ch.kind === 'sfx' ? GS.h('div', { class: 'strip-note' }, 'Dalaman') : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
       root.append(strip);
     });
+    if (GS.voiceui) root.append(GS.voiceui.strip());
     root.append(GS.h('div', { class: 'mixer-add' },
       GS.h('button', { class: 'btn ghost', onClick: A.addInput, html: GS.icon('plus', 14) + ' ' + GS.t('Input') }),
       GS.h('button', { class: 'btn ghost', onClick: A.connectDisplayAudio, html: GS.icon('monitor', 14) + ' ' + GS.t('Audio skrin') })));
