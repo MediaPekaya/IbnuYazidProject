@@ -1,0 +1,8 @@
+# heavy / third-party media: re-create with the tools below, never commit
+src/
+haris-alya/assets/shots/
+haris-alya/assets/music.m4a
+haris-alya/renders/
+haris-alya/.hyperframes/
+haris-alya/node_modules/
+PREVIEW_*.mp4
