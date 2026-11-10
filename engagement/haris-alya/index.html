@@ -49,11 +49,15 @@
       .gl { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 74; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
       .gl::before, .gl::after { content: ""; position: absolute; left: -26px; top: -1.5px; width: 52px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(255,244,214,0), #fffaf0 50%, rgba(255,244,214,0)); box-shadow: 0 0 9px 1px rgba(255,222,160,.95); }
       .gl::after { transform: rotate(90deg); }
+      #openBlack { position: absolute; inset: 0; z-index: 94; background: #0c0705; pointer-events: none; }
+      #barT, #barB { position: absolute; left: 0; right: 0; height: 150px; background: #000; z-index: 95; pointer-events: none; }
+      #barT { top: 0; }
+      #barB { bottom: 0; }
       #fadeOut { position: absolute; inset: 0; z-index: 90; opacity: 0; background: #0c0705; pointer-events: none; }
 
       /* ---- lettering: script, hand-written feel, kept inside the TikTok safe zone (top 150 / bottom 230 clear) ---- */
       .tx { position: absolute; left: 50%; z-index: 80; opacity: 0; transform: translateX(-50%); text-align: center; isolation: isolate; width: 1500px; color: var(--cream); }
-      .tx::before { content: ""; position: absolute; inset: -90px -140px; z-index: -2; background: radial-gradient(closest-side ellipse at 50% 55%, rgba(18,9,4,.62), rgba(18,9,4,.36) 50%, rgba(18,9,4,0) 100%); }
+      .tx::before { content: ""; position: absolute; inset: -90px -140px; z-index: -2; background: radial-gradient(closest-side ellipse at 50% 55%, rgba(18,9,4,.74), rgba(18,9,4,.42) 50%, rgba(18,9,4,0) 100%); }
       .tx .glow { position: absolute; left: 50%; top: 50%; width: 1100px; height: 360px; margin: -180px 0 0 -550px; z-index: -1; border-radius: 50%; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse, rgba(255,205,140,.50), rgba(255,205,140,0) 68%); }
       .tx .h { font-family: "Dancing Script", cursive; font-weight: 700; line-height: 1.12; font-size: 118px; letter-spacing: 0; text-shadow: 0 0 26px rgba(255,214,150,.55), 0 3px 5px rgba(0,0,0,.55), 0 6px 22px rgba(0,0,0,.6); }
       .tx .hl { display: block; white-space: nowrap; }
@@ -86,7 +90,7 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="85.222" data-width="1920" data-height="1080" data-fps="60">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="87.126" data-width="1920" data-height="1080" data-fps="60">
     <div class="sh" id="sh_H1" style="z-index:1"><div class="kb" id="kb_H1"><video id="v_H1" class="clip" src="assets/shots/H1.mp4" muted playsinline preload="auto" data-start="0" data-duration="3.683" data-media-start="0" data-track-index="1"></video></div></div>
     <div class="sh" id="sh_S01" style="z-index:2"><div class="kb" id="kb_S01"><video id="v_S01" class="clip" src="assets/shots/S01.mp4" muted playsinline preload="auto" data-start="2.983" data-duration="4.509" data-media-start="0" data-track-index="2"></video></div></div>
     <div class="sh" id="sh_S02" style="z-index:3"><div class="kb" id="kb_S02"><video id="v_S02" class="clip" src="assets/shots/S02.mp4" muted playsinline preload="auto" data-start="6.792" data-duration="3.081" data-media-start="0" data-track-index="1"></video></div></div>
@@ -118,10 +122,10 @@
     <div class="sh" id="sh_S28" style="z-index:29"><div class="kb" id="kb_S28"><video id="v_S28" class="clip" src="assets/shots/S28.mp4" muted playsinline preload="auto" data-start="71.541" data-duration="2.604" data-media-start="0" data-track-index="1"></video></div></div>
     <div class="sh" id="sh_S29" style="z-index:30"><div class="kb" id="kb_S29"><video id="v_S29" class="clip" src="assets/shots/S29.mp4" muted playsinline preload="auto" data-start="73.446" data-duration="3.081" data-media-start="0" data-track-index="2"></video></div></div>
     <div class="sh" id="sh_S30" style="z-index:31"><div class="kb" id="kb_S30"><video id="v_S30" class="clip" src="assets/shots/S30.mp4" muted playsinline preload="auto" data-start="75.826" data-duration="3.081" data-media-start="0" data-track-index="1"></video></div></div>
-    <div class="sh" id="sh_S31" style="z-index:32"><div class="kb" id="kb_S31"><video id="v_S31" class="clip" src="assets/shots/S31.mp4" muted playsinline preload="auto" data-start="78.207" data-duration="7.015" data-media-start="0" data-track-index="2"></video></div></div>
-      <div id="grade" class="clip" data-start="0" data-duration="85.222" data-track-index="3"></div>
-      <div id="vig" class="clip" data-start="0" data-duration="85.222" data-track-index="3"></div>
-      <div id="endDim" class="clip" data-start="0" data-duration="85.222" data-track-index="3"></div>
+    <div class="sh" id="sh_S31" style="z-index:32"><div class="kb" id="kb_S31"><video id="v_S31" class="clip" src="assets/shots/S31.mp4" muted playsinline preload="auto" data-start="78.207" data-duration="8.919" data-media-start="0" data-track-index="2"></video></div></div>
+      <div id="grade" class="clip" data-start="0" data-duration="87.126" data-track-index="3"></div>
+      <div id="vig" class="clip" data-start="0" data-duration="87.126" data-track-index="3"></div>
+      <div id="endDim" class="clip" data-start="0" data-duration="87.126" data-track-index="3"></div>
     <div class="bk" id="bk0" style="left:1647px;top:1063px;width:94px;height:94px"></div>
     <div class="bk" id="bk1" style="left:1526px;top:729px;width:97px;height:97px"></div>
     <div class="bk" id="bk2" style="left:260px;top:915px;width:107px;height:107px"></div>
@@ -133,6 +137,9 @@
     <div class="bk" id="bk8" style="left:273px;top:806px;width:86px;height:86px"></div>
     <div class="bk" id="bk9" style="left:1288px;top:1017px;width:72px;height:72px"></div>
     <div id="scrimB"></div>
+    <div id="openBlack"></div>
+    <div id="barT"></div>
+    <div id="barB"></div>
     <div class="wash" id="wash"></div>
     <div class="leak" id="lk"><i class="b1"></i><i class="b2"></i><i class="wash"></i></div>
     <div class="sweep" id="sw"><i></i></div>
@@ -155,7 +162,7 @@
     <div class="gl" id="gl11"></div>
     <div class="gl" id="gl12"></div>
     <div class="gl" id="gl13"></div>
-    <div id="t0" class="clip tx tx-intro" data-start="0.25" data-duration="2.783" data-track-index="5"><div class="glow"></div><div class="h"><span class="nm">Haris</span> <span class="nm">&amp;</span> <span class="nm">Alya</span></div><div class="rule"><i class="line ll"></i><i class="dia"></i><i class="line lr"></i></div><div class="date">Sabtu, 7 November 2026</div></div>
+    <div id="t0" class="clip tx tx-intro" data-start="0.6" data-duration="2.433" data-track-index="5"><div class="glow"></div><div class="h"><span class="nm">Haris</span> <span class="nm">&amp;</span> <span class="nm">Alya</span></div><div class="rule"><i class="line ll"></i><i class="dia"></i><i class="line lr"></i></div><div class="date">Sabtu, 7 November 2026</div></div>
     <div id="t1" class="clip tx tx-low" data-start="3.904" data-duration="2.857" data-track-index="5"><div class="h"><div class="hl"><span class="c">T</span><span class="c">e</span><span class="c">t</span><span class="c">a</span><span class="c">m</span><span class="c">u</span> <span class="c">T</span><span class="c">e</span><span class="c">r</span><span class="c">s</span><span class="c">a</span><span class="c">y</span><span class="c">a</span><span class="c">n</span><span class="c">g</span> <span class="c">T</span><span class="c">i</span><span class="c">b</span><span class="c">a</span></div></div></div>
     <div id="t2" class="clip tx tx-low" data-start="14.426" data-duration="2.523" data-track-index="5"><div class="h"><div class="hl"><span class="c">B</span><span class="c">i</span><span class="c">s</span><span class="c">m</span><span class="c">i</span><span class="c">l</span><span class="c">l</span><span class="c">a</span><span class="c">h</span><span class="c">,</span> <span class="c">M</span><span class="c">a</span><span class="c">j</span><span class="c">l</span><span class="c">i</span><span class="c">s</span> <span class="c">B</span><span class="c">e</span><span class="c">r</span><span class="c">m</span><span class="c">u</span><span class="c">l</span><span class="c">a</span></div></div></div>
     <div id="t4" class="clip tx tx-low" data-start="30.708" data-duration="2.904" data-track-index="5"><div class="h"><div class="hl"><span class="c">D</span><span class="c">o</span><span class="c">a</span> <span class="c">R</span><span class="c">e</span><span class="c">s</span><span class="c">t</span><span class="c">u</span> <span class="c">B</span><span class="c">e</span><span class="c">r</span><span class="c">l</span><span class="c">i</span><span class="c">m</span><span class="c">p</span><span class="c">a</span><span class="c">h</span></div></div></div>
@@ -166,9 +173,9 @@
     <div id="t9" class="clip tx tx-low2" data-start="63.035" data-duration="1.667" data-track-index="5"><div class="h"><div class="hl"><span class="c">D</span><span class="c">u</span><span class="c">a</span> <span class="c">H</span><span class="c">a</span><span class="c">t</span><span class="c">i</span> <span class="c">B</span><span class="c">e</span><span class="c">r</span><span class="c">t</span><span class="c">a</span><span class="c">u</span><span class="c">t</span></div></div></div>
     <div id="t10" class="clip tx tx-low2" data-start="64.797" data-duration="2.047" data-track-index="5"><div class="h"><div class="hl"><span class="c">S</span><span class="c">a</span><span class="c">t</span><span class="c">u</span> <span class="c">N</span><span class="c">i</span><span class="c">a</span><span class="c">t</span> <span class="c">S</span><span class="c">u</span><span class="c">c</span><span class="c">i</span></div></div></div>
     <div id="t11" class="clip tx tx-low" data-start="69.701" data-duration="2" data-track-index="5"><div class="h"><div class="hl"><span class="c">J</span><span class="c">a</span><span class="c">m</span><span class="c">u</span><span class="c">a</span><span class="c">n</span> <span class="c">&amp;</span> <span class="c">B</span><span class="c">e</span><span class="c">r</span><span class="c">s</span><span class="c">u</span><span class="c">r</span><span class="c">a</span><span class="c">i</span></div></div></div>
-    <div id="t12" class="clip tx tx-end" data-start="80.652" data-duration="4.37" data-track-index="5"><div class="glow"></div><div class="h"><span class="nm">Terima</span> <span class="nm">Kasih</span></div><div class="rule"><i class="line ll"></i><i class="dia"></i><i class="line lr"></i></div><div class="date">Sabtu, 7 November 2026</div><div class="sub">Semoga dipermudahkan hingga ke jinjang pelamin</div></div>
-      <div id="fadeOut" class="clip" data-start="0" data-duration="85.222" data-track-index="6"></div>
-      <audio id="music" src="assets/music.m4a" data-start="0" data-duration="85.222" data-volume="0.78" data-fade-in="0.6" data-fade-out="3.6" data-track-index="7"></audio>
+    <div id="t12" class="clip tx tx-end" data-start="80.652" data-duration="6.274" data-track-index="5"><div class="glow"></div><div class="h"><span class="nm">Terima</span> <span class="nm">Kasih</span></div><div class="rule"><i class="line ll"></i><i class="dia"></i><i class="line lr"></i></div><div class="date">Sabtu, 7 November 2026</div><div class="sub">Semoga dipermudahkan hingga ke jinjang pelamin</div></div>
+      <div id="fadeOut" class="clip" data-start="0" data-duration="87.126" data-track-index="6"></div>
+      <audio id="music" src="assets/music.m4a" data-start="0" data-duration="87.126" data-volume="0.78" data-track-index="7"></audio>
     </div>
     <script>
 const tl = gsap.timeline({ paused: true });
@@ -204,7 +211,10 @@ gsap.set("#sh_S28", { opacity: 0 });
 gsap.set("#sh_S29", { opacity: 0 });
 gsap.set("#sh_S30", { opacity: 0 });
 gsap.set("#sh_S31", { opacity: 0 });
-tl.fromTo("#sh_H1", { filter: "brightness(1.55) blur(9px)" }, { filter: "brightness(1) blur(0px)", duration: 0.9, ease: "power2.out" }, 0);
+tl.fromTo("#openBlack", { opacity: 1 }, { opacity: 0, duration: 2.0, ease: "sine.inOut" }, 0);
+tl.fromTo("#barT", { y: 0 }, { y: -150, duration: 1.9, ease: "power3.inOut" }, 0.2);
+tl.fromTo("#barB", { y: 0 }, { y: 150, duration: 1.9, ease: "power3.inOut" }, 0.2);
+tl.fromTo("#sh_H1", { filter: "blur(12px) brightness(1.7)" }, { filter: "blur(0px) brightness(1)", duration: 1.8, ease: "power2.out" }, 0);
 gsap.set("#kb_H1", { transformOrigin: "0 0" });
 tl.fromTo("#kb_H1", { scale: 1.55, x: 0, y: -380 }, { scale: 1.8, x: 0, y: -390, duration: 3.673, ease: "none" }, 0);
 tl.fromTo("#kb_S01", { scale: 1, x: 0 }, { scale: 1.07, x: 22, duration: 4.489, ease: "none" }, 2.993);
@@ -237,7 +247,7 @@ tl.fromTo("#kb_S27", { scale: 1, x: 0 }, { scale: 1.07, x: 22, duration: 3.06, e
 tl.fromTo("#kb_S28", { scale: 1.07, x: -22 }, { scale: 1, x: 0, duration: 2.585, ease: "none" }, 71.551);
 tl.fromTo("#kb_S29", { scale: 1, x: 0 }, { scale: 1.07, x: 22, duration: 3.06, ease: "none" }, 73.456);
 tl.fromTo("#kb_S30", { scale: 1, x: 0 }, { scale: 1.07, x: -22, duration: 3.061, ease: "none" }, 75.836);
-tl.fromTo("#kb_S31", { scale: 1, x: 0 }, { scale: 1.07, x: 22, duration: 7.005, ease: "none" }, 78.217);
+tl.fromTo("#kb_S31", { scale: 1, x: 0 }, { scale: 1.07, x: 22, duration: 8.909, ease: "none" }, 78.217);
 tl.fromTo("#sh_S01", { opacity: 0, scale: 1.05, filter: "blur(6px) brightness(1.55)" }, { opacity: 1, scale: 1, filter: "blur(0px) brightness(1)", duration: 0.93, ease: "sine.out" }, 2.993);
 tl.to("#sh_H1", { scale: 1.03, filter: "blur(4px) brightness(1.25)", duration: 0.68, ease: "sine.inOut" }, 2.993);
 tl.fromTo("#sh_S02", { opacity: 0, scale: 1.07, filter: "blur(8px) brightness(1.2)" }, { opacity: 1, scale: 1, filter: "blur(0px) brightness(1)", duration: 0.68, ease: "sine.inOut" }, 6.802);
@@ -300,19 +310,19 @@ tl.fromTo("#sh_S30", { opacity: 0, scale: 1.2, filter: "blur(12px) brightness(1.
 tl.to("#sh_S29", { scale: 1.1, filter: "blur(8px) brightness(1.1)", duration: 0.68, ease: "power2.in" }, 75.836);
 tl.fromTo("#sh_S31", { opacity: 0, scale: 1.07, filter: "blur(8px) brightness(1.2)" }, { opacity: 1, scale: 1, filter: "blur(0px) brightness(1)", duration: 0.68, ease: "sine.inOut" }, 78.217);
 tl.to("#sh_S30", { scale: 1.035, filter: "blur(4px) brightness(1.1)", duration: 0.68, ease: "sine.inOut" }, 78.217);
-tl.set("#t0", { opacity: 1 }, 0.25);
+tl.set("#t0", { opacity: 1 }, 0.6);
 gsap.set("#scrimB", { opacity: 0 });
-tl.fromTo("#scrimB", { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "sine.out" }, 0.25);
+tl.fromTo("#scrimB", { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "sine.out" }, 0.6);
 tl.to("#scrimB", { opacity: 0, duration: 0.6, ease: "sine.in" }, 2.483);
-tl.fromTo("#t0 .glow", { opacity: 0, scale: 0.5 }, { opacity: 0.95, scale: 1.15, duration: 1.7, ease: "power2.out" }, 0.25);
-tl.to("#t0 .glow", { opacity: 0.5, duration: 1.2, ease: "sine.inOut" }, 1.95);
-tl.fromTo("#t0 .nm", { opacity: 0, y: 36, scale: 1.07, filter: "blur(16px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.1, ease: "power3.out", stagger: 0.2 }, 0.5);
-tl.fromTo("#t0 .nm", { backgroundPosition: "100% 0%" }, { backgroundPosition: "0% 0%", duration: 1.6, ease: "sine.inOut", stagger: 0.12 }, 1.35);
-tl.fromTo("#t0 .ll", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, 1.05);
-tl.fromTo("#t0 .lr", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, 1.05);
-tl.fromTo("#t0 .dia", { scale: 0, rotation: 0 }, { scale: 1, rotation: 45, duration: 0.7, ease: "power3.out" }, 1.05);
-tl.fromTo("#t0 .date", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 1.1);
-tl.to("#t0", { opacity: 0, y: -18, duration: 0.5, ease: "power2.in" }, 2.533);
+tl.fromTo("#t0 .glow", { opacity: 0, scale: 0.5 }, { opacity: 0.95, scale: 1.15, duration: 1.7, ease: "power2.out" }, 0.6);
+tl.to("#t0 .glow", { opacity: 0.5, duration: 1.2, ease: "sine.inOut" }, 2.3);
+tl.fromTo("#t0 .nm", { opacity: 0, y: 36, scale: 1.07, filter: "blur(16px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.1, ease: "power3.out", stagger: 0.2 }, 0.85);
+tl.fromTo("#t0 .nm", { backgroundPosition: "100% 0%" }, { backgroundPosition: "0% 0%", duration: 1.6, ease: "sine.inOut", stagger: 0.12 }, 1.7);
+tl.fromTo("#t0 .ll", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, 1.4);
+tl.fromTo("#t0 .lr", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, 1.4);
+tl.fromTo("#t0 .dia", { scale: 0, rotation: 0 }, { scale: 1, rotation: 45, duration: 0.7, ease: "power3.out" }, 1.4);
+tl.fromTo("#t0 .date", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 1.2);
+tl.to("#t0", { opacity: 0, y: -18, duration: 0.45, ease: "power2.in" }, 2.583);
 tl.set("#t1", { opacity: 1 }, 3.904);
 tl.fromTo("#t1 .h", { y: 26, filter: "blur(6px)" }, { y: 0, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 3.904);
 tl.fromTo("#t1 .c", { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "none", stagger: 0.042 }, 3.904);
@@ -380,15 +390,15 @@ gsap.set("#gl10", { opacity: 0, scale: 0 });
 gsap.set("#gl11", { opacity: 0, scale: 0 });
 gsap.set("#gl12", { opacity: 0, scale: 0 });
 gsap.set("#gl13", { opacity: 0, scale: 0 });
-tl.set("#fl", { x: 560, y: 700 }, 0.6);
-tl.fromTo("#fl", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "sine.out" }, 0.6);
-tl.to("#fl", { opacity: 0, duration: 1.0, ease: "sine.in" }, 0.9);
-tl.fromTo("#fl .core", { scale: 0.5 }, { scale: 1.17, duration: 1.3, ease: "power2.out" }, 0.6);
-tl.fromTo("#fl .wide", { scaleX: 0.2 }, { scaleX: 0.9, duration: 1.3, ease: "power3.out" }, 0.6);
-tl.fromTo("#fl .streak", { scaleX: 0.15, x: -90 }, { scaleX: 0.9, x: 130, duration: 1.3, ease: "power3.out" }, 0.6);
-tl.fromTo("#fl .g1", { x: 0, y: 0, scale: 0.5 }, { x: -324, y: 67, scale: 1, duration: 1.3, ease: "power2.out" }, 0.6);
-tl.fromTo("#fl .g2", { x: 0, y: 0, scale: 0.4 }, { x: 252, y: -49, scale: 0.9, duration: 1.3, ease: "power2.out" }, 0.6);
-tl.fromTo("#fl .g3", { x: 0, y: 0, scale: 0.3 }, { x: 468, y: 86, scale: 0.8, duration: 1.3, ease: "power2.out" }, 0.6);
+tl.set("#fl", { x: 560, y: 700 }, 0.95);
+tl.fromTo("#fl", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "sine.out" }, 0.95);
+tl.to("#fl", { opacity: 0, duration: 1.0, ease: "sine.in" }, 1.25);
+tl.fromTo("#fl .core", { scale: 0.5 }, { scale: 1.17, duration: 1.3, ease: "power2.out" }, 0.95);
+tl.fromTo("#fl .wide", { scaleX: 0.2 }, { scaleX: 0.9, duration: 1.3, ease: "power3.out" }, 0.95);
+tl.fromTo("#fl .streak", { scaleX: 0.15, x: -90 }, { scaleX: 0.9, x: 130, duration: 1.3, ease: "power3.out" }, 0.95);
+tl.fromTo("#fl .g1", { x: 0, y: 0, scale: 0.5 }, { x: -324, y: 67, scale: 1, duration: 1.3, ease: "power2.out" }, 0.95);
+tl.fromTo("#fl .g2", { x: 0, y: 0, scale: 0.4 }, { x: 252, y: -49, scale: 0.9, duration: 1.3, ease: "power2.out" }, 0.95);
+tl.fromTo("#fl .g3", { x: 0, y: 0, scale: 0.3 }, { x: 468, y: 86, scale: 0.8, duration: 1.3, ease: "power2.out" }, 0.95);
 tl.set("#fl", { x: 960, y: 790 }, 38.234);
 tl.fromTo("#fl", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "sine.out" }, 38.234);
 tl.to("#fl", { opacity: 0, duration: 1.0, ease: "sine.in" }, 38.534);
@@ -461,9 +471,12 @@ tl.fromTo("#fl .streak", { scaleX: 0.15, x: -90 }, { scaleX: 0.85, x: 130, durat
 tl.fromTo("#fl .g1", { x: 0, y: 0, scale: 0.5 }, { x: -306, y: 63, scale: 1, duration: 1.3, ease: "power2.out" }, 62.645);
 tl.fromTo("#fl .g2", { x: 0, y: 0, scale: 0.4 }, { x: 238, y: -46, scale: 0.9, duration: 1.3, ease: "power2.out" }, 62.645);
 tl.fromTo("#fl .g3", { x: 0, y: 0, scale: 0.3 }, { x: 442, y: 82, scale: 0.8, duration: 1.3, ease: "power2.out" }, 62.645);
-tl.fromTo("#sw", { x: -1000 }, { x: 2900, duration: 1.3, ease: "power2.inOut" }, 1.55);
-tl.fromTo("#sw", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "sine.out" }, 1.55);
-tl.to("#sw", { opacity: 0, duration: 0.6, ease: "sine.in" }, 2.25);
+tl.fromTo("#sw", { x: -1000 }, { x: 2900, duration: 1.3, ease: "power2.inOut" }, 0.35);
+tl.fromTo("#sw", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "sine.out" }, 0.35);
+tl.to("#sw", { opacity: 0, duration: 0.6, ease: "sine.in" }, 1.05);
+tl.fromTo("#sw", { x: -1000 }, { x: 2900, duration: 1.3, ease: "power2.inOut" }, 1.9);
+tl.fromTo("#sw", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "sine.out" }, 1.9);
+tl.to("#sw", { opacity: 0, duration: 0.6, ease: "sine.in" }, 2.6);
 tl.fromTo("#sw", { x: 2900 }, { x: -1000, duration: 1.3, ease: "power2.inOut" }, 6.722);
 tl.fromTo("#sw", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "sine.out" }, 6.722);
 tl.to("#sw", { opacity: 0, duration: 0.6, ease: "sine.in" }, 7.422);
@@ -619,6 +632,30 @@ tl.fromTo("#wash", { opacity: 0 }, { opacity: 0.34, duration: 0.34, ease: "sine.
 tl.to("#wash", { opacity: 0, duration: 0.476, ease: "sine.in" }, 76.176);
 tl.fromTo("#wash", { opacity: 0 }, { opacity: 0.34, duration: 0.34, ease: "sine.out" }, 78.217);
 tl.to("#wash", { opacity: 0, duration: 0.476, ease: "sine.in" }, 78.557);
+tl.set("#gl0", { x: 1560, y: 300, rotation: 0 }, 0.44);
+tl.fromTo("#gl0", { scale: 0, opacity: 0 }, { scale: 0.7, opacity: 1, duration: 0.2, ease: "power2.out" }, 0.45);
+tl.to("#gl0", { scale: 0, opacity: 0, rotation: 50, duration: 0.42, ease: "power2.in" }, 0.65);
+tl.set("#gl1", { x: 1700, y: 520, rotation: 17 }, 0.57);
+tl.fromTo("#gl1", { scale: 0, opacity: 0 }, { scale: 0.95, opacity: 1, duration: 0.2, ease: "power2.out" }, 0.58);
+tl.to("#gl1", { scale: 0, opacity: 0, rotation: 67, duration: 0.42, ease: "power2.in" }, 0.78);
+tl.set("#gl2", { x: 1450, y: 640, rotation: 34 }, 0.7);
+tl.fromTo("#gl2", { scale: 0, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 0.2, ease: "power2.out" }, 0.71);
+tl.to("#gl2", { scale: 0, opacity: 0, rotation: 84, duration: 0.42, ease: "power2.in" }, 0.91);
+tl.set("#gl3", { x: 1620, y: 860, rotation: 51 }, 0.83);
+tl.fromTo("#gl3", { scale: 0, opacity: 0 }, { scale: 0.7, opacity: 1, duration: 0.2, ease: "power2.out" }, 0.84);
+tl.to("#gl3", { scale: 0, opacity: 0, rotation: 101, duration: 0.42, ease: "power2.in" }, 1.04);
+tl.set("#gl4", { x: 1280, y: 200, rotation: 68 }, 0.96);
+tl.fromTo("#gl4", { scale: 0, opacity: 0 }, { scale: 0.95, opacity: 1, duration: 0.2, ease: "power2.out" }, 0.97);
+tl.to("#gl4", { scale: 0, opacity: 0, rotation: 118, duration: 0.42, ease: "power2.in" }, 1.17);
+tl.set("#gl5", { x: 190, y: 880, rotation: 85 }, 1.09);
+tl.fromTo("#gl5", { scale: 0, opacity: 0 }, { scale: 1.2, opacity: 1, duration: 0.2, ease: "power2.out" }, 1.1);
+tl.to("#gl5", { scale: 0, opacity: 0, rotation: 135, duration: 0.42, ease: "power2.in" }, 1.3);
+tl.set("#gl6", { x: 90, y: 640, rotation: 102 }, 1.22);
+tl.fromTo("#gl6", { scale: 0, opacity: 0 }, { scale: 0.7, opacity: 1, duration: 0.2, ease: "power2.out" }, 1.23);
+tl.to("#gl6", { scale: 0, opacity: 0, rotation: 152, duration: 0.42, ease: "power2.in" }, 1.43);
+tl.set("#gl7", { x: 1790, y: 190, rotation: 119 }, 1.35);
+tl.fromTo("#gl7", { scale: 0, opacity: 0 }, { scale: 0.95, opacity: 1, duration: 0.2, ease: "power2.out" }, 1.36);
+tl.to("#gl7", { scale: 0, opacity: 0, rotation: 169, duration: 0.42, ease: "power2.in" }, 1.56);
 tl.set("#gl0", { x: 262, y: 889, rotation: 51 }, 2.981);
 tl.fromTo("#gl0", { scale: 0, opacity: 0 }, { scale: 1.224, opacity: 1, duration: 0.2, ease: "power2.out" }, 2.991);
 tl.to("#gl0", { scale: 0, opacity: 0, rotation: 101, duration: 0.42, ease: "power2.in" }, 3.191);
@@ -1735,15 +1772,15 @@ tl.to("#gl6", { scale: 0, opacity: 0, rotation: 68, duration: 0.42, ease: "power
 tl.set("#gl7", { x: 1883, y: 323, rotation: 19 }, 79.004);
 tl.fromTo("#gl7", { scale: 0, opacity: 0 }, { scale: 0.827, opacity: 1, duration: 0.2, ease: "power2.out" }, 79.014);
 tl.to("#gl7", { scale: 0, opacity: 0, rotation: 69, duration: 0.42, ease: "power2.in" }, 79.214);
-tl.set("#sp0", { x: 1000, y: 690 }, 1.24);
-tl.fromTo("#sp0", { scale: 0, rotation: -30, opacity: 0 }, { scale: 1, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 1.25);
-tl.to("#sp0", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 1.7);
-tl.set("#sp1", { x: 330, y: 640 }, 1.74);
-tl.fromTo("#sp1", { scale: 0, rotation: -30, opacity: 0 }, { scale: 1, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 1.75);
-tl.to("#sp1", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 2.2);
-tl.set("#sp2", { x: 760, y: 880 }, 1.99);
-tl.fromTo("#sp2", { scale: 0, rotation: -30, opacity: 0 }, { scale: 1, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 2);
-tl.to("#sp2", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 2.45);
+tl.set("#sp0", { x: 1000, y: 690 }, 1.59);
+tl.fromTo("#sp0", { scale: 0, rotation: -30, opacity: 0 }, { scale: 1, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 1.6);
+tl.to("#sp0", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 2.05);
+tl.set("#sp1", { x: 330, y: 640 }, 2.09);
+tl.fromTo("#sp1", { scale: 0, rotation: -30, opacity: 0 }, { scale: 1, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 2.1);
+tl.to("#sp1", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 2.55);
+tl.set("#sp2", { x: 760, y: 880 }, 2.34);
+tl.fromTo("#sp2", { scale: 0, rotation: -30, opacity: 0 }, { scale: 1, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 2.35);
+tl.to("#sp2", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 2.8);
 tl.set("#sp3", { x: 640, y: 790 }, 38.474);
 tl.fromTo("#sp3", { scale: 0, rotation: -30, opacity: 0 }, { scale: 0.85, rotation: 15, opacity: 1, duration: 0.45, ease: "power2.out" }, 38.484);
 tl.to("#sp3", { scale: 0, rotation: 60, opacity: 0, duration: 0.6, ease: "power2.in" }, 38.934);
@@ -1804,36 +1841,36 @@ tl.to("#lk .wash", { opacity: 0, duration: 0.69, ease: "sine.in" }, 62.905);
 tl.fromTo("#bk0", { opacity: 0, x: 0, y: 0 }, { x: -44, y: -439, duration: 5.377, ease: "none" }, 1.418);
 tl.to("#bk0", { opacity: 0.178, duration: 1.613, ease: "sine.inOut" }, 1.418);
 tl.to("#bk0", { opacity: 0, duration: 2.42, ease: "sine.inOut" }, 4.375);
-tl.fromTo("#bk1", { opacity: 0, x: 0, y: 0 }, { x: 41, y: -430, duration: 6.415, ease: "none" }, 9.395);
-tl.to("#bk1", { opacity: 0.261, duration: 1.924, ease: "sine.inOut" }, 9.395);
-tl.to("#bk1", { opacity: 0, duration: 2.887, ease: "sine.inOut" }, 12.923);
-tl.fromTo("#bk2", { opacity: 0, x: 0, y: 0 }, { x: 44, y: -390, duration: 4.444, ease: "none" }, 17.57);
-tl.to("#bk2", { opacity: 0.303, duration: 1.333, ease: "sine.inOut" }, 17.57);
-tl.to("#bk2", { opacity: 0, duration: 2, ease: "sine.inOut" }, 20.014);
-tl.fromTo("#bk3", { opacity: 0, x: 0, y: 0 }, { x: -57, y: -331, duration: 4.483, ease: "none" }, 25.864);
-tl.to("#bk3", { opacity: 0.342, duration: 1.345, ease: "sine.inOut" }, 25.864);
-tl.to("#bk3", { opacity: 0, duration: 2.017, ease: "sine.inOut" }, 28.33);
-tl.fromTo("#bk4", { opacity: 0, x: 0, y: 0 }, { x: 22, y: -381, duration: 4.175, ease: "none" }, 32.437);
-tl.to("#bk4", { opacity: 0.28, duration: 1.253, ease: "sine.inOut" }, 32.437);
-tl.to("#bk4", { opacity: 0, duration: 1.879, ease: "sine.inOut" }, 34.733);
-tl.fromTo("#bk5", { opacity: 0, x: 0, y: 0 }, { x: -63, y: -419, duration: 4.807, ease: "none" }, 41.203);
-tl.to("#bk5", { opacity: 0.231, duration: 1.442, ease: "sine.inOut" }, 41.203);
-tl.to("#bk5", { opacity: 0, duration: 2.163, ease: "sine.inOut" }, 43.847);
-tl.fromTo("#bk6", { opacity: 0, x: 0, y: 0 }, { x: 32, y: -370, duration: 7.075, ease: "none" }, 48.568);
-tl.to("#bk6", { opacity: 0.261, duration: 2.123, ease: "sine.inOut" }, 48.568);
-tl.to("#bk6", { opacity: 0, duration: 3.184, ease: "sine.inOut" }, 52.459);
-tl.fromTo("#bk7", { opacity: 0, x: 0, y: 0 }, { x: 43, y: -270, duration: 6.476, ease: "none" }, 56.297);
-tl.to("#bk7", { opacity: 0.246, duration: 1.943, ease: "sine.inOut" }, 56.297);
-tl.to("#bk7", { opacity: 0, duration: 2.914, ease: "sine.inOut" }, 59.859);
-tl.fromTo("#bk8", { opacity: 0, x: 0, y: 0 }, { x: -5, y: -351, duration: 6.134, ease: "none" }, 63.805);
-tl.to("#bk8", { opacity: 0.175, duration: 1.84, ease: "sine.inOut" }, 63.805);
-tl.to("#bk8", { opacity: 0, duration: 2.76, ease: "sine.inOut" }, 67.179);
-tl.fromTo("#bk9", { opacity: 0, x: 0, y: 0 }, { x: 45, y: -436, duration: 6.78, ease: "none" }, 70.99);
-tl.to("#bk9", { opacity: 0.175, duration: 2.034, ease: "sine.inOut" }, 70.99);
-tl.to("#bk9", { opacity: 0, duration: 3.051, ease: "sine.inOut" }, 74.719);
-tl.fromTo("#grade", { x: -70, y: 10 }, { x: 70, y: -10, duration: 85.222, ease: "none" }, 0);
+tl.fromTo("#bk1", { opacity: 0, x: 0, y: 0 }, { x: 41, y: -430, duration: 6.415, ease: "none" }, 9.585);
+tl.to("#bk1", { opacity: 0.261, duration: 1.924, ease: "sine.inOut" }, 9.585);
+tl.to("#bk1", { opacity: 0, duration: 2.887, ease: "sine.inOut" }, 13.113);
+tl.fromTo("#bk2", { opacity: 0, x: 0, y: 0 }, { x: 44, y: -390, duration: 4.444, ease: "none" }, 17.951);
+tl.to("#bk2", { opacity: 0.303, duration: 1.333, ease: "sine.inOut" }, 17.951);
+tl.to("#bk2", { opacity: 0, duration: 2, ease: "sine.inOut" }, 20.395);
+tl.fromTo("#bk3", { opacity: 0, x: 0, y: 0 }, { x: -57, y: -331, duration: 4.483, ease: "none" }, 26.435);
+tl.to("#bk3", { opacity: 0.342, duration: 1.345, ease: "sine.inOut" }, 26.435);
+tl.to("#bk3", { opacity: 0, duration: 2.017, ease: "sine.inOut" }, 28.901);
+tl.fromTo("#bk4", { opacity: 0, x: 0, y: 0 }, { x: 22, y: -381, duration: 4.175, ease: "none" }, 33.198);
+tl.to("#bk4", { opacity: 0.28, duration: 1.253, ease: "sine.inOut" }, 33.198);
+tl.to("#bk4", { opacity: 0, duration: 1.879, ease: "sine.inOut" }, 35.494);
+tl.fromTo("#bk5", { opacity: 0, x: 0, y: 0 }, { x: -63, y: -419, duration: 4.807, ease: "none" }, 42.155);
+tl.to("#bk5", { opacity: 0.231, duration: 1.442, ease: "sine.inOut" }, 42.155);
+tl.to("#bk5", { opacity: 0, duration: 2.163, ease: "sine.inOut" }, 44.799);
+tl.fromTo("#bk6", { opacity: 0, x: 0, y: 0 }, { x: 32, y: -370, duration: 7.075, ease: "none" }, 49.71);
+tl.to("#bk6", { opacity: 0.261, duration: 2.123, ease: "sine.inOut" }, 49.71);
+tl.to("#bk6", { opacity: 0, duration: 3.184, ease: "sine.inOut" }, 53.601);
+tl.fromTo("#bk7", { opacity: 0, x: 0, y: 0 }, { x: 43, y: -270, duration: 6.476, ease: "none" }, 57.629);
+tl.to("#bk7", { opacity: 0.246, duration: 1.943, ease: "sine.inOut" }, 57.629);
+tl.to("#bk7", { opacity: 0, duration: 2.914, ease: "sine.inOut" }, 61.191);
+tl.fromTo("#bk8", { opacity: 0, x: 0, y: 0 }, { x: -5, y: -351, duration: 6.134, ease: "none" }, 65.328);
+tl.to("#bk8", { opacity: 0.175, duration: 1.84, ease: "sine.inOut" }, 65.328);
+tl.to("#bk8", { opacity: 0, duration: 2.76, ease: "sine.inOut" }, 68.702);
+tl.fromTo("#bk9", { opacity: 0, x: 0, y: 0 }, { x: 45, y: -436, duration: 6.78, ease: "none" }, 72.703);
+tl.to("#bk9", { opacity: 0.175, duration: 2.034, ease: "sine.inOut" }, 72.703);
+tl.to("#bk9", { opacity: 0, duration: 3.051, ease: "sine.inOut" }, 76.432);
+tl.fromTo("#grade", { x: -70, y: 10 }, { x: 70, y: -10, duration: 87.126, ease: "none" }, 0);
 tl.fromTo("#endDim", { opacity: 0 }, { opacity: 1, duration: 1.1, ease: "power2.inOut" }, 80.452);
-tl.fromTo("#fadeOut", { opacity: 0 }, { opacity: 1, duration: 1.8, ease: "power1.inOut" }, 83.422);
+tl.fromTo("#fadeOut", { opacity: 0 }, { opacity: 1, duration: 3.0, ease: "sine.inOut" }, 84.126);
 window.__timelines = window.__timelines || {};
 window.__timelines["main"] = tl;
 tl.seek(0);

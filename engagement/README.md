@@ -46,3 +46,8 @@ Tajuk sahaja sepanjang video. Sub tajuk hanya pada intro (tarikh) dan penutup (t
 ## Stabilisasi & gred (v4)
 - Stabilisasi **dua pass** (pelicinan gimbal + pass kedua halus untuk buang getaran kecil), lalai untuk semua shot; `stab:false`, `smooth`, `maxshift`, `maxangle`, `stab2` boleh ditetapkan per shot dalam `shots.json`. Sedikit penajaman (`unsharp`) pada semua proxy untuk rasa "4K" pada 1080p.
 - Shot cincin (S15) ada `grade` per shot (lengkung + brightness) untuk terangkan tangan pengantin dan mertua.
+
+## Pembukaan & penutup (v5)
+- **Pembukaan:** hitam → bar letterbox terbuka → gambar muncul dari bloom emas (slow-mo wajah 0.5×) → tajuk; muzik masuk perlahan (fade-in 2.6s, lengkung quarter-sine).
+- **Penutup:** end card dipanjangkan (~6.5s) dan lagu di-fade ~7.2s ke senyap (di-bake ke `assets/music.m4a` oleh `build.mjs` daripada `src/music.mp3`), kemudian fade ke hitam 3s.
+- Bug dibetulkan: susunan fungsi `filter` mesti sama (`blur() brightness()`) antara tween, kalau tidak GSAP menyebabkan dip gelap pada transition pertama.

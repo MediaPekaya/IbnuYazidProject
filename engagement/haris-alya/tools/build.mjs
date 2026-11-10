@@ -3,6 +3,7 @@
 // Audio = the song only (original clip audio muted, no SFX).  60 fps composition.
 // Run:  node tools/build.mjs
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -49,7 +50,7 @@ shots.forEach((s, i) => {
 // Titles only (script lettering). Sub-lines exist only on the intro (date) and the closing card (date + prayer).
 // Nothing is ever placed over the ring / hands: the hook opens clean on the ring, the title card sits on a defocused shot,
 // and the ring close-up (S15) carries no text at all.
-const INTRO_AT = 0.25;
+const INTRO_AT = 0.6;
 const TEXTS = [
   { id: "t0", at: INTRO_AT, end: r3(Bof("S01", 0) - 0.3), pos: "intro", h: ["Haris", "&", "Alya"], date: DATE },
   { id: "t1", at: Bof("S01", 1.2), end: Bof("S01", 7.2), pos: "low", h: ["Tetamu Tersayang Tiba"] },
@@ -92,7 +93,10 @@ const textHtml = TEXTS.map((t) => {
 const FLARES = [], SWEEPS = [], SPARKS = [], LEAKS = [], WASHES = [], GLITTER = [];
 // title card: golden bloom flare as the names land, sparkles around the names
 FLARES.push({ t: INTRO_AT + 0.35, x: 560, y: 700, s: 0.9 });
+SWEEPS.push({ t: 0.35, fixed: true });
 SWEEPS.push({ t: INTRO_AT + 1.3, fixed: true });
+// opening glitter (kept to the right / lower edges so it never sits on the face)
+[[1560, 300], [1700, 520], [1450, 640], [1620, 860], [1280, 200], [190, 880], [90, 640], [1790, 190]].forEach(([x, y], k) => GLITTER.push({ t: r3(0.45 + k * 0.13), x, y, s: r3(0.7 + (k % 3) * 0.25), rot: k * 17, slot: k }));
 [[1000, 690, INTRO_AT + 1.0], [330, 640, INTRO_AT + 1.5], [760, 880, INTRO_AT + 1.75]].forEach(([x, y, t]) => SPARKS.push({ t, x, y, s: 1 }));
 TEXTS.forEach((t) => {
   if (t.flare) FLARES.push({ t: t.at + 0.05, x: t.flare[0], y: t.flare[1], s: t.flare[2] });
@@ -101,7 +105,7 @@ TEXTS.forEach((t) => {
 });
 // transitions: glitter burst + golden wash + light sweep on EVERY cut; leak + flare on the "light" ones
 const GL_POOL = 14, GL_PER = 12;
-let glN = 0;
+let glN = 0; // opening burst uses slots 0-7 at t<1.5 s, long before the first cut, so the pool is free again
 shots.forEach((s) => {
   if (s.enter === "first") return;
   const t0 = r3(s.B - D / 2);
@@ -138,6 +142,7 @@ const SPARK_POOL = 4;
 const flareHtml = `    <div class="flare" id="fl"><i class="wide"></i><i class="core"></i><i class="streak"></i><i class="ghost g1"></i><i class="ghost g2"></i><i class="ghost g3"></i></div>`;
 const sweepHtml = `    <div class="sweep" id="sw"><i></i></div>`;
 const scrimHtml = `    <div id="scrimB"></div>`;
+const openHtml = `    <div id="openBlack"></div>\n    <div id="barT"></div>\n    <div id="barB"></div>`;
 const washHtml = `    <div class="wash" id="wash"></div>`;
 const sparkHtml = Array.from({ length: SPARK_POOL }, (_, i) => `    <div class="spark" id="sp${i}"><i></i><i></i><b></b></div>`).join("\n");
 const glitterHtml = Array.from({ length: GL_POOL }, (_, i) => `    <div class="gl" id="gl${i}"></div>`).join("\n");
@@ -149,8 +154,12 @@ const js = [];
 js.push(`const tl = gsap.timeline({ paused: true });`);
 js.push(`const W = ${W};`);
 shots.forEach((s) => { if (s.enter !== "first") js.push(`gsap.set("#sh_${s.id}", { opacity: 0 });`); });
+// OPENING: cinematic letterbox bars open, the picture fades up out of black through a warm golden bloom, light sweeps across
+js.push(`tl.fromTo("#openBlack", { opacity: 1 }, { opacity: 0, duration: 2.0, ease: "sine.inOut" }, 0);`);
+js.push(`tl.fromTo("#barT", { y: 0 }, { y: -150, duration: 1.9, ease: "power3.inOut" }, 0.2);`);
+js.push(`tl.fromTo("#barB", { y: 0 }, { y: 150, duration: 1.9, ease: "power3.inOut" }, 0.2);`);
 // opening: the first frame is the ring itself, fading up out of a warm golden bloom (never black)
-js.push(`tl.fromTo("#sh_${shots[0].id}", { filter: "brightness(1.55) blur(9px)" }, { filter: "brightness(1) blur(0px)", duration: 0.9, ease: "power2.out" }, 0);`);
+js.push(`tl.fromTo("#sh_${shots[0].id}", { filter: "blur(12px) brightness(1.7)" }, { filter: "blur(0px) brightness(1)", duration: 1.8, ease: "power2.out" }, 0);`);
 // Ken Burns (inner wrapper) – slow push / pull
 shots.forEach((s) => {
   if (s.frame) { // custom framing: keep a face in the upper area, clear of the lettering below
@@ -197,8 +206,8 @@ shots.forEach((s, i) => {
   js.push(`tl.fromTo("${sel} .ll", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, ${r3(a + 0.8)});`);
   js.push(`tl.fromTo("${sel} .lr", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, ${r3(a + 0.8)});`);
   js.push(`tl.fromTo("${sel} .dia", { scale: 0, rotation: 0 }, { scale: 1, rotation: 45, duration: 0.7, ease: "power3.out" }, ${r3(a + 0.8)});`);
-  js.push(`tl.fromTo("${sel} .date", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, ${r3(a + 0.85)});`);
-  js.push(`tl.to("${sel}", { opacity: 0, y: -18, duration: 0.5, ease: "power2.in" }, ${r3(t.end - 0.5)});`);
+  js.push(`tl.fromTo("${sel} .date", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, ${r3(a + 0.6)});`);
+  js.push(`tl.to("${sel}", { opacity: 0, y: -18, duration: 0.45, ease: "power2.in" }, ${r3(t.end - 0.45)});`);
 }
 // remaining text moments
 TEXTS.slice(1).forEach((t) => {
@@ -286,12 +295,20 @@ js.push(`tl.fromTo("#grade", { x: -70, y: 10 }, { x: 70, y: -10, duration: ${TOT
 // end card dim + final fade
 const endT = Bof("S31", 4.4);
 js.push(`tl.fromTo("#endDim", { opacity: 0 }, { opacity: 1, duration: 1.1, ease: "power2.inOut" }, ${r3(endT - 0.2)});`);
-js.push(`tl.fromTo("#fadeOut", { opacity: 0 }, { opacity: 1, duration: 1.8, ease: "power1.inOut" }, ${r3(TOTAL - 1.8)});`);
+js.push(`tl.fromTo("#fadeOut", { opacity: 0 }, { opacity: 1, duration: 3.0, ease: "sine.inOut" }, ${r3(TOTAL - 3.0)});`);
 js.push(`window.__timelines = window.__timelines || {};`);
 js.push(`window.__timelines["main"] = tl;`);
 js.push(`tl.seek(0);`);
 
 // ---------- page ---------------------------------------------------------------------
+// bake the song section with smooth (quarter-sine) fade in / fade out so the ending never sounds cut
+const MUSIC_SRC = path.join(ROOT, "..", "src", "music.mp3");
+if (fs.existsSync(MUSIC_SRC)) {
+  const FADE_IN = 2.6, FADE_OUT = 7.2;
+  execFileSync("ffmpeg", ["-v", "error", "-y", "-ss", String(cfg.musicIn), "-t", String(r3(TOTAL + 0.5)), "-i", MUSIC_SRC,
+    "-af", `afade=t=in:st=0:d=${FADE_IN}:curve=qsin,afade=t=out:st=${r3(TOTAL - FADE_OUT)}:d=${FADE_OUT}:curve=qsin`,
+    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", path.join(ROOT, "assets", "music.m4a")]);
+}
 const page = `<!doctype html>
 <html lang="ms">
   <head>
@@ -341,11 +358,15 @@ ${fontsCss}
       .gl { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 74; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
       .gl::before, .gl::after { content: ""; position: absolute; left: -26px; top: -1.5px; width: 52px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(255,244,214,0), #fffaf0 50%, rgba(255,244,214,0)); box-shadow: 0 0 9px 1px rgba(255,222,160,.95); }
       .gl::after { transform: rotate(90deg); }
+      #openBlack { position: absolute; inset: 0; z-index: 94; background: #0c0705; pointer-events: none; }
+      #barT, #barB { position: absolute; left: 0; right: 0; height: 150px; background: #000; z-index: 95; pointer-events: none; }
+      #barT { top: 0; }
+      #barB { bottom: 0; }
       #fadeOut { position: absolute; inset: 0; z-index: 90; opacity: 0; background: #0c0705; pointer-events: none; }
 
       /* ---- lettering: script, hand-written feel, kept inside the TikTok safe zone (top 150 / bottom 230 clear) ---- */
       .tx { position: absolute; left: 50%; z-index: 80; opacity: 0; transform: translateX(-50%); text-align: center; isolation: isolate; width: 1500px; color: var(--cream); }
-      .tx::before { content: ""; position: absolute; inset: -90px -140px; z-index: -2; background: radial-gradient(closest-side ellipse at 50% 55%, rgba(18,9,4,.62), rgba(18,9,4,.36) 50%, rgba(18,9,4,0) 100%); }
+      .tx::before { content: ""; position: absolute; inset: -90px -140px; z-index: -2; background: radial-gradient(closest-side ellipse at 50% 55%, rgba(18,9,4,.74), rgba(18,9,4,.42) 50%, rgba(18,9,4,0) 100%); }
       .tx .glow { position: absolute; left: 50%; top: 50%; width: 1100px; height: 360px; margin: -180px 0 0 -550px; z-index: -1; border-radius: 50%; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse, rgba(255,205,140,.50), rgba(255,205,140,0) 68%); }
       .tx .h { font-family: "Dancing Script", cursive; font-weight: 700; line-height: 1.12; font-size: 118px; letter-spacing: 0; text-shadow: 0 0 26px rgba(255,214,150,.55), 0 3px 5px rgba(0,0,0,.55), 0 6px 22px rgba(0,0,0,.6); }
       .tx .hl { display: block; white-space: nowrap; }
@@ -385,6 +406,7 @@ ${vids}
       <div id="endDim" class="clip" data-start="0" data-duration="${TOTAL}" data-track-index="3"></div>
 ${bokehHtml}
 ${scrimHtml}
+${openHtml}
 ${washHtml}
 ${leakHtml}
 ${sweepHtml}
@@ -393,7 +415,7 @@ ${sparkHtml}
 ${glitterHtml}
 ${textHtml}
       <div id="fadeOut" class="clip" data-start="0" data-duration="${TOTAL}" data-track-index="6"></div>
-      <audio id="music" src="assets/music.m4a" data-start="0" data-duration="${TOTAL}" data-volume="${MUSIC_VOL}" data-fade-in="0.6" data-fade-out="3.6" data-track-index="7"></audio>
+      <audio id="music" src="assets/music.m4a" data-start="0" data-duration="${TOTAL}" data-volume="${MUSIC_VOL}" data-track-index="7"></audio>
     </div>
     <script>
 ${js.join("\n")}
