@@ -395,7 +395,7 @@
     'Masukkan semula ke app': 'Put back into the app',
     'Keluarkan panel ke tetingkap lain': 'Pop the panel out to another window',
     'Keluarkan panel ke tetingkap lain (skrin kedua)': 'Pop the panel out to another window (second screen)',
-    'Panel di tetingkap lain · Kembalikan': 'Panel in another window · Bring back',
+    '↩ Panel': '↩ Panel',
     'Panel chat dikeluarkan ke tetingkap lain. Klik untuk memulangkan.': 'The chat panel is in another window. Click to bring it back.',
 
 
@@ -542,6 +542,50 @@
     'WAJIB. Mana-mana server RTMP / RTMPS (cth Kick, Twitch, Shopee Live).': 'REQUIRED. Any RTMP / RTMPS server (e.g. Kick, Twitch, Shopee Live).',
     'Server URL belum diisi (diperlukan oleh platform ini)': 'The Server URL has not been entered (this platform needs it)',
     'Stream key belum diisi (Server URL dan Stream Key wajib)': 'The stream key has not been entered (Server URL and Stream Key are both required)',
+
+
+    /* ---- pengumum, Azure ---- */
+    'Kuota percuma {0} bulan ini sudah habis.': 'The free {0} quota for this month is used up.',
+    'Kunci API {0} tidak sah atau tiada kebenaran (semak kunci dan kawasan).': 'The {0} API key is invalid or lacks permission (check the key and region).',
+    '{0}: terlalu banyak permintaan. Cuba sebentar lagi.': '{0}: too many requests. Try again shortly.',
+    'Pelan {0} anda tidak membenarkan suara ini.': 'Your {0} plan does not allow this voice.',
+    '{0} tidak menjawab (tamat masa).': '{0} did not respond (timed out).',
+    'Tidak dapat menghubungi {0}. Semak sambungan internet.': 'Could not reach {0}. Check your internet connection.',
+    '{0} gagal (kod {1}).': '{0} failed (code {1}).',
+    'Kunci API {0} belum diisi.': 'The {0} API key has not been entered.',
+    'Nama suara (lanjutan)': 'Voice names (advanced)',
+    '(senyap)': '(silent)',
+    'Teks untuk disebut': 'Text to speak',
+    'Microsoft Azure: suara neural Melayu (percuma 500,000 aksara/bulan, perlu kunci)': 'Microsoft Azure: neural Malay voices (free 500,000 characters/month, needs a key)',
+    'ElevenLabs: suara AI semula jadi (percuma 10,000 aksara/bulan, perlu kunci)': 'ElevenLabs: natural AI voice (free 10,000 characters/month, needs a key)',
+    'Microsoft Azure Speech (tier percuma F0: 500,000 aksara sebulan, suara neural Melayu lelaki Osman dan perempuan Yasmin). Langkah: portal.azure.com > Create a resource > Speech > Pricing tier "Free F0" > selepas dibuat, buka Keys and Endpoint dan salin Key 1 serta Location/Region ke bawah.': 'Microsoft Azure Speech (free tier F0: 500,000 characters a month, neural Malay voices: Osman male and Yasmin female). Steps: portal.azure.com > Create a resource > Speech > Pricing tier "Free F0" > once created, open Keys and Endpoint and copy Key 1 and the Location/Region below.',
+    'Kunci Azure Speech (Key 1)': 'Azure Speech key (Key 1)',
+    'Kawasan (Region)': 'Region',
+    'Cth southeastasia (Singapura), eastasia, eastus.': 'E.g. southeastasia (Singapore), eastasia, eastus.',
+    'Lelaki (Melayu)': 'Male (Malay)',
+    'Perempuan (Melayu)': 'Female (Malay)',
+    'Lelaki (English)': 'Male (English)',
+    'Perempuan (English)': 'Female (English)',
+    'Pengumum efek (efek BERCAKAP)': 'Effect announcer (effects SPEAK)',
+    'Apabila efek kill, double kill, victory, defeat dan lain-lain keluar (melalui butang, pengesan skrin atau suara), pengumum menyebut perkataan itu menggunakan suara yang dipilih di atas, dan bunyi beep tidak dimainkan. Jika suara gagal, bunyi beep digunakan sebagai sandaran.': 'When an effect such as kill, double kill, victory or defeat appears (from a button, the screen detector or voice), the announcer says the word with the voice chosen above, and the beep is not played. If the voice fails, the beep is used as a fallback.',
+    'Hidupkan pengumum (efek bercakap)': 'Turn on the announcer (effects speak)',
+    'Kekalkan juga bunyi beep bersama suara': 'Also keep the beep sound with the voice',
+    'Bahasa pengumum': 'Announcer language',
+    'English (disyorkan: "Double kill", "Victory")': 'English (recommended: "Double kill", "Victory")',
+    'Bahasa Melayu ("Bunuh dua", "Kemenangan")': 'Malay ("Bunuh dua", "Kemenangan")',
+    'Uji suara': 'Test the voice',
+    'Sebut sekarang': 'Speak now',
+    'Menaip ayat dan tekan "Sebut sekarang": bot menyebut ayat itu serta-merta dengan suara pilihan anda (Melayu jika bahasa app Melayu).': 'Type a sentence and press "Speak now": the bot says it immediately with your chosen voice (Malay if the app language is Malay).',
+    'cth: Selamat datang ke siaran langsung saya!': 'e.g. Welcome to my live stream!',
+    'Pelayar menyekat tetingkap baharu.': 'x',
+
+
+    /* ---- susun atur panel ---- */
+    'Tarik untuk laras saiz. Klik dua kali untuk lalai.': 'Drag to resize. Double-click for the default.',
+    'Tarik tajuk untuk menukar kedudukan panel ini': 'Drag the title to move this panel',
+    'Susun atur panel': 'Panel layout',
+    'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.': 'Drag the dividers between panels (Scenes, Sources, Properties, Audio Mixer, Templates, right panel) to resize them, and drag a panel title to move it. Panels stay inside the app and cannot be removed or hidden. Double-click a divider for the default.',
+    'Tetapkan semula susun atur panel': 'Reset the panel layout',
 
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',

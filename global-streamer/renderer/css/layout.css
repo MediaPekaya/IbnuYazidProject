@@ -1,6 +1,6 @@
 /* Global Streamer - susun atur (PC / laptop sahaja) */
 body { min-width: 1100px; min-height: 640px; }
-#app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 62px minmax(0, 1fr) clamp(210px, 30vh, 300px); gap: 10px; height: 100vh; padding: 10px; opacity: 0; transform: translateY(8px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+#app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 62px minmax(0, 1fr) var(--dock-h, clamp(210px, 30vh, 300px)); gap: 10px; height: 100vh; padding: 10px; opacity: 0; transform: translateY(8px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
 body.ready #app { opacity: 1; transform: none; }
 
 /* ----- bar atas ----- */
@@ -33,7 +33,7 @@ body.ready #app { opacity: 1; transform: none; }
 .chips { display: inline-flex; gap: 6px; flex: none; }
 
 /* ----- ruang kerja ----- */
-#workspace { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 380px); gap: 10px; min-height: 0; }
+#workspace { display: grid; grid-template-columns: minmax(0, 1fr) var(--right-w, clamp(300px, 24vw, 380px)); gap: 10px; min-height: 0; }
 #stage { min-height: 0; border-radius: var(--r); background: var(--panel); border: 1px solid var(--line); padding: 10px; display: flex; backdrop-filter: blur(14px); }
 .screens { flex: 1; display: flex; gap: 10px; min-width: 0; min-height: 0; align-items: stretch; }
 .screen { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; transition: flex 0.5s var(--ease), opacity 0.4s var(--ease); }
@@ -60,7 +60,8 @@ body.ready #app { opacity: 1; transform: none; }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* ----- dock bawah ----- */
-#docks { display: grid; grid-template-columns: clamp(190px, 13vw, 230px) clamp(210px, 15vw, 270px) clamp(250px, 18vw, 320px) minmax(150px, 0.8fr) minmax(210px, 1.2fr); gap: 10px; min-height: 0; }
+#docks { display: flex; gap: 10px; min-height: 0; }
+#docks .dock { flex: var(--f, 1) 1 0; min-width: 150px; }
 .dock { min-height: 0; min-width: 0; display: flex; flex-direction: column; border-radius: var(--r); background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(14px); overflow: hidden; }
 .dock-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 6px 12px; border-bottom: 1px solid var(--line); }
 .dock-head h3 { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
@@ -77,8 +78,8 @@ body.ready #app { opacity: 1; transform: none; }
 /* ----- orientasi menegak 9:16: dock di kiri, panggung tinggi di tengah, mixer di bawah ----- */
 #dockLeft { display: contents; }
 body.portrait #app {
-  grid-template-columns: 300px minmax(0, 1fr) clamp(300px, 23vw, 360px);
-  grid-template-rows: 62px minmax(0, 1fr) 176px;
+  grid-template-columns: var(--left-w, 300px) minmax(0, 1fr) var(--right-w, clamp(300px, 23vw, 360px));
+  grid-template-rows: 62px minmax(0, 1fr) var(--dock-h, 176px);
   grid-template-areas: 'top top top' 'left stage right' 'left mixer tpl';
 }
 body.portrait #topbar { grid-area: top; }
@@ -88,9 +89,7 @@ body.portrait #right { grid-area: right; }
 body.portrait #dockMixer { grid-area: mixer; }
 body.portrait #dockTemplates { grid-area: tpl; }
 body.portrait #dockLeft { grid-area: left; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-body.portrait #dockLeft .dock { flex: 1 1 0; min-height: 0; }
-body.portrait #dockScenes { flex: 0 0 176px !important; }
-body.portrait #dockProps { flex-grow: 1.3 !important; }
+body.portrait #dockLeft .dock { flex: var(--f, 1) 1 0; min-height: 90px; min-width: 0; }
 body.portrait .dock-body.mixer { padding: 6px 8px; }
 body.portrait .strip { flex: 0 0 140px; padding: 6px 9px; gap: 5px; }
 body.portrait .screens.studio #transitionCol { width: 100px; }
@@ -115,7 +114,7 @@ body.portrait .tpl-card:not(.portrait) canvas { width: 120px; height: 68px; }
 /* ----- panel kanan dikeluarkan ke tetingkap lain (skrin kedua) ----- */
 .rtab-pop { align-self: center; flex: 0 0 auto; margin-left: 2px; }
 body.right-out #workspace { grid-template-columns: minmax(0, 1fr); }
-body.portrait.right-out #app { grid-template-columns: 300px minmax(0, 1fr) clamp(300px, 23vw, 360px); grid-template-areas: 'top top top' 'left stage stage' 'left mixer tpl'; }
+body.portrait.right-out #app { grid-template-columns: var(--left-w, 300px) minmax(0, 1fr) var(--right-w, clamp(300px, 23vw, 360px)); grid-template-areas: 'top top top' 'left stage stage' 'left mixer tpl'; }
 body.gs-popout { min-width: 0 !important; min-height: 0 !important; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: 8px; gap: 8px; }
 body.gs-popout #right { flex: 1; min-height: 0; grid-area: auto; }
 .pop-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
@@ -127,3 +126,15 @@ body.gs-popout #btnPopout { display: none; }
 @media (max-width: 1220px) { #topbar { gap: 7px; padding: 0 8px; } .actions { gap: 5px; } .actions .btn { padding-left: 10px; padding-right: 10px; } .mode-switch button { padding: 6px 8px !important; font-size: 10px; } .fmt-switch button { padding: 6px 6px; font-size: 10px; } }
 @media (max-width: 1560px) { .brand-name { font-size: 13px; letter-spacing: 0.1em; } }
 #topbar .status { min-width: 120px; }
+@media (max-width: 1700px) { #fpsChip { display: none; } }
+
+/* ----- pemisah (tarik untuk laras saiz) dan tajuk dock yang boleh dialih ----- */
+.gutter { position: fixed; z-index: 40; border-radius: 6px; background: transparent; transition: background 0.15s; touch-action: none; }
+.gutter.v { cursor: col-resize; }
+.gutter.h { cursor: row-resize; }
+.gutter:hover, .gutter.drag { background: rgba(46, 168, 255, 0.35); }
+.gutter.drag { background: rgba(46, 168, 255, 0.55); }
+.dock-head.movable { cursor: grab; user-select: none; }
+.dock.dragging { opacity: 0.85; outline: 2px solid var(--blue); outline-offset: -2px; }
+body.reordering, body.reordering * { cursor: grabbing !important; user-select: none; }
+body.gs-popout .gutter { display: none; }

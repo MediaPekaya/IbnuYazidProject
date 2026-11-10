@@ -40,7 +40,7 @@
 
   P.loadKeys = async function () {
     if (!P.native()) return;
-    for (const id of P.order.concat(['chat-youtube', 'chat-facebook', 'tts-elevenlabs'])) {
+    for (const id of P.order.concat(['chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure'])) {
       try { mem[id] = (await window.gsNative.vault.get(id)) || ''; } catch (e) { mem[id] = ''; }
     }
   };

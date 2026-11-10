@@ -8,6 +8,7 @@ const { StreamEngine } = require('./stream-engine');
 const { openLink } = require('./open-link');
 const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
+const { fetchTTS } = require('./tts-net');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -19,7 +20,7 @@ const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.web
 /* ---------- simpanan key disulitkan (OS) ---------- */
 const vaultFile = () => path.join(app.getPath('userData'), 'vault.json');
 function readVault() { try { return JSON.parse(fs.readFileSync(vaultFile(), 'utf8')); } catch (e) { return {}; } }
-const VALID_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs']);
+const VALID_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure']);
 
 ipcMain.handle('vault:get', (_e, id) => {
   if (!VALID_IDS.has(id)) return '';
@@ -53,6 +54,13 @@ ipcMain.handle('sources:select', (_e, id, opts) => {
   pendingSource = id ? String(id) : '';
   pendingAudio = !!(opts && opts.audio); // bunyi komputer (loopback Windows) bersama tangkapan skrin
   return true;
+});
+
+/* ---------- suara AI (Azure Speech / ElevenLabs): permintaan dibuat di sini, kunci tidak melalui halaman web ---------- */
+ipcMain.handle('tts:fetch', async (_e, kind, p) => {
+  if (kind !== 'azure' && kind !== 'eleven') return { ok: false, status: 0, code: 'input', message: 'penyedia tidak dikenali' };
+  const r = await fetchTTS(kind, p && typeof p === 'object' ? p : {});
+  return r.ok ? { ok: true, audio: new Uint8Array(r.audio) } : r;
 });
 
 /* ---------- suara (pengecam luar talian + suara bot) ---------- */

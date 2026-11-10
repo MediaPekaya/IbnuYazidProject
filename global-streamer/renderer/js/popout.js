@@ -92,7 +92,7 @@
     }
     const chips = GS.$('#platformChips');
     if (chips && chips.parentElement && !GS.$('#btnPanelBack')) {
-      const b = GS.h('button', { type: 'button', class: 'chip upd hidden', id: 'btnPanelBack', title: 'Panel chat dikeluarkan ke tetingkap lain. Klik untuk memulangkan.', onClick: () => P.dock() }, 'Panel di tetingkap lain · Kembalikan');
+      const b = GS.h('button', { type: 'button', class: 'chip upd hidden', id: 'btnPanelBack', title: 'Panel chat dikeluarkan ke tetingkap lain. Klik untuk memulangkan.', onClick: () => P.dock() }, '↩ Panel');
       chips.parentElement.insertBefore(b, chips);
     }
     GS.on('popout:changed', (out) => { const b = document.getElementById('btnPanelBack'); if (b) b.classList.toggle('hidden', !out); const o = document.getElementById('btnPopout'); if (o) o.classList.toggle('hidden', !!out); });

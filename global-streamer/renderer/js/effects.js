@@ -900,6 +900,7 @@
     tierlist: { dur: 9000, draw: drawTierList, sfx: 'alert' },
   };
   FX.names = Object.keys(defs);
+  FX.sfxName = (n) => (defs[n] ? defs[n].sfx : '');
 
   FX.trigger = function (name, params = {}) {
     const def = defs[name];
@@ -911,7 +912,9 @@
     const now = performance.now();
     const style = params.style || FX.styleNow();
     FX.active.push({ name, dur: params.dur || def.dur, t0: now, last: now, params, pal: (GS.fxPal && GS.fxPal[style]) || PAL[style] || PAL.holo, parts: [], draw: def.draw });
-    if (params.sound !== false) GS.audio.sfx(def.sfx);
+    // pengumum bercakap menggantikan bunyi beep (kecuali dikekalkan oleh pengguna); beep dimainkan jika suara gagal
+    const spoken = GS.voice && GS.voice.suppressBeep && GS.voice.suppressBeep(name, params);
+    if (params.sound !== false && !spoken) GS.audio.sfx(def.sfx);
     GS.emit('fx:trigger', { name, params });
     return true;
   };

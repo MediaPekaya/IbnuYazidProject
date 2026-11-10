@@ -157,6 +157,7 @@
     GS.gamedock.init();
     try { GS.formats.init(); } catch (e) { console.error(e); }
     try { GS.popout.init(); } catch (e) { console.error(e); }
+    try { GS.layout.init(); } catch (e) { console.error(e); }
     try { GS.fx.loadFonts(); } catch (e) { console.error(e); }
     try { GS.voice.init(); GS.voiceui.init(); } catch (e) { console.error(e); }
     // panel tambahan: kegagalan di sini tidak boleh menghalang app bermula (cth. index.html lama dalam cache pelayar)

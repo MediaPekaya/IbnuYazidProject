@@ -115,10 +115,17 @@
         { fx: 'victory', phrases: 'victory, menang, we won' },
         { fx: 'defeat', phrases: 'defeat, kalah, we lost' },
       ],
+      // pengumum: efek (kill, double kill, victory, defeat...) BERCAKAP menggunakan suara yang dipilih
+      announcer: {
+        on: true, lang: 'en-US', keepBeep: false,
+        textsEn: { kill: 'Kill', 'first blood': 'First blood', 'double kill': 'Double kill', 'triple kill': 'Triple kill', maniac: 'Maniac', savage: 'Savage', 'killing spree': 'Killing spree', legendary: 'Legendary', shutdown: 'Shutdown', death: 'You have been slain', victory: 'Victory', defeat: 'Defeat', fullitem: 'Full item' },
+        textsMs: { kill: 'Bunuh', 'first blood': 'Darah pertama', 'double kill': 'Bunuh dua', 'triple kill': 'Bunuh tiga', maniac: 'Maniak', savage: 'Ganas', 'killing spree': 'Berterusan membunuh', legendary: 'Legenda', shutdown: 'Dihentikan', death: 'Anda telah mati', victory: 'Kemenangan', defeat: 'Kekalahan', fullitem: 'Item penuh' },
+      },
       bot: {
         enabled: false, name: 'Jarvis', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
         fallback: 'Maaf, saya tak faham soalan itu.',
-        tts: { provider: 'system', gender: 'female', model: 'eleven_multilingual_v2', maleVoice: 'pNInz6obpgDQGcFmaJgB', femaleVoice: '21m00Tcm4TlvDq8ikWAM' },
+        tts: { provider: 'system', gender: 'female', model: 'eleven_multilingual_v2', maleVoice: 'pNInz6obpgDQGcFmaJgB', femaleVoice: '21m00Tcm4TlvDq8ikWAM',
+          azure: { region: 'southeastasia', maleMs: 'ms-MY-OsmanNeural', femaleMs: 'ms-MY-YasminNeural', maleEn: 'en-US-GuyNeural', femaleEn: 'en-US-JennyNeural' } },
         qa: [
           { q: 'siapa noob | siapa paling noob', a: 'Rahsia! Tapi pasti bukan saya.' },
           { q: 'berapa kill | kda saya', a: 'Setakat ini {kill} kill, {mati} mati dan {assist} assist.' },
@@ -169,7 +176,7 @@
       merged.platforms = Object.assign(defaults().platforms, s.platforms || {});
       merged.audio = Object.assign(defaults().audio, s.audio || {});
       merged.winloss = Object.assign(defaults().winloss, s.winloss || {});
-      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); merged.voice.bot.tts = Object.assign(defaults().voice.bot.tts, (sv.bot && sv.bot.tts) || {}); if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
+      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); merged.voice.bot.tts = Object.assign(defaults().voice.bot.tts, (sv.bot && sv.bot.tts) || {}); merged.voice.bot.tts.azure = Object.assign(defaults().voice.bot.tts.azure, (sv.bot && sv.bot.tts && sv.bot.tts.azure) || {}); { const da = defaults().voice.announcer, sa = sv.announcer || {}; merged.voice.announcer = Object.assign(da, sa); merged.voice.announcer.textsEn = Object.assign(defaults().voice.announcer.textsEn, sa.textsEn || {}); merged.voice.announcer.textsMs = Object.assign(defaults().voice.announcer.textsMs, sa.textsMs || {}); } if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
       merged.ticker = Object.assign(defaults().ticker, s.ticker || {});
       ['status', 'boss', 'promo', 'queue', 'draft', 'tiers'].forEach((k) => { merged[k] = Object.assign(defaults()[k], s[k] || {}); });
       if (!Array.isArray(merged.toplike)) merged.toplike = defaults().toplike;

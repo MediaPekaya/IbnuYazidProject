@@ -93,62 +93,90 @@
     return { text: fb ? fill(fb) : '', entry: null, score: 0 };
   };
 
-  /* ---------- keluaran bot: paparan pada siaran + suara ---------- */
+  /* ---------- suara: penyedia (sistem / Azure / ElevenLabs), cache dan main ---------- */
   const ELEVEN = 'https://api.elevenlabs.io/v1';
   const MODELS = ['eleven_multilingual_v2', 'eleven_flash_v2_5'];
-  const VOICE_ID = /^[A-Za-z0-9]{10,40}$/;
-  const audioCache = new Map(); // jawapan yang sama tidak menggunakan kuota ElevenLabs dua kali
   const warned = new Map();
   // setiap mesej ralat dipaparkan paling kerap sekali setiap 20 saat (tidak membanjiri skrin apabila bot menjawab berulang kali)
   const warn = (msg) => { const n = Date.now(); if (n - (warned.get(msg) || 0) > 20000) { warned.set(msg, n); GS.toast(msg, 'warn', 6000); } };
   V.resetWarn = () => warned.clear();
   V.elevenKey = () => ((GS.platforms && GS.platforms.getKey('tts-elevenlabs')) || '').trim();
   V.setElevenKey = (k) => GS.platforms.setKey('tts-elevenlabs', String(k || '').trim());
+  V.azureKey = () => ((GS.platforms && GS.platforms.getKey('tts-azure')) || '').trim();
+  V.setAzureKey = (k) => GS.platforms.setKey('tts-azure', String(k || '').trim());
+  const PROV = { azure: 'Azure Speech', eleven: 'ElevenLabs' };
 
-  /** Ralat ElevenLabs -> mesej yang mudah difahami. */
-  const elevenError = async (r) => {
-    let det = null; try { det = (await r.json()).detail; } catch (e) { /* bukan JSON */ }
-    const st = det && (det.status || det.code) ? String(det.status || det.code) : '';
-    if (/quota/i.test(st) || /quota/i.test((det && det.message) || '')) return GS.t('Kuota percuma ElevenLabs bulan ini sudah habis.');
-    if (r.status === 401) return GS.t('Kunci API ElevenLabs tidak sah atau tiada kebenaran.');
-    if (r.status === 429) return GS.t('ElevenLabs: terlalu banyak permintaan. Cuba sebentar lagi.');
-    if (r.status === 402 || r.status === 403) return GS.t('Pelan ElevenLabs anda tidak membenarkan suara ini.');
-    return GS.t('ElevenLabs gagal (kod {0}).', r.status);
+  /** Ralat penyedia -> mesej yang mudah difahami. */
+  const errMsg = (prov, status, code, msg) => {
+    const n = PROV[prov] || prov;
+    if (/quota|limit_exceeded/i.test(code || '') || /quota/i.test(msg || '')) return GS.t('Kuota percuma {0} bulan ini sudah habis.', n);
+    if (status === 401 || status === 403) return GS.t('Kunci API {0} tidak sah atau tiada kebenaran (semak kunci dan kawasan).', n);
+    if (status === 429) return GS.t('{0}: terlalu banyak permintaan. Cuba sebentar lagi.', n);
+    if (status === 402) return GS.t('Pelan {0} anda tidak membenarkan suara ini.', n);
+    if (code === 'timeout') return GS.t('{0} tidak menjawab (tamat masa).', n);
+    if (code === 'network' || status === 0) return GS.t('Tidak dapat menghubungi {0}. Semak sambungan internet.', n);
+    return GS.t('{0} gagal (kod {1}).', n, status);
   };
 
-  /** Jana suara melalui ElevenLabs (tier percuma). Mengembalikan ArrayBuffer audio. */
-  V.elevenFetch = async function (text) {
-    const t = cfg().bot.tts, key = V.elevenKey();
-    if (!key) throw new Error(GS.t('Kunci API ElevenLabs belum diisi.'));
-    const voice = t.gender === 'male' ? t.maleVoice : t.femaleVoice;
-    if (!VOICE_ID.test(String(voice || ''))) throw new Error(GS.t('ID suara ElevenLabs tidak sah.'));
+  const azVoice = (lang, gender) => { const a = cfg().bot.tts.azure; const ms = String(lang).toLowerCase().startsWith('ms'); return gender === 'male' ? (ms ? a.maleMs : a.maleEn) : (ms ? a.femaleMs : a.femaleEn); };
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
+
+  /** Ambil audio (ArrayBuffer) daripada penyedia AI. App Windows: melalui proses utama; web: terus dari pelayar. */
+  async function netAudio(prov, text, lang, gender) {
+    const b = cfg().bot, t = b.tts;
+    const spoken = String(text).slice(0, prov === 'eleven' ? 280 : 500);
     const model = MODELS.includes(t.model) ? t.model : MODELS[0];
-    const spoken = String(text).slice(0, 280); // had aksara menjimatkan kuota
-    const ck = [voice, model, spoken].join('|');
-    if (audioCache.has(ck)) return audioCache.get(ck).slice(0);
-    const body = { text: spoken, model_id: model };
-    if (model === 'eleven_flash_v2_5') body.language_code = V.cultureFor().slice(0, 2).toLowerCase();
+    const params = prov === 'azure'
+      ? { key: V.azureKey(), region: t.azure.region, voice: azVoice(lang, gender), text: spoken, rate: Math.round((Number(b.rate) || 0) * 6) }
+      : { key: V.elevenKey(), voice: gender === 'male' ? t.maleVoice : t.femaleVoice, model, language_code: String(lang).slice(0, 2).toLowerCase(), text: spoken };
+    if (!params.key) throw new Error(GS.t('Kunci API {0} belum diisi.', PROV[prov]));
+    if (native() && window.gsNative.tts) {
+      const r = await window.gsNative.tts.fetch(prov, params);
+      if (!r || !r.ok) throw new Error(errMsg(prov, r && r.status, r && r.code, r && r.message));
+      return r.audio.buffer.slice(r.audio.byteOffset, r.audio.byteOffset + r.audio.byteLength);
+    }
     const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
-    let r;
+    let res;
     try {
-      r = await fetch(ELEVEN + '/text-to-speech/' + voice + '?output_format=mp3_44100_128', { method: 'POST', signal: ctl.signal, headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' }, body: JSON.stringify(body) });
-    } catch (e) { throw new Error(e && e.name === 'AbortError' ? GS.t('ElevenLabs tidak menjawab (tamat masa).') : GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.')); } finally { clearTimeout(to); }
-    if (!r.ok) throw new Error(await elevenError(r));
-    const ab = await r.arrayBuffer();
-    audioCache.set(ck, ab.slice(0));
-    if (audioCache.size > 30) audioCache.delete(audioCache.keys().next().value);
-    return ab;
-  };
+      if (prov === 'azure') {
+        const l2 = params.voice.split('-').slice(0, 2).join('-');
+        res = await fetch('https://' + String(params.region).toLowerCase() + '.tts.speech.microsoft.com/cognitiveservices/v1', { method: 'POST', signal: ctl.signal,
+          headers: { 'Ocp-Apim-Subscription-Key': params.key, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3' },
+          body: "<speak version='1.0' xml:lang='" + l2 + "'><voice xml:lang='" + l2 + "' name='" + params.voice + "'><prosody rate='" + (params.rate >= 0 ? '+' : '') + params.rate + "%'>" + esc(spoken) + '</prosody></voice></speak>' });
+      } else {
+        const body = { text: spoken, model_id: model }; if (model === 'eleven_flash_v2_5') body.language_code = params.language_code;
+        res = await fetch(ELEVEN + '/text-to-speech/' + params.voice + '?output_format=mp3_44100_128', { method: 'POST', signal: ctl.signal, headers: { 'xi-api-key': params.key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' }, body: JSON.stringify(body) });
+      }
+    } catch (e) { throw new Error(errMsg(prov, 0, e && e.name === 'AbortError' ? 'timeout' : 'network')); } finally { clearTimeout(to); }
+    if (!res.ok) {
+      let code = '', msg = ''; try { const j = await res.json(); const d = j.detail || j.error || j; code = String(d.status || d.code || ''); msg = String(d.message || ''); } catch (e) { /* bukan JSON */ }
+      throw new Error(errMsg(prov, res.status, code, msg));
+    }
+    return res.arrayBuffer();
+  }
 
-  /** Baki kuota aksara bulan ini. */
+  /** Baki kuota ElevenLabs (Azure tiada API kuota ringkas: lihat portal Azure). */
   V.elevenQuota = async function () {
     const key = V.elevenKey();
-    if (!key) throw new Error(GS.t('Kunci API ElevenLabs belum diisi.'));
+    if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', PROV.eleven));
     let r;
-    try { r = await fetch(ELEVEN + '/user/subscription', { headers: { 'xi-api-key': key } }); } catch (e) { throw new Error(GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.')); }
-    if (!r.ok) throw new Error(await elevenError(r));
+    try { r = await fetch(ELEVEN + '/user/subscription', { headers: { 'xi-api-key': key } }); } catch (e) { throw new Error(errMsg('eleven', 0, 'network')); }
+    if (!r.ok) throw new Error(errMsg('eleven', r.status, ''));
     const j = await r.json();
     return { used: j.character_count, limit: j.character_limit, tier: j.tier };
+  };
+
+  /** Audio yang sudah dinyahkod disimpan supaya main semula segera (dan tidak menggunakan kuota dua kali). */
+  const bufCache = new Map();
+  V.getBuffer = async function (prov, text, lang, gender) {
+    const t = cfg().bot.tts;
+    const ck = [prov, prov === 'azure' ? azVoice(lang, gender) : (gender === 'male' ? t.maleVoice : t.femaleVoice), t.model, cfg().bot.rate, lang, text].join('|');
+    if (bufCache.has(ck)) return bufCache.get(ck);
+    const ab = await netAudio(prov, text, lang, gender);
+    const buf = await GS.audio.ensure().decodeAudioData(ab);
+    bufCache.set(ck, buf);
+    if (bufCache.size > 80) bufCache.delete(bufCache.keys().next().value);
+    return buf;
   };
 
   /** Pilih suara sistem mengikut jantina dan bahasa (Melayu diutamakan, kemudian Indonesia, kemudian Inggeris). */
@@ -156,49 +184,96 @@
   const FEMALE_RE = /\b(zira|hazel|susan|aria|jenny|yasmin|emma|samantha|victoria|karen|moira|ayu|gadis|siti|female|perempuan|helen|linda|catherine|sabina)\b/i;
   V.pickSystemVoice = function (vs, gender, lang) {
     const l = String(lang || 'ms').slice(0, 2).toLowerCase();
-    const rank = (v) => { const x = String(v.lang || '').toLowerCase(); return x.startsWith(l) ? 0 : x.startsWith('ms') ? 0 : x.startsWith('id') ? 1 : x.startsWith('en') ? 2 : 3; };
+    const rank = (v) => { const x = String(v.lang || '').toLowerCase(); return x.startsWith(l) ? 0 : x.startsWith('ms') && l === 'ms' ? 0 : x.startsWith('id') && l === 'ms' ? 1 : x.startsWith('en') ? 2 : 3; };
     const isG = (v) => (gender === 'male' ? MALE_RE.test(v.name) && !FEMALE_RE.test(v.name) : FEMALE_RE.test(v.name) && !MALE_RE.test(v.name));
     const sorted = vs.slice().sort((a, b) => rank(a) - rank(b));
     return sorted.find((v) => isG(v) && rank(v) <= 2) || sorted.find((v) => isG(v)) || sorted.find((v) => rank(v) === 0) || sorted[0] || null;
   };
 
-  async function playBuffer(ab, done) {
+  let curSrc = null;
+  V.stopSpeech = function () {
+    if (curSrc) { try { curSrc.onended = null; curSrc.stop(); } catch (e) { /* sudah tamat */ } curSrc = null; }
+    try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) { /* abaikan */ }
+  };
+  function playBuf(buf, done) {
     const ctx = GS.audio.ensure();
-    const buf = await ctx.decodeAudioData(ab);
     const src = ctx.createBufferSource();
-    src.buffer = buf; src.connect(GS.audio.voiceBus || GS.audio.sfxBus); src.onended = done; src.start();
+    src.buffer = buf; src.connect(GS.audio.voiceBus || GS.audio.sfxBus);
+    src.onended = () => { if (curSrc === src) curSrc = null; done(); };
+    curSrc = src;
+    src.start();
   }
 
-  V.speak = async function (text, force) {
+  /** Sebut teks SEKARANG (tiada giliran): suara sebelumnya dihentikan. Mengembalikan true jika suara bermula.
+   *  o: {force: sebut walaupun "bot bercakap" dimatikan, lang, announcer} */
+  V.speak = async function (text, o) {
+    o = o || {};
     const b = cfg().bot;
-    if ((!b.voiceOn && !force) || !text) return;
-    V.speaking = true;
-    const done = () => { setTimeout(() => { V.speaking = false; GS.emit('voice:status'); }, 600); };
+    text = String(text || '').trim();
+    if (!text || (!b.voiceOn && !o.force && !o.announcer)) return false;
     const tts = b.tts || {};
+    const lang = o.lang || V.cultureFor();
+    V.stopSpeech();
+    V.speaking = true;
+    const done = () => { setTimeout(() => { if (!curSrc) { V.speaking = false; GS.emit('voice:status'); } }, 600); };
+    let started = false;
     try {
-      // 1) ElevenLabs (percuma): suara AI semula jadi, masuk terus ke dalam siaran
-      if (tts.provider === 'eleven') {
-        try { await playBuffer(await V.elevenFetch(text), done); return; } catch (e) { warn(String((e && e.message) || e) + ' ' + GS.t('Menggunakan suara sistem.')); }
+      // 1) suara AI semula jadi (Azure Speech / ElevenLabs), terus masuk siaran
+      if (tts.provider === 'azure' || tts.provider === 'eleven') {
+        try { const buf = await V.getBuffer(tts.provider, text, lang, tts.gender); playBuf(buf, done); return true; } catch (e) { warn(String((e && e.message) || e) + ' ' + GS.t('Menggunakan suara sistem.')); }
       }
       // 2) suara Windows dijana sebagai WAV dan dicampur ke dalam siaran
       if (b.inStream && native()) {
-        const r = await window.gsNative.voice.say(text, { voice: b.voiceName, culture: V.cultureFor(), gender: tts.gender, rate: b.rate });
-        if (r && r.ok) { await playBuffer(r.wav.buffer.slice(r.wav.byteOffset, r.wav.byteOffset + r.wav.byteLength), done); return; }
+        const r = await window.gsNative.voice.say(text, { voice: b.voiceName, culture: lang, gender: tts.gender, rate: b.rate });
+        if (r && r.ok) { playBuf(await GS.audio.ensure().decodeAudioData(r.wav.buffer.slice(r.wav.byteOffset, r.wav.byteOffset + r.wav.byteLength)), done); return true; }
         if (r && r.error) GS.toast(GS.t('Suara bot ke siaran gagal: {0}', r.error), 'warn');
       }
-      // 3) suara sistem melalui pembesar suara
+      // 3) suara sistem melalui pembesar suara (serta-merta)
       if ('speechSynthesis' in window) {
         const u = new SpeechSynthesisUtterance(text);
         const vs = speechSynthesis.getVoices();
-        const pick = (b.voiceName && vs.find((v) => v.name === b.voiceName)) || V.pickSystemVoice(vs, tts.gender, V.cultureFor());
-        if (pick) { u.voice = pick; u.lang = pick.lang; }
+        const pick = (b.voiceName && vs.find((v) => v.name === b.voiceName)) || V.pickSystemVoice(vs, tts.gender, lang);
+        if (pick) { u.voice = pick; u.lang = pick.lang; } else u.lang = lang;
         u.rate = 1 + (Number(b.rate) || 0) / 10;
         u.onend = done; u.onerror = done;
         speechSynthesis.speak(u);
-        return;
+        started = true;
+        return true;
       }
     } catch (e) { console.warn('[GS] suara bot', e); }
-    done();
+    if (!started) done();
+    return started;
+  };
+
+  /* ---------- pengumum: efek BERCAKAP ---------- */
+  V.announceKey = (name, params) => (name === 'kill' ? String((params && params.label) || 'kill').toLowerCase() : name);
+  V.announceText = function (name, params) {
+    const a = cfg().announcer;
+    if (!a.on) return '';
+    const set = a.lang === 'ms-MY' ? a.textsMs : a.textsEn;
+    return String(set[V.announceKey(name, params)] || '').trim();
+  };
+  /** Efek yang dicetus oleh pengecam suara tidak diumumkan semula (elak mengulang perkataan yang baru disebut/didengar). */
+  V.suppressBeep = (name, params) => !!(!(params && params.viaVoice) && V.announceText(name, params) && !cfg().announcer.keepBeep);
+  V.announce = async function (name, params) {
+    if (params && params.viaVoice) return;
+    const t = V.announceText(name, params);
+    if (!t) return;
+    const ok = await V.speak(t, { announcer: true, lang: cfg().announcer.lang });
+    if (!ok && V.suppressBeep(name, params) && GS.fx.sfxName) GS.audio.sfx(GS.fx.sfxName(name)); // suara gagal: bunyi biasa sebagai sandaran
+  };
+  /** Jana awal suara pengumum (penyedia AI) supaya main serta-merta tanpa lengah rangkaian. */
+  let prewarmT = 0;
+  V.prewarm = function () {
+    clearTimeout(prewarmT);
+    prewarmT = setTimeout(async () => {
+      const tts = cfg().bot.tts, a = cfg().announcer;
+      if (!a.on || (tts.provider !== 'azure' && tts.provider !== 'eleven')) return;
+      if (!(tts.provider === 'azure' ? V.azureKey() : V.elevenKey())) return;
+      const set = a.lang === 'ms-MY' ? a.textsMs : a.textsEn;
+      const texts = [...new Set(Object.values(set).map((x) => String(x || '').trim()).filter(Boolean))];
+      for (const t of texts) { try { await V.getBuffer(tts.provider, t, a.lang, tts.gender); } catch (e) { warn(String((e && e.message) || e)); return; } }
+    }, 900);
   };
   V.cultureFor = () => { const c = cfg().culture; return c && c !== 'auto' ? c : (GS.state.lang === 'en' ? 'en-US' : 'ms-MY'); };
 
@@ -208,7 +283,7 @@
     V.log.unshift({ at: Date.now(), kind: 'bot', text });
     V.log.length = Math.min(V.log.length, 30);
     GS.fx.trigger('botsay', { name: b.name || 'BOT', text, dur: Math.min(12000, 3200 + text.length * 70), sound: false });
-    V.speak(text, force);
+    V.speak(text, { force: !!force });
     GS.emit('voice:status');
   };
 
@@ -248,6 +323,7 @@
     if (now - (V.lastFx[m.fx] || 0) < st.cooldownMs) { V.note({ source, text, result: m.fx + ' (jeda)' }); return { ignored: 'jeda' }; }
     V.lastFx[m.fx] = now;
     const params = m.fx === 'kill' ? { label: m.phrase === 'kill' ? 'KILL' : m.phrase.toUpperCase() } : {};
+    if (!ev.test) params.viaVoice = true; // daripada pengecam: tidak diumumkan semula (ujian: diumumkan supaya boleh didengar)
     GS.fx.trigger(m.fx, params);
     V.note({ source, text, result: m.fx + (params.label ? ' · ' + params.label : '') });
     GS.emit('voice:status');
@@ -383,6 +459,9 @@
   V.init = function () {
     if (native()) window.gsNative.voice.onEvent(V.onNative);
     GS.on('audio:changed', () => V.retap());
+    GS.on('fx:trigger', (e) => V.announce(e.name, e.params));
+    try { if ('speechSynthesis' in window) { speechSynthesis.getVoices(); speechSynthesis.addEventListener('voiceschanged', () => speechSynthesis.getVoices()); } } catch (e) { /* abaikan */ }
+    V.prewarm();
     // pulihkan selepas dibuka semula: bot/efek suara dimulakan jika sebelum ini dihidupkan (mikrofon sudah diberi kebenaran)
     if (cfg().enabled && native()) setTimeout(() => { cfg().enabled = false; V.start(); }, 2500);
     else cfg().enabled = false; // pelayar: memerlukan klik pengguna untuk mikrofon

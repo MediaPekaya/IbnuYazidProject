@@ -451,3 +451,6 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .popover.rec-pop { min-width: 300px; }
 .rec-pop .pop-item.on::before { content: '✓'; color: var(--green); font-weight: 900; margin-right: 2px; }
 .rec-pop small { display: block; color: var(--dim); font-weight: 500; font-size: 11px; }
+
+.ann-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ann-grid .field span { font-size: 10px; }
