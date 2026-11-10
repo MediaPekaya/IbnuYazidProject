@@ -251,7 +251,7 @@
             h('button', { type: 'button', class: 'btn ghost', id: 'btnAiTest', onClick: async () => { keyIn.dispatchEvent(new Event('change')); aiOut.textContent = GS.t('Menyemak…'); try { const t = await v.askAI('Hai, kau siapa dan boleh makan tak?'); aiOut.textContent = GS.t('AI berfungsi. Contoh jawapan: {0}', t); v.chatMem = []; } catch (e) { aiOut.textContent = String(e.message || e); } } }, 'Uji AI'),
             h('button', { type: 'button', class: 'btn ghost', id: 'btnAiClear', onClick: () => { v.setAiKey(''); keyIn.value = ''; aiOut.textContent = GS.t('Kunci dipadam.'); } }, 'Padam kunci'))),
         aiOut,
-        field('Maklumat game tambahan untuk bot (pilihan)', h('textarea', { id: 'aiExtra', rows: 3, maxlength: 600, placeholder: 'cth: Pasukan kita: Ali (jungle), Abu (gold)... Musuh: Team X. Nama streamer: Amirul.', onInput: (e) => { c.bot.ai.extra = e.target.value; save(); } }, c.bot.ai.extra || ''), 'Bot hanya tahu nama hero/rekod yang dibaca app. Nama pemain dan pasukan perlu ditulis di sini jika mahu bot menyebutnya; bot tidak akan mereka nama.'));
+        field('Maklumat game tambahan untuk bot (pilihan)', h('textarea', { id: 'aiExtra', rows: 3, maxlength: 600, placeholder: 'cth: Pasukan kita: Ali (jungle), Abu (gold)... Musuh: Team X. Nama streamer: nama anda.', onInput: (e) => { c.bot.ai.extra = e.target.value; save(); } }, c.bot.ai.extra || ''), 'Bot menganalisis data yang dikesan app (hero, K/D/A, item, kejadian, keputusan). Nama pemain dan pasukan perlu ditulis di sini jika mahu bot menyebutnya; bot tidak akan mereka nama.'));
     };
     drawAi();
     const body = h('div', { class: 'voice-modal' },
@@ -279,7 +279,7 @@
         check('Bot bercakap (suara)', () => c.bot.voiceOn, (x) => { c.bot.voiceOn = x; })),
       h('div', { class: 'grid2' },
         field('Nama bot (kata panggilan)', h('input', { type: 'text', id: 'botName', value: c.bot.name, maxlength: 24, onInput: (e) => { c.bot.name = e.target.value.trim(); save(); } }), 'Cth Jarvis. Sebut nama ini, kemudian soalan: "Jarvis, siapa noob?"'),
-        field('Nama lain / ejaan sebutan', h('input', { type: 'text', id: 'botAliases', value: c.bot.aliases, placeholder: 'cth mirul, mirror, miro', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }), 'Pengecam suara (terutama Inggeris) selalu salah dengar nama Melayu. Tulis ejaan yang didengarnya, atau tekan "Latih nama" di bawah.')),
+        field('Nama lain / ejaan sebutan', h('input', { type: 'text', id: 'botAliases', value: c.bot.aliases, placeholder: 'ejaan sebutan lain (pilihan)', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }), 'Nama yang anda tetapkan ialah nama panggilan bot. Jika pengecam salah dengar nama anda, tekan "Latih nama" di bawah atau tulis ejaan yang didengarnya.')),
       h('div', { class: 'btn-row' },
         h('button', { type: 'button', class: 'btn', id: 'btnLearnName', onClick: () => { if (!v.running) { GS.toast(GS.t('Hidupkan bot dahulu, kemudian tekan Latih nama.'), 'warn'); return; } v.learnName(); GS.toast(GS.t('Sebut nama bot sekarang (satu kali). Sistem akan mengingati bunyi yang didengarnya.'), 'ok', 5000); } }, 'Latih nama (sebut nama bot)')),
       h('h4', null, 'Suara bot'),

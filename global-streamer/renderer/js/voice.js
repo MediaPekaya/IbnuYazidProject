@@ -125,6 +125,26 @@
     { re: /\b(hai|helo|hello|hi|assalamualaikum|salam|apa khabar|apa kabar)\b/, a: ['Hai! Saya sihat, bateri penuh.', 'Helo! Saya sedia, nak tanya apa?', 'Waalaikumussalam, hai semua!'] },
     { re: /\b(menang|kalah|boleh menang|boleh ke menang|game ni)\b/, a: ['Selagi kerjasama baik, semuanya masih boleh. Fokus!', 'Saya percaya pada awak. Jangan lupa tengok minimap.', 'Tak kira menang atau kalah, yang penting kita bergaya.'] },
   ];
+  /** Analisis ringkas luar talian (tanpa AI) menggunakan data game sebenar. Kembalikan '' jika bukan soalan analisis game. */
+  V.analyzeLocal = function (q) {
+    const n = norm(q);
+    if (!/\b(kenapa|mengapa|sebab|punca|analisis|analisa|prestasi|macam mana (saya|aku) main|mvp)\b/.test(n)) return '';
+    const E = GS.events || { state: {} }, k = E.state && E.state.kda, D = V.draftAnalysis(), T = tokens();
+    const kd = k ? ' K/D/A semasa ' + k.k + '/' + k.d + '/' + k.a + '.' : '';
+    if (/\b(mati|death|banyak mati|selalu mati)\b/.test(n)) {
+      if (!k) return 'Saya tak dapat baca K/D/A sekarang, jadi susah nak analisis. Hidupkan pengesan kejadian dahulu.';
+      return k.d > k.k ? 'Mati ' + k.d + ' kali berbanding ' + k.k + ' kill. Biasanya sebab terlalu agresif tanpa lihat minimap atau terpisah daripada team. Cuba jaga posisi dan tunggu team.'
+        : 'Mati ' + k.d + ' kali tapi ' + k.k + ' kill dan ' + k.a + ' assist, jadi masih seimbang. Kurangkan mati yang tak perlu dengan lihat minimap dan jangan kejar sendirian.';
+    }
+    if (/\b(kalah|tewas|lose|defeat)\b/.test(n)) {
+      const why = D.gaps.length ? ' Dari draft: ' + D.gaps.join(', ') + '.' : '';
+      return 'Rekod sesi ' + T.menang + ' menang ' + T.kalah + ' kalah.' + kd + why + (D.win != null ? ' Draft dianggar ' + D.win + '% peluang menang.' : '') + ' Selebihnya saya perlukan AI untuk analisis lebih mendalam.';
+    }
+    if (/\b(menang|win|berjaya)\b/.test(n)) return 'Rekod sesi ' + T.menang + ' menang ' + T.kalah + ' kalah.' + kd + (D.win != null ? ' Draft dianggar ' + D.win + '% peluang menang.' : '') + (D.gaps.length ? ' Perhatian: ' + D.gaps.join(', ') + '.' : '');
+    if (/\bmvp\b/.test(n)) return 'Saya tak dapat nampak siapa MVP kerana app tak baca skor pemain lain.' + kd;
+    if (!/\b(game|permainan|main|kalah|menang|mati|kill|kda|hero|draft|team|pasukan|musuh|match|perlawanan|rank|lawan|analisis|analisa|prestasi)\b/.test(n)) return ''; // bukan soalan tentang game: biar AI/keperibadian menjawab
+    return 'Setakat ini' + (kd || ' saya belum dapat baca K/D/A.') + ' Rekod ' + T.menang + ' menang ' + T.kalah + ' kalah. Untuk analisis mendalam, isi kunci AI percuma di tetapan bot.';
+  };
   let lastPersona = '';
   /** Jawapan spontan luar talian; kembalikan '' jika tiada keperibadian yang sepadan. */
   V.persona = function (q) {
@@ -145,33 +165,63 @@
   V.setAiKey = (k) => GS.platforms.setKey('ai-' + aiProv(), String(k || '').trim());
   V.aiConfigured = () => !!V.aiKey();
   V.chatMem = [];
-  /** Maklumat game semasa untuk AI (hanya yang sebenar; tidak mereka nama pemain). */
-  V.gameContext = function () {
-    const S = GS.state, T = tokens(), out = [];
-    out.push('Game: ' + ((GS.games && GS.games.current && GS.games.current().name) || S.game || 'MLBB') + '.');
-    out.push('Rekod sesi: ' + T.menang + ' menang, ' + T.kalah + ' kalah, streak ' + T.streak + '. K/D/A semasa: ' + T.kill + '/' + T.mati + '/' + T.assist + '.');
-    const d = S.draft || {};
+  const heroInfo = (n) => { const x = ((GS.data && GS.data.mlbbHeroes) || []).find((h) => h.name === n); return x ? n + ' (' + (x.roles || []).join('/') + ')' : n; };
+  const EV_LABEL = { kill: 'kill', death: 'mati', item: 'beli item', fullitem: 'item penuh', victory: 'VICTORY', defeat: 'DEFEAT', newmatch: 'perlawanan baharu' };
+  /** Komposisi draft: bilangan peranan dan kekurangan (untuk analisis kalah/menang). */
+  V.draftAnalysis = function () {
+    const d = GS.state.draft || {}, heroes = (GS.data && GS.data.mlbbHeroes) || [];
+    const roles = (list) => { const c = {}; list.filter(Boolean).forEach((n) => { const x = heroes.find((h) => h.name === n); ((x && x.roles) || []).slice(0, 1).forEach((r) => { c[r] = (c[r] || 0) + 1; }); }); return c; };
     const ally = (d.ally || []).filter(Boolean), enemy = (d.enemy || []).filter(Boolean);
-    if (ally.length) out.push('Hero pasukan kita: ' + ally.join(', ') + '.');
-    if (enemy.length) out.push('Hero pasukan musuh: ' + enemy.join(', ') + '.');
+    const ra = roles(ally), re = roles(enemy);
+    const gaps = [];
+    if (ally.length >= 4) { if (!ra.Tank) gaps.push('pasukan kita tiada Tank'); if (!ra.Support) gaps.push('pasukan kita tiada Support'); if ((ra.Marksman || 0) + (ra.Mage || 0) === 0) gaps.push('pasukan kita tiada damage jarak jauh (Marksman/Mage)'); }
+    if (enemy.length >= 4) { if (!re.Tank) gaps.push('musuh tiada Tank'); if ((re.Assassin || 0) >= 2) gaps.push('musuh ada banyak Assassin'); }
+    let win = null; try { win = GS.meta && GS.meta.predict(ally, enemy); } catch (e) { /* tiada data */ }
+    return { ally, enemy, ra, re, gaps, win };
+  };
+  /** Maklumat game semasa untuk AI: hanya data yang SEBENAR dikesan/diisi (tidak mereka nama atau statistik). */
+  V.gameContext = function () {
+    const S = GS.state, T = tokens(), out = [], E = GS.events || { log: [], state: {} };
+    out.push('Game: ' + (((GS.games && GS.games[S.game]) || {}).name || S.game || 'MLBB') + '.');
+    out.push('Rekod sesi: ' + T.menang + ' menang, ' + T.kalah + ' kalah, streak ' + T.streak + '.');
+    const k = E.state && E.state.kda;
+    out.push(k ? 'K/D/A perlawanan semasa (dibaca daripada HUD): ' + k.k + '/' + k.d + '/' + k.a + (k.d ? ' (KDA ' + ((k.k + k.a) / k.d).toFixed(1) + ')' : '') + '.' : 'K/D/A semasa: tidak dapat dibaca (pengesan mati atau skrin tidak sesuai).');
+    const D = V.draftAnalysis(), d = S.draft || {};
+    if (D.ally.length) out.push('Hero pasukan kita: ' + D.ally.map(heroInfo).join(', ') + '.');
+    if (D.enemy.length) out.push('Hero pasukan musuh: ' + D.enemy.map(heroInfo).join(', ') + '.');
     if (d.banAlly || d.banEnemy) out.push('Ban: kita ' + (d.banAlly || '-') + ', musuh ' + (d.banEnemy || '-') + '.');
-    if (T.toppick !== '?') out.push('Meta tournament: top pick ' + T.toppick + ', top ban ' + T.topban + '.');
+    if (D.win != null) out.push('Anggaran peluang menang daripada draft (statistik meta, bukan jaminan): ' + D.win + '%.');
+    if (D.gaps.length) out.push('Isu komposisi: ' + D.gaps.join('; ') + '.');
+    const owned = (E.state && E.state.owned) || [];
+    if (owned.length) out.push('Item dimiliki (dikesan): ' + owned.join(', ') + '.');
+    const now = Date.now();
+    const tl = (E.log || []).slice(0, 18).reverse().map((e) => Math.max(0, Math.round((now - e.t) / 60000)) + ' min lalu: ' + (EV_LABEL[e.type] || e.type) + (e.detail && e.detail.label ? ' ' + e.detail.label : '') + (e.detail && e.detail.name ? ' ' + e.detail.name : ''));
+    if (tl.length) out.push('Garis masa kejadian yang dikesan (lama ke baru):\n' + tl.join('\n'));
+    try { const p = GS.meta && GS.meta.top('pick', {}), b = GS.meta && GS.meta.top('ban', {}); if (p && p[0]) out.push('Meta tournament: top pick ' + p.slice(0, 3).map((x) => x.name).join(', ') + '; top ban ' + ((b || []).slice(0, 3).map((x) => x.name).join(', ') || '-') + '.'); } catch (e) { /* tiada meta */ }
+    out.push('Data yang TIDAK dikesan app: nama pemain, nama pasukan, MVP, damage, emas, minimap, pemain lain (kecuali ditulis di bawah).');
     const x = String(cfg().bot.ai.extra || '').trim();
     if (x) out.push('Maklumat tambahan daripada streamer (nama pemain, pasukan, dll): ' + x.slice(0, 600));
     return out.join('\n');
   };
-  const aiSystem = () => {
+  const ANALYSIS_RE = /\b(kenapa|mengapa|why|sebab|punca|analisis|analisa|analyze|analyse|bagaimana|macam mana|how come|explain|terangkan|jelaskan)\b/i;
+  V.isAnalysis = (q) => ANALYSIS_RE.test(String(q || ''));
+  const aiSystem = (analysis) => {
     const n = (cfg().bot.name || 'Bot').trim() || 'Bot';
-    return 'Kamu ialah ' + n + ', bot suara AI yang menemani seorang streamer game dalam siaran langsung; penonton turut mendengar. '
-      + 'Kamu BOT/AI: tak boleh makan, tidur atau ke mana-mana, dan jangan berpura-pura manusia. Kalau ditanya tentang makan, tidur atau perasaan fizikal, jawab secara lucu sebagai bot. '
+    return 'Kamu ialah ' + n + ', bot suara AI yang menemani seorang streamer dalam siaran langsung; penonton turut mendengar. '
+      + 'JAWAB TEPAT APA YANG DITANYA, mengikut topik soalan, walau apa pun topiknya (makanan, anime, game, ilmu am, perasaan, lawak, dan lain-lain). Jangan lari topik, jangan elak, dan jangan tukar kepada topik game jika soalan bukan tentang game. '
+      + 'Kamu BOT/AI: tidak boleh makan, tidur atau ke mana-mana, dan jangan berpura-pura manusia; tetapi tetap beri pendapat, penjelasan dan jawapan sebenar tentang topik itu (contoh soalan makan: bincang makanan itu). '
       + 'Bercakap Bahasa Melayu Malaysia yang santai (boleh sedikit slanga seperti "wei", "bro", "lah"). Jawab dalam bahasa yang sama dengan soalan (jika soalan English, jawab English). '
-      + 'Jawapan SANGAT pendek: 1-2 ayat, paling banyak 25 patah perkataan, tanpa emoji, tanpa senarai, tanpa markdown, kerana ia akan disebut kuat. '
-      + 'Jawab spontan dan kreatif, jangan ikut skrip. Untuk soalan siapa noob, troll atau bermasalah, bergurau dengan mesra (contohnya ajak cermin diri dulu); jangan menghina, jangan guna kata kesat dan jangan serang individu sebenar. '
-      + 'Guna maklumat game di bawah jika berkaitan. Jika maklumat tiada, akui kamu tak nampak datanya dan JANGAN mereka nama pemain atau statistik.\n\n' + V.gameContext();
+      + (analysis
+        ? 'Ini soalan ANALISIS/PENJELASAN: beri 3-4 ayat (paling banyak 60 patah perkataan) yang menganalisis dengan alasan sebenar. Untuk soalan tentang game (kenapa kalah/menang, kenapa banyak mati, kenapa seseorang tidak dapat MVP, dan sebagainya), analisis menggunakan DATA di bawah: sebut nombor, komposisi hero dan kejadian dalam garis masa yang berkaitan, kemudian beri sebab dan cadangan. Jika data yang diperlukan tiada (cth MVP, damage atau pemain lain), katakan terus terang data apa yang tiada, dan beri penilaian terbaik daripada data yang ada. '
+        : 'Jawapan pendek: 1-2 ayat, paling banyak 30 patah perkataan. ')
+      + 'Tanpa emoji, tanpa senarai, tanpa markdown, kerana ia akan disebut kuat. '
+      + 'Untuk soalan siapa noob, troll atau bermasalah, bergurau dengan mesra (contohnya ajak cermin diri dulu, atau rujuk data); jangan menghina, jangan guna kata kesat dan jangan serang individu sebenar. '
+      + 'DATA game di bawah hanya untuk soalan tentang game/siaran ini. JANGAN mereka nama pemain, pasukan atau statistik yang tiada dalam data.\n\n' + V.gameContext();
   };
-  const cleanAi = (t) => {
+  const cleanAi = (t, lim) => {
+    lim = lim || 260;
     let x = String(t || '').replace(/[*_`#>~]/g, '').replace(/\s*\n+\s*/g, ' ').replace(/\s+/g, ' ').trim();
-    if (x.length > 240) { const cut = x.slice(0, 240); const p = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? ')); x = p > 60 ? cut.slice(0, p + 1) : cut.replace(/\s+\S*$/, '') + '…'; }
+    if (x.length > lim) { const cut = x.slice(0, lim); const p = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? ')); x = p > 60 ? cut.slice(0, p + 1) : cut.replace(/\s+\S*$/, '') + '…'; }
     return x;
   };
   /** Tanya AI. Melontar Error dengan mesej BM jika gagal. */
@@ -179,19 +229,20 @@
     const key = V.aiKey();
     if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', AI[aiProv()].name));
     const b = cfg().bot.ai, pv = AI[aiProv()];
-    const messages = [{ role: 'system', content: aiSystem() }].concat(V.chatMem.slice(-8), [{ role: 'user', content: String(question).slice(0, 400) }]);
-    const body = { provider: aiProv(), key, model: String(b.model || '').trim() || pv.model, messages, max_tokens: 120, temperature: 0.9 };
+    const an = V.isAnalysis(question);
+    const messages = [{ role: 'system', content: aiSystem(an) }].concat(V.chatMem.slice(-8), [{ role: 'user', content: String(question).slice(0, 400) }]);
+    const body = { provider: aiProv(), key, model: String(b.model || '').trim() || pv.model, messages, max_tokens: an ? 240 : 120, temperature: 0.9 };
     let r;
     if (native() && window.gsNative.ai && window.gsNative.ai.chat) r = await window.gsNative.ai.chat(body);
     else {
       try {
-        const res = await fetch(pv.base + '/chat/completions', { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: body.model, messages, max_tokens: 120, temperature: 0.9 }) });
+        const res = await fetch(pv.base + '/chat/completions', { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: body.model, messages, max_tokens: body.max_tokens, temperature: 0.9 }) });
         const j = await res.json().catch(() => ({}));
         r = res.ok ? { ok: true, text: j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content } : { ok: false, status: res.status, code: String((j.error && (j.error.status || j.error.code)) || ''), message: String((j.error && j.error.message) || '') };
       } catch (e) { r = { ok: false, status: 0, code: 'network' }; }
     }
     if (!r || !r.ok) throw new Error(aiErr(pv.name, r || {}));
-    const text = cleanAi(r.text);
+    const text = cleanAi(r.text, an ? 480 : 260);
     if (!text) throw new Error(GS.t('{0} tidak memberi jawapan.', pv.name));
     V.chatMem.push({ role: 'user', content: String(question).slice(0, 400) }, { role: 'assistant', content: text });
     V.chatMem = V.chatMem.slice(-12);
@@ -544,11 +595,11 @@
           if (V.aiBusy) return { ignored: 'bot berfikir' };
           V.aiBusy = true; V.note({ source, text, result: 'bot berfikir (AI)…' }); GS.emit('voice:status');
           V.askAI(q).then((txt) => { V.note({ source, text, result: 'bot: ' + txt }); V.say(txt); })
-            .catch((e) => { warn(String((e && e.message) || e)); const f = V.persona(q) || a.text; if (f) V.say(f); })
+            .catch((e) => { warn(String((e && e.message) || e)); const f = V.analyzeLocal(q) || V.persona(q) || a.text; if (f) V.say(f); })
             .finally(() => { V.aiBusy = false; GS.emit('voice:status'); });
           return { bot: 'ai' };
         }
-        const pt = V.persona(q) || a.text;
+        const pt = V.analyzeLocal(q) || V.persona(q) || a.text;
         V.note({ source, text, result: pt ? 'bot: ' + pt : 'bot: tiada jawapan' });
         if (pt) V.say(pt);
         GS.emit('voice:status');

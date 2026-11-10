@@ -694,10 +694,10 @@
     'Penyedia AI': 'AI provider', 'Kunci API AI': 'AI API key', 'Versi web: hanya dalam memori.': 'Web version: memory only.',
     'Nama model (lanjutan, kosong = lalai)': 'Model name (advanced, empty = default)',
     'Maklumat game tambahan untuk bot (pilihan)': 'Extra game info for the bot (optional)',
-    'cth: Pasukan kita: Ali (jungle), Abu (gold)... Musuh: Team X. Nama streamer: Amirul.': 'e.g. Our team: Ali (jungle), Abu (gold)... Enemy: Team X. Streamer name: Amirul.',
-    'Bot hanya tahu nama hero/rekod yang dibaca app. Nama pemain dan pasukan perlu ditulis di sini jika mahu bot menyebutnya; bot tidak akan mereka nama.': 'The bot only knows the hero names/record the app reads. Write player and team names here if you want the bot to mention them; the bot will not make names up.',
-    'cth mirul, mirror, miro': 'e.g. mirul, mirror, miro',
-    'Pengecam suara (terutama Inggeris) selalu salah dengar nama Melayu. Tulis ejaan yang didengarnya, atau tekan "Latih nama" di bawah.': 'The speech recogniser (especially English) often mishears Malay names. Write the spelling it hears, or press "Train name" below.',
+    'cth: Pasukan kita: Ali (jungle), Abu (gold)... Musuh: Team X. Nama streamer: nama anda.': 'e.g. Our team: Ali (jungle), Abu (gold)... Enemy: Team X. Streamer name: Amirul.',
+    'Bot menganalisis data yang dikesan app (hero, K/D/A, item, kejadian, keputusan). Nama pemain dan pasukan perlu ditulis di sini jika mahu bot menyebutnya; bot tidak akan mereka nama.': 'The bot analyses the data the app detects (heroes, K/D/A, items, events, results). Write player and team names here if you want the bot to mention them; the bot will not make names up.',
+    'ejaan sebutan lain (pilihan)': 'other spelling (optional)',
+    'Nama yang anda tetapkan ialah nama panggilan bot. Jika pengecam salah dengar nama anda, tekan "Latih nama" di bawah atau tulis ejaan yang didengarnya.': 'The name you set is the bot call name. If the recogniser mishears it, press "Train name" below or write the spelling it hears.',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();
