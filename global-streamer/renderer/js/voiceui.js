@@ -108,7 +108,7 @@
     /* suara bot: jantina + penyedia */
     const t = c.bot.tts;
     const genderBtns = [['female', 'Perempuan'], ['male', 'Lelaki']].map(([g, l]) => h('button', { type: 'button', 'data-gender': g, class: t.gender === g ? 'on' : '', role: 'radio', 'aria-checked': t.gender === g ? 'true' : 'false',
-      onClick: () => { t.gender = g; save(); v.prewarm(); genderBtns.forEach((b) => { b.classList.toggle('on', b.dataset.gender === g); b.setAttribute('aria-checked', b.dataset.gender === g ? 'true' : 'false'); }); } }, l));
+      onClick: () => { t.gender = g; save(); v.prewarm(); drawSysInfo(); genderBtns.forEach((b) => { b.classList.toggle('on', b.dataset.gender === g); b.setAttribute('aria-checked', b.dataset.gender === g ? 'true' : 'false'); }); } }, l));
     const gender = h('div', { class: 'seg-mini voice-gender', role: 'radiogroup', 'aria-label': GS.t('Jantina suara bot') }, genderBtns);
     const elevenBox = h('div', { class: 'eleven-box', id: 'elevenBox' });
     const quotaOut = h('div', { class: 'muted note', id: 'elevenQuota' });
@@ -149,7 +149,19 @@
             field('ID suara perempuan', h('input', { type: 'text', id: 'elevenFemale', value: t.femaleVoice, onInput: (e) => { t.femaleVoice = e.target.value.trim(); save(); } })))));
     };
     drawEleven();
-    const provider = h('select', { id: 'ttsProvider', onChange: (e) => { t.provider = e.target.value; save(); drawEleven(); drawAzure(); v.prewarm(); } },
+    const sysInfo = h('div', { class: 'sys-voice-info', id: 'sysVoiceInfo' });
+    const drawSysInfo = () => {
+      sysInfo.innerHTML = '';
+      sysInfo.hidden = t.provider !== 'system';
+      if (sysInfo.hidden) return;
+      const rep = v.systemVoiceReport('ms-MY'), g = rep[t.gender];
+      const gl = t.gender === 'male' ? GS.t('Lelaki') : GS.t('Perempuan');
+      if (g.name && g.langOk && g.genderOk) sysInfo.append(h('p', { class: 'note ok' }, GS.t('Suara {0} Melayu pada PC ini: {1}.', gl, g.name)));
+      else sysInfo.append(h('p', { class: 'note bad' }, g.name ? GS.t('PC ini tiada suara {0} Melayu (Malaysia). Suara yang digunakan: {1} ({2}), jadi Bahasa Melayu mungkin bunyi seperti sebutan Inggeris. Untuk suara Melayu Malaysia asli lelaki dan perempuan, pilih "Microsoft Azure" (percuma) di atas, atau pasang suara Melayu di Tetapan Windows > Masa & bahasa > Pertuturan.', gl, g.name, g.lang) : GS.t('PC ini tiada suara sistem. Pilih "Microsoft Azure" (percuma) untuk suara Melayu Malaysia lelaki dan perempuan.')));
+    };
+    drawSysInfo();
+    try { if ('speechSynthesis' in window) speechSynthesis.addEventListener('voiceschanged', drawSysInfo); } catch (e) { /* abaikan */ }
+    const provider = h('select', { id: 'ttsProvider', onChange: (e) => { t.provider = e.target.value; save(); drawEleven(); drawAzure(); drawSysInfo(); v.prewarm(); } },
       [['system', 'Suara sistem (percuma, tanpa internet)'], ['azure', 'Microsoft Azure: suara neural Melayu (percuma 500,000 aksara/bulan, perlu kunci)'], ['eleven', 'ElevenLabs: suara AI semula jadi (percuma 10,000 aksara/bulan, perlu kunci)']].map(([val, l]) => h('option', { value: val, selected: t.provider === val }, l)));
 
     /* pengumum: bahasa dan teks setiap efek */
@@ -194,6 +206,7 @@
         field('Nama lain / ejaan sebutan', h('input', { type: 'text', value: c.bot.aliases, placeholder: 'cth jarvis, jervis', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }))),
       h('h4', null, 'Suara bot'),
       h('div', { class: 'grid2' }, field('Jantina suara', gender), field('Penyedia suara', provider)),
+      sysInfo,
       azureBox,
       elevenBox,
       h('div', { class: 'grid2' },

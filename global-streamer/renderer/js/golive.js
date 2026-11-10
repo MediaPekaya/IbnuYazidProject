@@ -166,7 +166,7 @@
     if (!enabled.length) { GS.toast('Pilih sekurang-kurangnya satu platform.', 'warn'); return false; }
     if (native() && !targets.length) { GS.toast('Server URL / stream key belum lengkap.', 'warn'); return false; }
     L.demo = !native();
-    L.targets = L.demo ? enabled.map((id) => ({ id, name: GS.platforms.defs[id].name })) : targets;
+    L.targets = L.demo ? enabled.map((id) => ({ id, name: GS.platforms.ensureDef(id).name })) : targets;
     L.status = {};
     L.targets.forEach((t) => (L.status[t.id] = 'connecting'));
     L.state = 'connecting';
@@ -204,18 +204,19 @@
     }
   };
 
-  /** Butang MULA LIVE: jika platform yang dihidupkan sudah lengkap (key dimasukkan), terus live tanpa wizard.
-   *  Jika belum lengkap, wizard dibuka pada langkah platform dengan senarai yang kurang. */
+  /** Butang MULA LIVE: jika platform yang dihidupkan sudah lengkap (key dimasukkan di panel chat), terus live.
+   *  Jika belum, panel chat dibuka pada platform yang kurang dan mesej menyatakan apa yang perlu diisi. */
   L.quickStart = async function () {
     GS.audio.ensure();
-    const enabled = GS.platforms.enabledIds();
-    const bad = enabled.filter((id) => !GS.platforms.validate(id).ok);
+    const P = GS.platforms;
+    const enabled = P.enabledIds();
+    const bad = enabled.filter((id) => !P.validate(id).ok);
     if (!enabled.length || bad.length) {
-      if (bad.length) GS.toast(bad.map((id) => GS.t(GS.platforms.defs[id].name) + ': ' + GS.t(GS.platforms.validate(id).msg)).join(' · '), 'warn', 6500);
-      L.openWizard(2); // langkah Platform: URL dan key
+      const target = bad[0] || P.order[0];
+      if (GS.chat && GS.chat.focusPlatform) GS.chat.focusPlatform(target);
+      GS.toast(bad.length ? bad.map((id) => GS.t(P.ensureDef(id).name) + ': ' + GS.t(P.validate(id).msg)).join(' · ') : GS.t('Masukkan Stream Key (dan Server URL jika diminta) pada TikTok, Facebook atau YouTube di panel Chat, kemudian tekan MULA LIVE.'), 'warn', 7000);
       return false;
     }
-    if (!GS.state.templateId) { L.openWizard(1); return false; }
     return L.start();
   };
 
@@ -318,7 +319,7 @@
     const chips = GS.$('#platformChips');
     chips.innerHTML = '';
     Object.keys(L.status).forEach((id) => {
-      const d = GS.platforms.defs[id];
+      const d = GS.platforms.ensureDef(id);
       chips.append(h('span', { class: 'chip pf ' + L.status[id], style: { '--pf': d.color }, title: GS.t(d.name) + ' · ' + GS.t({ connecting: 'Menyambung', live: 'Live', failed: 'Gagal', reconnecting: 'Menyambung semula' }[L.status[id]] || L.status[id]) }, h('i'), d.name.split(' ')[0]));
     });
   }
@@ -345,120 +346,6 @@
       }
     }
   }, 500);
-
-  /* ================== WIZARD: Setup Live ================== */
-  const STEPS = ['Game', 'Template', 'Platform', 'Semak & Mula'];
-  L.openWizard = function (startStep) {
-    const wiz = { step: startStep == null ? 0 : startStep, game: GS.state.game, tpl: GS.state.templateId };
-    const body = h('div', { class: 'wizard' });
-    const stepper = h('ol', { class: 'stepper' });
-    const stage = h('div', { class: 'wiz-stage' });
-    body.append(stepper, stage);
-    const back = h('button', { class: 'btn ghost', onClick: () => go(wiz.step - 1) }, 'Kembali');
-    const next = h('button', { class: 'btn primary', onClick: () => (wiz.step === 3 ? finish() : go(wiz.step + 1)) }, 'Seterusnya');
-    const foot = h('div', { class: 'foot-row' }, back, h('span', { class: 'spacer' }), next);
-    const m = GS.modal({ title: 'Sediakan Live', body, footer: foot, wide: true });
-
-    function go(n) {
-      if (n < 0 || n > 3) return;
-      if (wiz.step === 1 && n > 1 && applyTemplate() === false) { draw(); return; } // simpan pilihan template apabila meninggalkan langkah
-      wiz.step = n;
-      draw();
-    }
-
-    function applyTemplate() {
-      const game = GS.games[wiz.game];
-      const tpl = game && game.templates.find((t) => t.id === wiz.tpl);
-      if (!tpl) return true;
-      if (tpl.orientation !== GS.orient()) {
-        if (!confirm(GS.t('Menukar orientasi akan menggantikan scene sedia ada dengan susun atur lalai. Teruskan?'))) { wiz.tpl = GS.state.templateId; return false; }
-        if (!GS.scenes.setOrientation(tpl.orientation)) { wiz.tpl = GS.state.templateId; return false; }
-      }
-      const pg = GS.scenes.program();
-      if (pg && pg.templateId === wiz.tpl) return true; // template sama: kekalkan suntingan pengguna
-      const target = pg && pg.templateId ? pg.id : null;
-      const sc = GS.scenes.applyTemplate(wiz.tpl, target);
-      if (sc && !target) { GS.state.programId = sc.id; GS.state.previewId = sc.id; GS.save(); GS.emit('scenes:changed'); }
-      return true;
-    }
-
-    function draw() {
-      stepper.innerHTML = '';
-      STEPS.forEach((s, i) => stepper.append(h('li', { class: i === wiz.step ? 'cur' : i < wiz.step ? 'done' : '' }, h('span', null, i < wiz.step ? '✓' : i + 1), s)));
-      back.disabled = wiz.step === 0;
-      next.textContent = GS.t(wiz.step === 3 ? (L.state === 'idle' ? 'MULA LIVE' : 'Tutup') : 'Seterusnya');
-      next.classList.toggle('go', wiz.step === 3);
-      stage.classList.remove('in');
-      stage.innerHTML = '';
-      [stepGame, stepTemplate, stepPlatform, stepCheck][wiz.step]();
-      requestAnimationFrame(() => stage.classList.add('in'));
-    }
-
-    function stepGame() {
-      stage.append(h('p', { class: 'lead' }, 'Pilih game yang anda mainkan. Sistem akan guna template, efek dan data khusus game itu.'),
-        h('div', { class: 'cards' }, GS.gameList.map((g) =>
-          h('button', { class: 'pick-card' + (wiz.game === g.id ? ' sel' : '') + (g.ready ? '' : ' locked'), disabled: !g.ready, onClick: () => { wiz.game = g.id; GS.state.game = g.id; GS.save(); draw(); } },
-            h('strong', null, g.name), h('span', null, g.ready ? 'Sedia' : 'Akan datang')))));
-    }
-
-    function stepTemplate() {
-      const game = GS.games[wiz.game];
-      stage.append(h('p', { class: 'lead' }, 'Pilih template paparan live. Setiap template ada gaya efek sendiri (kill, victory, defeat dan lain-lain).'));
-      [['portrait', 'Menegak 9:16 · TikTok LIVE'], ['landscape', 'Mendatar 16:9 · YouTube / Facebook']].forEach(([o, title]) => {
-        const list = game.templates.filter((t) => t.orientation === o);
-        if (!list.length) return;
-        const por = o === 'portrait';
-        stage.append(h('h4', { class: 'tpl-group' }, title, o === GS.orient() ? h('em', null, 'Orientasi semasa') : null));
-        const grid = h('div', { class: 'cards tpl ' + o });
-        list.forEach((t) => {
-          const cv = h('canvas', { width: por ? 270 : 480, height: por ? 480 : 270 });
-          GS.Compositor.thumb(cv, t.build(), por ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 }, t.theme || t.fxStyle);
-          grid.append(h('button', { class: 'pick-card tpl' + (wiz.tpl === t.id ? ' sel' : ''), onClick: () => { wiz.tpl = t.id; draw(); } },
-            cv, h('strong', null, t.name), h('span', null, t.desc),
-            h('span', { class: 'fxtag' }, h('i', { class: 'sw', style: { background: GS.theme.swatch(GS.themes[t.theme || t.fxStyle]) } }), GS.t('Tema: {0}', GS.t(GS.themes[t.theme || t.fxStyle].name)))));
-        });
-        stage.append(grid);
-      });
-    }
-
-    function stepPlatform() {
-      stage.append(h('p', { class: 'lead' }, 'Hidupkan platform yang anda mahu siarkan serentak, kemudian masukkan Server URL dan Stream Key (seperti OBS).'));
-      const box = h('div', { class: 'pf-list' });
-      stage.append(box);
-      GS.platforms.renderCards(box);
-    }
-
-    function stepCheck() {
-      const s = GS.state.settings, game = GS.games[wiz.game];
-      const tpl = game.templates.find((t) => t.id === wiz.tpl);
-      const pg = GS.scenes.program();
-      const vids = pg ? pg.sources.filter((x) => x.type === 'video' && x.visible && x.props.kind === 'capture') : [];
-      const sig = vids.some((v) => GS.media.videos[v.id]);
-      const aud = GS.audio.channels.some((c) => c.kind !== 'sfx' && c.stream);
-      const enabled = GS.platforms.enabledIds();
-      const bad = enabled.filter((id) => !GS.platforms.validate(id).ok);
-      const rows = [
-        ['ok', 'Game', game.name],
-        [tpl ? 'ok' : 'bad', 'Template', tpl ? tpl.name : 'Belum dipilih'],
-        [sig ? 'ok' : 'warn', 'Isyarat game (Capture Card)', sig ? 'Ada isyarat' : 'Tiada isyarat. Pilih capture card pada sumber game.'],
-        [aud ? 'ok' : 'warn', 'Audio', aud ? 'Input audio disambung' : 'Tiada input audio disambung.'],
-        [enabled.length && !bad.length ? 'ok' : enabled.length ? (native() ? 'bad' : 'warn') : 'bad', 'Platform', enabled.length ? enabled.map((id) => (GS.platforms.validate(id).ok ? GS.platforms.defs[id].name : GS.t('{0} (belum lengkap)', GS.platforms.defs[id].name))).join(', ') : 'Tiada platform dipilih'],
-        ['ok', 'Output', s.width + '×' + s.height + ' · ' + s.fps + ' fps · ' + s.vbitrate + ' kbps'],
-      ];
-      stage.append(h('p', { class: 'lead' }, 'Semak sebelum mula. Bila ditekan MULA LIVE, semua platform yang dipilih dimulakan serentak.'),
-        h('ul', { class: 'checklist' }, rows.map(([k, a, b]) => h('li', { class: k }, h('i', { html: icon(k === 'ok' ? 'check' : 'x', 14) }), h('strong', null, a), h('span', null, b)))),
-        native() ? null : h('div', { class: 'callout' }, h('strong', null, 'Mod demo web. '), 'Versi web tidak boleh menghantar siaran sebenar ke TikTok/Facebook/YouTube kerana pelayar tidak menyokong RTMP. Aplikasi Windows (Global Streamer) menghantar siaran sebenar.'));
-    }
-
-    async function finish() {
-      if (L.state !== 'idle') { m.close(); return; }
-      if (!wiz.tpl) { go(1); return; }
-      const ok = await L.start();
-      if (ok) m.close();
-    }
-
-    draw();
-  };
 
   /* ================== TETAPAN ================== */
   L.openSettings = function () {

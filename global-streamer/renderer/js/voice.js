@@ -122,13 +122,13 @@
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
 
   /** Ambil audio (ArrayBuffer) daripada penyedia AI. App Windows: melalui proses utama; web: terus dari pelayar. */
-  async function netAudio(prov, text, lang, gender) {
+  async function netAudio(prov, text, lang, gender, mood) {
     const b = cfg().bot, t = b.tts;
     const spoken = String(text).slice(0, prov === 'eleven' ? 280 : 500);
     const model = MODELS.includes(t.model) ? t.model : MODELS[0];
     const params = prov === 'azure'
-      ? { key: V.azureKey(), region: t.azure.region, voice: azVoice(lang, gender), text: spoken, rate: Math.round((Number(b.rate) || 0) * 6) }
-      : { key: V.elevenKey(), voice: gender === 'male' ? t.maleVoice : t.femaleVoice, model, language_code: String(lang).slice(0, 2).toLowerCase(), text: spoken };
+      ? { key: V.azureKey(), region: t.azure.region, voice: azVoice(lang, gender), text: spoken, rate: Math.round((Number(b.rate) || 0) * 6) + (MOODS[mood] ? MOODS[mood].rate : 0), pitch: MOODS[mood] ? MOODS[mood].pitch : 0 }
+      : { key: V.elevenKey(), voice: gender === 'male' ? t.maleVoice : t.femaleVoice, model, language_code: String(lang).slice(0, 2).toLowerCase(), text: spoken, voice_settings: MOODS[mood] ? Object.assign({ similarity_boost: 0.8 }, MOODS[mood].el) : undefined };
     if (!params.key) throw new Error(GS.t('Kunci API {0} belum diisi.', PROV[prov]));
     if (native() && window.gsNative.tts) {
       const r = await window.gsNative.tts.fetch(prov, params);
@@ -142,9 +142,9 @@
         const l2 = params.voice.split('-').slice(0, 2).join('-');
         res = await fetch('https://' + String(params.region).toLowerCase() + '.tts.speech.microsoft.com/cognitiveservices/v1', { method: 'POST', signal: ctl.signal,
           headers: { 'Ocp-Apim-Subscription-Key': params.key, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3' },
-          body: "<speak version='1.0' xml:lang='" + l2 + "'><voice xml:lang='" + l2 + "' name='" + params.voice + "'><prosody rate='" + (params.rate >= 0 ? '+' : '') + params.rate + "%'>" + esc(spoken) + '</prosody></voice></speak>' });
+          body: "<speak version='1.0' xml:lang='" + l2 + "'><voice xml:lang='" + l2 + "' name='" + params.voice + "'><prosody rate='" + (params.rate >= 0 ? '+' : '') + params.rate + "%' pitch='" + (params.pitch >= 0 ? '+' : '') + params.pitch + "%'>" + esc(spoken) + '</prosody></voice></speak>' });
       } else {
-        const body = { text: spoken, model_id: model }; if (model === 'eleven_flash_v2_5') body.language_code = params.language_code;
+        const body = { text: spoken, model_id: model }; if (model === 'eleven_flash_v2_5') body.language_code = params.language_code; if (params.voice_settings) body.voice_settings = params.voice_settings;
         res = await fetch(ELEVEN + '/text-to-speech/' + params.voice + '?output_format=mp3_44100_128', { method: 'POST', signal: ctl.signal, headers: { 'xi-api-key': params.key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' }, body: JSON.stringify(body) });
       }
     } catch (e) { throw new Error(errMsg(prov, 0, e && e.name === 'AbortError' ? 'timeout' : 'network')); } finally { clearTimeout(to); }
@@ -168,26 +168,59 @@
 
   /** Audio yang sudah dinyahkod disimpan supaya main semula segera (dan tidak menggunakan kuota dua kali). */
   const bufCache = new Map();
-  V.getBuffer = async function (prov, text, lang, gender) {
+  V.getBuffer = async function (prov, text, lang, gender, mood) {
     const t = cfg().bot.tts;
-    const ck = [prov, prov === 'azure' ? azVoice(lang, gender) : (gender === 'male' ? t.maleVoice : t.femaleVoice), t.model, cfg().bot.rate, lang, text].join('|');
+    const ck = [prov, prov === 'azure' ? azVoice(lang, gender) : (gender === 'male' ? t.maleVoice : t.femaleVoice), t.model, cfg().bot.rate, lang, mood || '', text].join('|');
     if (bufCache.has(ck)) return bufCache.get(ck);
-    const ab = await netAudio(prov, text, lang, gender);
+    const ab = await netAudio(prov, text, lang, gender, mood);
     const buf = await GS.audio.ensure().decodeAudioData(ab);
     bufCache.set(ck, buf);
     if (bufCache.size > 80) bufCache.delete(bufCache.keys().next().value);
     return buf;
   };
 
-  /** Pilih suara sistem mengikut jantina dan bahasa (Melayu diutamakan, kemudian Indonesia, kemudian Inggeris). */
+  /** Bahasa teks (supaya suara menyebut dalam bahasa yang SAMA dengan teks): 'ms-MY' atau 'en-US'. */
+  const MS_W = new Set('saya aku kau kita kami anda awak dia mereka yang dan atau ini itu tak tidak bukan dah sudah belum nak mahu boleh jangan lah kah pun juga dengan untuk dari pada ke di ada apa siapa mana bila kenapa bagaimana berapa sangat sekali banyak sikit lagi sudah akan sedang telah menang kalah bunuh mati hidup selamat datang terima kasih siaran langsung tahniah syabas hebat bagus mantap jom semua kawan tolong sila maaf harap esok semalam hari malam pagi petang minggu bulan tahun rekod hero kena buat tengok dengar cakap main game'.split(' '));
+  const EN_W = new Set('the you your is are was were and or this that not do does did have has had will would can could with for from to of in on at what who which when why how many much very more some any all welcome thanks thank please sorry hello hi kill victory defeat double triple first blood maniac savage legendary shutdown slain have been won lost game player team win lose good great nice'.split(' '));
+  V.detectLang = function (text) {
+    const words = norm(text).split(' ').filter(Boolean);
+    let ms = 0, en = 0;
+    words.forEach((w) => { if (MS_W.has(w)) ms++; if (EN_W.has(w)) en++; });
+    if (ms > en) return 'ms-MY';
+    if (en > ms) return 'en-US';
+    return V.cultureFor();
+  };
+  /** Emosi suara: nada/kelajuan untuk gembira (victory), suram (defeat), teruja (kill). */
+  const MOODS = {
+    happy: { rate: 10, pitch: 14, sRate: 1.12, sPitch: 1.25, el: { stability: 0.3, style: 0.7, speed: 1.1 } },
+    excited: { rate: 8, pitch: 9, sRate: 1.1, sPitch: 1.15, el: { stability: 0.35, style: 0.6, speed: 1.1 } },
+    sad: { rate: -16, pitch: -12, sRate: 0.82, sPitch: 0.8, el: { stability: 0.85, style: 0.1, speed: 0.85 } },
+  };
+  V.MOODS = MOODS;
+  const MOOD_OF = { victory: 'happy', defeat: 'sad', death: 'sad', kill: 'excited', 'first blood': 'excited', 'double kill': 'excited', 'triple kill': 'excited', maniac: 'excited', savage: 'excited', 'killing spree': 'excited', legendary: 'excited', shutdown: 'excited', fullitem: 'happy' };
+
+  /** Pilih suara sistem mengikut jantina dan bahasa. TIDAK menggunakan suara Indonesia sebagai ganti Melayu. */
   const MALE_RE = /\b(david|mark|george|james|guy|ryan|rizwan|osman|richard|daniel|alex|fred|jorge|thomas|paul|stefan|male|lelaki)\b/i;
   const FEMALE_RE = /\b(zira|hazel|susan|aria|jenny|yasmin|emma|samantha|victoria|karen|moira|ayu|gadis|siti|female|perempuan|helen|linda|catherine|sabina)\b/i;
   V.pickSystemVoice = function (vs, gender, lang) {
     const l = String(lang || 'ms').slice(0, 2).toLowerCase();
-    const rank = (v) => { const x = String(v.lang || '').toLowerCase(); return x.startsWith(l) ? 0 : x.startsWith('ms') && l === 'ms' ? 0 : x.startsWith('id') && l === 'ms' ? 1 : x.startsWith('en') ? 2 : 3; };
+    const rank = (v) => { const x = String(v.lang || '').toLowerCase().replace('_', '-'); return x.startsWith(l) ? 0 : x.startsWith('en') ? 2 : 3; };
     const isG = (v) => (gender === 'male' ? MALE_RE.test(v.name) && !FEMALE_RE.test(v.name) : FEMALE_RE.test(v.name) && !MALE_RE.test(v.name));
     const sorted = vs.slice().sort((a, b) => rank(a) - rank(b));
-    return sorted.find((v) => isG(v) && rank(v) <= 2) || sorted.find((v) => isG(v)) || sorted.find((v) => rank(v) === 0) || sorted[0] || null;
+    // suara Indonesia/lain TIDAK pernah dipilih sebagai ganti Melayu; jantina yang betul diutamakan, kemudian Melayu, kemudian Inggeris
+    return sorted.find((v) => isG(v) && rank(v) <= 2) || sorted.find((v) => rank(v) === 0) || sorted.find((v) => rank(v) === 2) || null;
+  };
+  /** Laporan suara sistem pada PC ini: ada suara Melayu lelaki/perempuan atau tidak. */
+  V.systemVoiceReport = function (lang) {
+    const vs = ('speechSynthesis' in window) ? speechSynthesis.getVoices() : [];
+    const out = {};
+    ['female', 'male'].forEach((g) => {
+      const v = V.pickSystemVoice(vs, g, lang || 'ms-MY');
+      const l = v ? String(v.lang || '').toLowerCase() : '';
+      const genderOk = !!v && (g === 'male' ? MALE_RE.test(v.name) && !FEMALE_RE.test(v.name) : FEMALE_RE.test(v.name) && !MALE_RE.test(v.name));
+      out[g] = { name: v ? v.name : '', lang: v ? v.lang : '', langOk: l.startsWith(String(lang || 'ms-MY').slice(0, 2).toLowerCase()), genderOk };
+    });
+    return out;
   };
 
   let curSrc = null;
@@ -212,7 +245,8 @@
     text = String(text || '').trim();
     if (!text || (!b.voiceOn && !o.force && !o.announcer)) return false;
     const tts = b.tts || {};
-    const lang = o.lang || V.cultureFor();
+    const lang = o.lang || V.detectLang(text);   // bahasa suara = bahasa teks
+    const mood = o.mood || '';
     V.stopSpeech();
     V.speaking = true;
     const done = () => { setTimeout(() => { if (!curSrc) { V.speaking = false; GS.emit('voice:status'); } }, 600); };
@@ -220,7 +254,7 @@
     try {
       // 1) suara AI semula jadi (Azure Speech / ElevenLabs), terus masuk siaran
       if (tts.provider === 'azure' || tts.provider === 'eleven') {
-        try { const buf = await V.getBuffer(tts.provider, text, lang, tts.gender); playBuf(buf, done); return true; } catch (e) { warn(String((e && e.message) || e) + ' ' + GS.t('Menggunakan suara sistem.')); }
+        try { const buf = await V.getBuffer(tts.provider, text, lang, tts.gender, mood); playBuf(buf, done); return true; } catch (e) { warn(String((e && e.message) || e) + ' ' + GS.t('Menggunakan suara sistem.')); }
       }
       // 2) suara Windows dijana sebagai WAV dan dicampur ke dalam siaran
       if (b.inStream && native()) {
@@ -234,7 +268,8 @@
         const vs = speechSynthesis.getVoices();
         const pick = (b.voiceName && vs.find((v) => v.name === b.voiceName)) || V.pickSystemVoice(vs, tts.gender, lang);
         if (pick) { u.voice = pick; u.lang = pick.lang; } else u.lang = lang;
-        u.rate = 1 + (Number(b.rate) || 0) / 10;
+        u.rate = (1 + (Number(b.rate) || 0) / 10) * (MOODS[mood] ? MOODS[mood].sRate : 1);
+        u.pitch = MOODS[mood] ? MOODS[mood].sPitch : 1;
         u.onend = done; u.onerror = done;
         speechSynthesis.speak(u);
         started = true;
@@ -259,7 +294,7 @@
     if (params && params.viaVoice) return;
     const t = V.announceText(name, params);
     if (!t) return;
-    const ok = await V.speak(t, { announcer: true, lang: cfg().announcer.lang });
+    const ok = await V.speak(t, { announcer: true, lang: cfg().announcer.lang, mood: MOOD_OF[V.announceKey(name, params)] || '' });
     if (!ok && V.suppressBeep(name, params) && GS.fx.sfxName) GS.audio.sfx(GS.fx.sfxName(name)); // suara gagal: bunyi biasa sebagai sandaran
   };
   /** Jana awal suara pengumum (penyedia AI) supaya main serta-merta tanpa lengah rangkaian. */
@@ -271,8 +306,7 @@
       if (!a.on || (tts.provider !== 'azure' && tts.provider !== 'eleven')) return;
       if (!(tts.provider === 'azure' ? V.azureKey() : V.elevenKey())) return;
       const set = a.lang === 'ms-MY' ? a.textsMs : a.textsEn;
-      const texts = [...new Set(Object.values(set).map((x) => String(x || '').trim()).filter(Boolean))];
-      for (const t of texts) { try { await V.getBuffer(tts.provider, t, a.lang, tts.gender); } catch (e) { warn(String((e && e.message) || e)); return; } }
+      for (const [k, raw] of Object.entries(set)) { const t = String(raw || '').trim(); if (!t) continue; try { await V.getBuffer(tts.provider, t, a.lang, tts.gender, MOOD_OF[k] || ''); } catch (e) { warn(String((e && e.message) || e)); return; } }
     }, 900);
   };
   V.cultureFor = () => { const c = cfg().culture; return c && c !== 'auto' ? c : (GS.state.lang === 'en' ? 'en-US' : 'ms-MY'); };

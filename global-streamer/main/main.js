@@ -20,7 +20,8 @@ const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.web
 /* ---------- simpanan key disulitkan (OS) ---------- */
 const vaultFile = () => path.join(app.getPath('userData'), 'vault.json');
 function readVault() { try { return JSON.parse(fs.readFileSync(vaultFile(), 'utf8')); } catch (e) { return {}; } }
-const VALID_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure']);
+const FIXED_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure']);
+const VALID_IDS = { has: (id) => typeof id === 'string' && (FIXED_IDS.has(id) || /^x\d{1,3}$/.test(id)) }; // x1, x2... = platform tambahan
 
 ipcMain.handle('vault:get', (_e, id) => {
   if (!VALID_IDS.has(id)) return '';

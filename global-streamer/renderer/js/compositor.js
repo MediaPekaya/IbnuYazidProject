@@ -130,6 +130,14 @@
           else this.placeholder(ctx, s, now);
           break;
         }
+        case 'clip': {
+          const r = GS.media.clips[s.id];
+          const el = r && r.el;
+          const w = el && (r.kind === 'video' ? el.videoWidth : el.naturalWidth), hh = el && (r.kind === 'video' ? el.videoHeight : el.naturalHeight);
+          if (r && r.ready && w && hh && (r.kind !== 'video' || el.readyState >= 2)) this.drawFit(ctx, el, w, hh, s);
+          else this.placeholder(ctx, s, now);
+          break;
+        }
         case 'image': {
           const im = GS.media.image(s.props.src);
           if (im) this.drawFit(ctx, im, im.naturalWidth, im.naturalHeight, s);

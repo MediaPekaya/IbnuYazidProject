@@ -23,7 +23,9 @@ function build(kind, p) {
     if (!AZ_VOICE_RE.test(voice)) throw new Error('nama suara Azure tidak sah');
     const lang = voice.split('-').slice(0, 2).join('-');
     const rate = Math.max(-50, Math.min(50, Math.round(Number(p.rate) || 0)));
-    const body = "<speak version='1.0' xml:lang='" + lang + "'><voice xml:lang='" + lang + "' name='" + voice + "'><prosody rate='" + (rate >= 0 ? '+' : '') + rate + "%'>" + esc(text) + '</prosody></voice></speak>';
+    const pitch = Math.max(-50, Math.min(50, Math.round(Number(p.pitch) || 0)));
+    const sg = (n) => (n >= 0 ? '+' : '') + n + '%';
+    const body = "<speak version='1.0' xml:lang='" + lang + "'><voice xml:lang='" + lang + "' name='" + voice + "'><prosody rate='" + sg(rate) + "' pitch='" + sg(pitch) + "'>" + esc(text) + '</prosody></voice></speak>';
     return { url: (base || 'https://' + region + '.tts.speech.microsoft.com') + '/cognitiveservices/v1', init: { method: 'POST', headers: { 'Ocp-Apim-Subscription-Key': key, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3', 'User-Agent': 'GlobalStreamer' }, body } };
   }
   if (kind === 'eleven') {
@@ -32,6 +34,11 @@ function build(kind, p) {
     const model = MODELS.includes(p.model) ? p.model : MODELS[0];
     const body = { text, model_id: model };
     if (model === 'eleven_flash_v2_5' && /^[a-z]{2}$/.test(String(p.language_code || ''))) body.language_code = p.language_code;
+    const vs = p.voice_settings;
+    if (vs && typeof vs === 'object') {
+      const num = (v, a, b) => (Number.isFinite(Number(v)) ? Math.max(a, Math.min(b, Number(v))) : undefined);
+      body.voice_settings = { stability: num(vs.stability, 0, 1), similarity_boost: num(vs.similarity_boost, 0, 1), style: num(vs.style, 0, 1), speed: num(vs.speed, 0.7, 1.2), use_speaker_boost: true };
+    }
     return { url: (base || 'https://api.elevenlabs.io') + '/v1/text-to-speech/' + voice + '?output_format=mp3_44100_128', init: { method: 'POST', headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' }, body: JSON.stringify(body) } };
   }
   throw new Error('penyedia tidak dikenali');

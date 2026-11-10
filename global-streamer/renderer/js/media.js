@@ -233,6 +233,53 @@
     }
   };
 
+  /* ---------- klip sendiri (banner imej, GIF animasi, video) untuk footer dan lain-lain ---------- */
+  M.clips = {};
+  const fileUrl = (p) => 'file:///' + String(p).replace(/\\/g, '/').split('/').map((x, i) => (i === 0 && /^[A-Za-z]:$/.test(x) ? x : encodeURIComponent(x))).join('/').replace(/^file:\/\/\/\//, 'file:///');
+  M.clipFileUrl = fileUrl;
+  /** Cipta elemen main (video atau imej) untuk sumber klip. Elemen dikekalkan dalam DOM (di luar skrin) supaya terus bergerak. */
+  M.makeClip = function (id, url, kind, opts) {
+    M.removeClip(id);
+    opts = opts || {};
+    let el;
+    if (kind === 'video') {
+      el = document.createElement('video');
+      el.muted = true; el.loop = opts.loop !== false; el.playsInline = true; el.autoplay = true; el.preload = 'auto';
+      el.src = url;
+      el.play().catch(() => { /* autoplay disekat: diulang apabila ada isyarat pengguna */ });
+    } else {
+      el = new Image();
+      el.decoding = 'sync';
+      el.src = url;
+    }
+    el.setAttribute('aria-hidden', 'true');
+    Object.assign(el.style, { position: 'fixed', left: '-9999px', top: '0', width: '4px', height: '4px', opacity: '0.01', pointerEvents: 'none' });
+    document.body.append(el);
+    const rec = { el, url, kind, ready: false, error: '' };
+    const ok = () => { rec.ready = true; GS.emit('media:changed', id); };
+    if (kind === 'video') { el.addEventListener('loadeddata', ok); } else { el.addEventListener('load', ok); }
+    el.addEventListener('error', () => { rec.error = 'tidak dapat dimainkan'; GS.emit('media:changed', id); });
+    M.clips[id] = rec;
+    return rec;
+  };
+  M.removeClip = function (id) {
+    const r = M.clips[id];
+    if (!r) return;
+    try { if (r.kind === 'video') { r.el.pause(); r.el.removeAttribute('src'); r.el.load(); } } catch (e) { /* abaikan */ }
+    try { r.el.remove(); } catch (e) { /* abaikan */ }
+    if (r.url && r.url.startsWith('blob:')) { try { URL.revokeObjectURL(r.url); } catch (e) { /* abaikan */ } }
+    delete M.clips[id];
+  };
+  /** Pulihkan klip selepas app dibuka semula (laluan fail dalam app Windows; imej kecil dalam web). */
+  M.restoreClips = function (scenes) {
+    scenes.forEach((sc) => sc.sources.forEach((s) => {
+      if (s.type !== 'clip' || M.clips[s.id]) return;
+      const c = s.props || {};
+      const url = c.path ? fileUrl(c.path) : c.src || '';
+      if (url) M.makeClip(s.id, url, c.kind === 'video' ? 'video' : 'image', c);
+    }));
+  };
+
   M.image = function (src) {
     if (!src) return null;
     let im = M.images[src];

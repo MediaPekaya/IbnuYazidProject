@@ -33,8 +33,6 @@
 
   function bindTopbar() {
     $$('#modeSwitch button').forEach((b) => b.addEventListener('click', () => A.setMode(b.dataset.mode)));
-    const hasConfig = () => GS.state.templateId && GS.platforms.enabledIds().length;
-    $('#btnSetup').addEventListener('click', () => GS.live.openWizard(0));
     $('#btnLive').addEventListener('click', () => {
       GS.audio.ensure();
       if (GS.live.state === 'idle') GS.live.quickStart();
@@ -169,6 +167,7 @@
     bindFit();
     loop();
     GS.media.autoReconnect(GS.state.scenes).then(() => GS.emit('media:changed'));
+    try { GS.media.restoreClips(GS.state.scenes); const L2 = GS.state.layouts || {}; Object.values(L2).forEach((l) => l && l.scenes && GS.media.restoreClips(l.scenes)); } catch (e) { console.error(e); }
     document.body.classList.add('ready');
   };
 

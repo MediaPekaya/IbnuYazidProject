@@ -101,7 +101,6 @@
       tiktok: { enabled: false, server: '' },
       facebook: { enabled: false, server: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
       youtube: { enabled: false, server: 'rtmp://a.rtmp.youtube.com/live2' },
-      custom: { enabled: false, server: '' },
     },
     audio: { channels: [], voiceClean: true, sfxInStream: false },
     winloss: { win: 0, loss: 0, streak: 0 },
@@ -117,9 +116,9 @@
       ],
       // pengumum: efek (kill, double kill, victory, defeat...) BERCAKAP menggunakan suara yang dipilih
       announcer: {
-        on: true, lang: 'en-US', keepBeep: false,
+        v: 2, on: true, lang: 'ms-MY', keepBeep: false,
         textsEn: { kill: 'Kill', 'first blood': 'First blood', 'double kill': 'Double kill', 'triple kill': 'Triple kill', maniac: 'Maniac', savage: 'Savage', 'killing spree': 'Killing spree', legendary: 'Legendary', shutdown: 'Shutdown', death: 'You have been slain', victory: 'Victory', defeat: 'Defeat', fullitem: 'Full item' },
-        textsMs: { kill: 'Bunuh', 'first blood': 'Darah pertama', 'double kill': 'Bunuh dua', 'triple kill': 'Bunuh tiga', maniac: 'Maniak', savage: 'Ganas', 'killing spree': 'Berterusan membunuh', legendary: 'Legenda', shutdown: 'Dihentikan', death: 'Anda telah mati', victory: 'Kemenangan', defeat: 'Kekalahan', fullitem: 'Item penuh' },
+        textsMs: { kill: 'Bunuh!', 'first blood': 'Darah pertama!', 'double kill': 'Bunuh dua!', 'triple kill': 'Bunuh tiga!', maniac: 'Maniak!', savage: 'Ganas!', 'killing spree': 'Tak boleh dihentikan!', legendary: 'Legenda!', shutdown: 'Tamatkan dia!', death: 'Kau dah mati.', victory: 'Kita menang! Syabas semua!', defeat: 'Kita kalah... tak apa, lain kali kita cuba lagi.', fullitem: 'Item penuh!' },
       },
       bot: {
         enabled: false, name: 'Jarvis', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
@@ -176,7 +175,7 @@
       merged.platforms = Object.assign(defaults().platforms, s.platforms || {});
       merged.audio = Object.assign(defaults().audio, s.audio || {});
       merged.winloss = Object.assign(defaults().winloss, s.winloss || {});
-      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); merged.voice.bot.tts = Object.assign(defaults().voice.bot.tts, (sv.bot && sv.bot.tts) || {}); merged.voice.bot.tts.azure = Object.assign(defaults().voice.bot.tts.azure, (sv.bot && sv.bot.tts && sv.bot.tts.azure) || {}); { const da = defaults().voice.announcer, sa = sv.announcer || {}; merged.voice.announcer = Object.assign(da, sa); merged.voice.announcer.textsEn = Object.assign(defaults().voice.announcer.textsEn, sa.textsEn || {}); merged.voice.announcer.textsMs = Object.assign(defaults().voice.announcer.textsMs, sa.textsMs || {}); } if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
+      { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); merged.voice.bot.tts = Object.assign(defaults().voice.bot.tts, (sv.bot && sv.bot.tts) || {}); merged.voice.bot.tts.azure = Object.assign(defaults().voice.bot.tts.azure, (sv.bot && sv.bot.tts && sv.bot.tts.azure) || {}); { const da = defaults().voice.announcer, sa = sv.announcer || {}; merged.voice.announcer = Object.assign(da, sa); merged.voice.announcer.textsEn = Object.assign(defaults().voice.announcer.textsEn, sa.textsEn || {}); merged.voice.announcer.textsMs = Object.assign(defaults().voice.announcer.textsMs, sa.textsMs || {}); if (!sa.v || sa.v < 2) { merged.voice.announcer.v = 2; merged.voice.announcer.lang = 'ms-MY'; merged.voice.announcer.textsMs = defaults().voice.announcer.textsMs; } } if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; }
       merged.ticker = Object.assign(defaults().ticker, s.ticker || {});
       ['status', 'boss', 'promo', 'queue', 'draft', 'tiers'].forEach((k) => { merged[k] = Object.assign(defaults()[k], s[k] || {}); });
       if (!Array.isArray(merged.toplike)) merged.toplike = defaults().toplike;

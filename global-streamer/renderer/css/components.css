@@ -454,3 +454,23 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 
 .ann-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .ann-grid .field span { font-size: 10px; }
+
+/* ----- siaran langsung dalam panel chat ----- */
+.pf-setup { flex: none; }
+.pf-details { border: 1px solid var(--line); border-radius: 10px; background: rgba(4, 10, 24, 0.45); padding: 6px 8px; }
+.pf-details > summary { cursor: pointer; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 2px 0; }
+.pf-details[open] > summary { margin-bottom: 6px; }
+.pf-setup .pf-card { margin: 0; }
+.pf-sum { display: flex; flex-direction: column; gap: 4px; }
+.pf-sum-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: rgba(20, 44, 88, 0.25); color: var(--text); cursor: pointer; font-family: inherit; text-align: left; }
+.pf-sum-row span { margin-left: auto; font-size: 11px; color: var(--dim); }
+.pf-sum-row.ok span { color: var(--green); }
+.pf-sum-row.bad span { color: #ff9aa8; }
+.subtab.add { flex: 0 0 auto; min-width: 30px; font-weight: 900; font-size: 15px; }
+/* dalam panel chat medan URL/key sentiasa kelihatan (satu lajur, panel kanan sempit) */
+.pf-setup .pf-body { display: flex; flex-direction: column; gap: 8px; grid-template-columns: none; max-height: none; opacity: 1; overflow: visible; padding: 2px 10px 10px; }
+.pf-setup .pf-head { padding: 8px 10px; }
+
+.sys-voice-info .note { font-size: 12px; line-height: 1.45; padding: 8px 10px; border-radius: 8px; margin: 0; }
+.sys-voice-info .note.ok { color: var(--green); background: rgba(59, 227, 154, 0.08); border: 1px solid rgba(59, 227, 154, 0.3); }
+.sys-voice-info .note.bad { color: #ffd9a0; background: rgba(255, 190, 70, 0.09); border: 1px solid rgba(255, 190, 70, 0.35); }

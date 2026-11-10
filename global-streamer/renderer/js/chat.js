@@ -122,14 +122,62 @@
     GS.modal({ title: 'Sambungan chat', body: h('div', null, body, h('p', { class: 'muted note' }, 'Kunci/token disimpan dalam memori (web) atau disulitkan OS (app Windows), bukan dalam penyemak imbas. Chat dan alert (follow, gift, Super Chat, ahli) muncul dalam panel ini dan mencetus efek siaran.')), wide: true });
   };
 
+  /* ---------- siaran langsung (Server URL + Stream Key) bagi setiap platform, dalam panel Chat ---------- */
+  const P = () => GS.platforms;
+  const pfName = (id) => { const d = P().ensureDef(id); return d.extra ? (GS.state.platforms[id].name || d.name) : d.name; };
+  const SHORT = { tiktok: 'TikTok', facebook: 'Facebook', youtube: 'YouTube' };
+
+  C.focusPlatform = function (id) {
+    const tab = GS.$('.rtab[data-panel=panelChat]');
+    if (tab) tab.click();
+    C.filter = id || 'all';
+    C.drawTabs(); C.drawSetup(true); renderList();
+    const box = GS.$('#pfSetup');
+    if (box && box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+  };
+
+  C.drawTabs = function () {
+    const tabs = GS.$('#chatTabs');
+    if (!tabs) return;
+    tabs.innerHTML = '';
+    ['all'].concat(P().order).forEach((id) => {
+      const label = id === 'all' ? 'Semua' : SHORT[id] || pfName(id);
+      tabs.append(h('button', { class: 'subtab' + (C.filter === id ? ' on' : ''), 'data-id': id, title: id === 'all' ? '' : GS.t('{0}: Server URL dan Stream Key', label), onClick: () => { C.filter = id; C.drawTabs(); C.drawSetup(); renderList(); } }, label));
+    });
+    tabs.append(h('button', { class: 'subtab add', id: 'btnAddPlatform', title: GS.t('Tambah aplikasi lain untuk LIVE (Kick, Twitch, Shopee Live...)'), 'aria-label': GS.t('Tambah aplikasi lain untuk LIVE'), onClick: () => { const n = prompt(GS.t('Nama aplikasi (cth Kick, Twitch, Shopee Live):'), ''); if (n === null) return; const id = P().addExtra(n); if (id) { C.filter = id; C.drawTabs(); C.drawSetup(true); renderList(); } else GS.toast(GS.t('Had aplikasi tambahan dicapai.'), 'warn'); } }, '+'));
+  };
+
+  /** Bahagian Server URL / Stream Key di bawah tab: platform yang dipilih; pada tab "Semua": ringkasan semua platform. */
+  C.drawSetup = function (open) {
+    const box = GS.$('#pfSetup');
+    if (!box) return;
+    const keep = box.querySelector('details') ? box.querySelector('details').open : null;
+    box.innerHTML = '';
+    if (C.filter === 'all') {
+      const sum = h('div', { class: 'pf-sum' }, P().order.map((id) => {
+        const v = P().validate(id);
+        return h('button', { type: 'button', class: 'pf-sum-row ' + (v.off ? 'off' : v.ok ? 'ok' : 'bad'), 'data-open': id, onClick: () => C.focusPlatform(id) },
+          h('i', { class: 'pf-dot', style: { background: P().ensureDef(id).color } }), h('b', null, pfName(id)), h('span', null, GS.t(v.off ? 'Tidak digunakan' : v.ok ? 'Sedia' : v.msg)));
+      }));
+      box.append(h('details', { class: 'pf-details', open: keep == null ? true : keep }, h('summary', null, 'Siaran langsung: Server URL dan Stream Key'), sum,
+        h('p', { class: 'muted note' }, 'Pilih TikTok, Facebook atau YouTube untuk memasukkan Server URL dan Stream Key. Tekan + untuk menambah aplikasi lain.')));
+      return;
+    }
+    const card = P().renderCard(C.filter, () => { C.drawTabs(); });
+    const d = h('details', { class: 'pf-details', open: open === true ? true : keep == null ? !P().validate(C.filter).ok : keep }, h('summary', null, GS.t('Siaran langsung: Server URL dan Stream Key')), card);
+    box.append(d);
+  };
+
   C.init = function () {
     const root = GS.$('#chatBody');
     if (!root) return;
-    const tabs = h('div', { class: 'subtabs' }, ['all', 'tiktok', 'facebook', 'youtube'].map((id) =>
-      h('button', { class: 'subtab' + (C.filter === id ? ' on' : ''), dataset: { id }, onClick: (e) => { C.filter = id; GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b === e.currentTarget)); renderList(); } }, id === 'all' ? 'Semua' : labels[id])));
+    P().sync();
+    const tabs = h('div', { class: 'subtabs', id: 'chatTabs' });
     const demoBtn = h('button', { class: 'btn ghost sm', onClick: (e) => toggleDemo(e.currentTarget) }, 'Pratonton demo');
-    root.append(tabs, h('div', { id: 'chatList', class: 'chat-list', 'aria-live': 'polite' }),
+    root.append(tabs, h('div', { id: 'pfSetup', class: 'pf-setup' }), h('div', { id: 'chatList', class: 'chat-list', 'aria-live': 'polite' }),
       h('div', { class: 'chat-foot' }, h('button', { class: 'btn primary sm', id: 'btnChatConn', onClick: () => C.openConnect() }, 'Sambungan chat'), demoBtn));
+    C.drawTabs(); C.drawSetup();
+    GS.on('platforms:changed', () => { C.drawTabs(); C.drawSetup(); if (GS.live && GS.live.render) GS.live.render(); });
     renderList();
   };
 })();

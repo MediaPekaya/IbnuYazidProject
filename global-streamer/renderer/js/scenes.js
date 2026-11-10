@@ -226,6 +226,53 @@
     setTimeout(() => inp.remove(), 60000);
   };
 
+  /** Kedudukan bar bawah (footer): bar teks / banner promosi pada scene, jika tiada jalur bawah kanvas. */
+  const footerRect = (sc) => {
+    const W = GS.design.w, H = GS.design.h;
+    const bars = (sc ? sc.sources : []).filter((x) => x.type === 'widget' && (x.props.widget === 'ticker' || x.props.widget === 'promo'));
+    if (bars.length) { const b = bars.sort((a, c) => c.y - a.y)[0]; return [b.x, b.y, b.w, b.h]; }
+    return [40, H - 210, W - 80, 170];
+  };
+  S.footerRect = footerRect;
+  /** Tambah banner / video sendiri (imej, GIF animasi, video WebM/MP4) sebagai sumber, lalai di kedudukan footer. */
+  S.addClip = function () {
+    const inp = h('input', { type: 'file', accept: 'image/*,video/*,.gif,.webm,.mp4,.mov,.m4v', style: { display: 'none' } });
+    inp.addEventListener('change', async () => {
+      const f = inp.files[0];
+      if (!f) return;
+      await S.loadClip(null, f);
+    });
+    document.body.append(inp);
+    inp.click();
+    setTimeout(() => inp.remove(), 60000);
+  };
+  /** Muatkan fail ke dalam sumber klip (baharu jika `src` null). */
+  S.loadClip = async function (src, f) {
+    const isVideo = /^video\//.test(f.type) || /\.(webm|mp4|mov|m4v)$/i.test(f.name);
+    const path = window.gsNative && window.gsNative.pathOf ? window.gsNative.pathOf(f) : '';
+    const url = path ? GS.media.clipFileUrl(path) : URL.createObjectURL(f);
+    const props = { kind: isVideo ? 'video' : 'image', name: f.name, path: path || '', loop: true, hideBars: false };
+    // imej kecil disimpan dalam tetapan supaya kekal dalam versi web; video/GIF besar menggunakan laluan fail (app Windows)
+    if (!isVideo && !path && f.size <= 1500000) { try { props.src = await GS.media.readFile(f); } catch (e) { /* abaikan */ } }
+    const sc = S.editTarget();
+    if (!src) {
+      const r = footerRect(sc);
+      src = mk('clip', f.name, r[0], r[1], r[2], r[3], props);
+      src.fit = 'contain';
+      addSource(src);
+    } else { src.props = Object.assign(src.props, props); src.name = f.name; }
+    GS.media.makeClip(src.id, props.src || url, props.kind, props);
+    if (!path && !props.src && isVideo) GS.toast(GS.t('Video dimuat. Dalam versi web video tidak disimpan selepas muat semula; app Windows mengingati fail ini.'), 'info', 6000);
+    changed('props:changed');
+    renderProps();
+    return src;
+  };
+  /** Sembunyikan/papar bar teks (INFO ... WELCOME) dan banner promosi (FOLLOW & SHARE) pada scene supaya banner sendiri menggantikannya. */
+  S.setBarsHidden = function (sc, hide) {
+    (sc ? sc.sources : []).forEach((x) => { if (x.type === 'widget' && (x.props.widget === 'ticker' || x.props.widget === 'promo')) x.visible = !hide; });
+    changed('sources:changed');
+  };
+
   /** Pastikan widget "Meta Tournament" (Top Pick Hero / Top Ban Hero) wujud dan KELIHATAN pada setiap scene.
    *  Dilakukan sekali sahaja untuk scene sedia ada (supaya padam oleh pengguna kekal padam). */
   S.seedMetaBoard = function () {
@@ -263,6 +310,7 @@
     const s = sc.sources.find((x) => x.id === id);
     if (!s) return;
     GS.media.close(s.id);
+    if (s.type === 'clip') GS.media.removeClip(s.id);
     sc.sources = sc.sources.filter((x) => x.id !== id);
     if (selectedId === id) selectedId = null;
     changed('sources:changed');
@@ -330,7 +378,7 @@
   }
 
   /* ---------- UI: sumber ---------- */
-  const typeIcon = (s) => (s.type === 'video' ? (s.props.kind === 'camera' ? 'camera' : 'monitor') : s.type === 'image' ? 'image' : s.type === 'text' ? 'text' : 'widget');
+  const typeIcon = (s) => (s.type === 'video' ? (s.props.kind === 'camera' ? 'camera' : 'monitor') : s.type === 'image' || s.type === 'clip' ? 'image' : s.type === 'text' ? 'text' : 'widget');
 
   function renderSources() {
     const root = GS.$('#sourcesBody');
@@ -359,6 +407,7 @@
       { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'monitor', run: () => S.addVideo('gamepc') },
       { label: 'Skrin penuh', icon: 'monitor', run: () => S.addVideo('screen') },
       '-',
+      { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'image', run: S.addClip },
       { label: 'Imej', icon: 'image', run: S.addImage },
       { label: 'Teks', icon: 'text', run: S.addText },
       '-',
@@ -392,10 +441,22 @@
     if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); return; }
     root.append(
       h('div', { class: 'grid4' }, field('X', numInput(s, 'x')), field('Y', numInput(s, 'y')), field('Lebar', numInput(s, 'w')), field('Tinggi', numInput(s, 'h'))));
-    if (s.type === 'video' || s.type === 'image') {
+    if (s.type === 'video' || s.type === 'image' || s.type === 'clip') {
       const sel = h('select', { onChange: (e) => { s.fit = e.target.value; changed('props:changed'); } },
         [['cover', 'Penuhi (potong)'], ['contain', 'Muat (tanpa potong)'], ['stretch', 'Regang']].map(([v, l]) => h('option', { value: v, selected: s.fit === v }, l)));
       root.append(field('Muat', sel));
+    }
+    if (s.type === 'clip') {
+      const rec = GS.media.clips[s.id];
+      const dim = rec && rec.ready ? (rec.kind === 'video' ? rec.el.videoWidth + '×' + rec.el.videoHeight : rec.el.naturalWidth + '×' + rec.el.naturalHeight) : '';
+      root.append(h('div', { class: 'prop-info', 'data-clip-info': '1' }, (s.props.name || GS.t('Klip')) + (dim ? ' · ' + dim : '') + (rec && rec.error ? ' · ' + GS.t('Tidak dapat dimainkan') : !rec ? ' · ' + GS.t('Pilih fail semula') : '')));
+      root.append(h('div', { class: 'btn-row' },
+        h('button', { class: 'btn', id: 'btnClipPick', onClick: () => { const inp = h('input', { type: 'file', accept: 'image/*,video/*,.gif,.webm,.mp4,.mov,.m4v', style: { display: 'none' } }); inp.addEventListener('change', () => { if (inp.files[0]) S.loadClip(s, inp.files[0]); inp.remove(); }); document.body.append(inp); inp.click(); } }, rec ? 'Ganti fail' : 'Pilih fail'),
+        h('button', { class: 'btn ghost', id: 'btnClipFooter', title: GS.t('Letak di bar bawah (footer)'), onClick: () => { const r = footerRect(S.editTarget()); s.x = r[0]; s.y = r[1]; s.w = r[2]; s.h = r[3]; changed('props:changed'); renderProps(); } }, 'Letak di footer'),
+        h('button', { class: 'btn ghost', id: 'btnClipNatural', title: GS.t('Gunakan nisbah asal media'), onClick: () => { const r2 = GS.media.clips[s.id]; if (!r2 || !r2.ready) return; const nw = r2.kind === 'video' ? r2.el.videoWidth : r2.el.naturalWidth, nh = r2.kind === 'video' ? r2.el.videoHeight : r2.el.naturalHeight; if (nw && nh) { s.h = Math.round(s.w * nh / nw); changed('props:changed'); renderProps(); } } }, 'Nisbah asal')));
+      if (s.props.kind === 'video') root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: s.props.loop !== false, onChange: (e) => { s.props.loop = e.target.checked; const r2 = GS.media.clips[s.id]; if (r2) r2.el.loop = e.target.checked; GS.save(); } }), 'Ulang video (loop)'));
+      root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'chkHideBars', checked: !!s.props.hideBars, onChange: (e) => { s.props.hideBars = e.target.checked; S.setBarsHidden(S.editTarget(), e.target.checked); renderProps(); } }), 'Sembunyikan bar teks (INFO / Welcome) dan banner promosi pada scene ini'));
+      root.append(h('p', { class: 'muted note' }, 'Banner sendiri boleh sebarang saiz: seret pada pratonton untuk alih, tarik sudut untuk besarkan, atau tukar Lebar/Tinggi di atas. "Muat" mengekalkan seluruh gambar, "Penuhi" memotong ikut kotak.'));
     }
     if (s.type === 'video') {
       const rec = GS.media.videos[s.id];

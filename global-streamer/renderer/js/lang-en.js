@@ -587,6 +587,46 @@
     'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.': 'Drag the dividers between panels (Scenes, Sources, Properties, Audio Mixer, Templates, right panel) to resize them, and drag a panel title to move it. Panels stay inside the app and cannot be removed or hidden. Double-click a divider for the default.',
     'Tetapkan semula susun atur panel': 'Reset the panel layout',
 
+
+    /* ---- siaran dalam panel chat ---- */
+    '{0}: Server URL dan Stream Key': '{0}: Server URL and Stream Key',
+    'Tambah aplikasi lain untuk LIVE (Kick, Twitch, Shopee Live...)': 'Add another app to go LIVE on (Kick, Twitch, Shopee Live...)',
+    'Tambah aplikasi lain untuk LIVE': 'Add another app to go LIVE on',
+    'Nama aplikasi (cth Kick, Twitch, Shopee Live):': 'App name (e.g. Kick, Twitch, Shopee Live):',
+    'Had aplikasi tambahan dicapai.': 'The limit of extra apps was reached.',
+    'Siaran langsung: Server URL dan Stream Key': 'Live stream: Server URL and Stream Key',
+    'Masukkan Stream Key (dan Server URL jika diminta) pada TikTok, Facebook atau YouTube di panel Chat, kemudian tekan MULA LIVE.': 'Enter the Stream Key (and the Server URL if required) for TikTok, Facebook or YouTube in the Chat panel, then press START LIVE.',
+    'Gunakan platform ini semasa LIVE': 'Use this platform when going LIVE',
+    'Buang {0}?': 'Remove {0}?',
+    'Nama aplikasi': 'App name',
+    'Buang aplikasi ini': 'Remove this app',
+    'Pilih TikTok, Facebook atau YouTube untuk memasukkan Server URL dan Stream Key. Tekan + untuk menambah aplikasi lain.': 'Choose TikTok, Facebook or YouTube to enter the Server URL and Stream Key. Press + to add another app.',
+    'WAJIB. Server URL RTMP / RTMPS daripada platform ini (cth rtmp://live.twitch.tv/app).': 'REQUIRED. The RTMP / RTMPS Server URL from this platform (e.g. rtmp://live.twitch.tv/app).',
+    'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. The Stream Key from this platform.',
+
+
+    /* ---- suara sistem ---- */
+    'Suara {0} Melayu pada PC ini: {1}.': 'Malay {0} voice on this PC: {1}.',
+    'PC ini tiada suara {0} Melayu (Malaysia). Suara yang digunakan: {1} ({2}), jadi Bahasa Melayu mungkin bunyi seperti sebutan Inggeris. Untuk suara Melayu Malaysia asli lelaki dan perempuan, pilih "Microsoft Azure" (percuma) di atas, atau pasang suara Melayu di Tetapan Windows > Masa & bahasa > Pertuturan.': 'This PC has no Malay (Malaysia) {0} voice. The voice used is {1} ({2}), so Malay may sound like English pronunciation. For authentic Malaysian Malay male and female voices, choose "Microsoft Azure" (free) above, or install a Malay voice in Windows Settings > Time & language > Speech.',
+    'PC ini tiada suara sistem. Pilih "Microsoft Azure" (percuma) untuk suara Melayu Malaysia lelaki dan perempuan.': 'This PC has no system voice. Choose "Microsoft Azure" (free) for Malaysian Malay male and female voices.',
+
+
+    /* ---- klip / banner sendiri ---- */
+    'Video dimuat. Dalam versi web video tidak disimpan selepas muat semula; app Windows mengingati fail ini.': 'Video loaded. In the web version the video is not kept after a reload; the Windows app remembers this file.',
+    'Klip': 'Clip',
+    'Tidak dapat dimainkan': 'Cannot be played',
+    'Pilih fail semula': 'Choose the file again',
+    'Letak di bar bawah (footer)': 'Place in the bottom bar (footer)',
+    'Gunakan nisbah asal media': 'Use the original aspect ratio',
+    'Banner / Video sendiri (imej, GIF, video)': 'Your own banner / video (image, GIF, video)',
+    'Ganti fail': 'Replace file',
+    'Pilih fail': 'Choose file',
+    'Letak di footer': 'Place in footer',
+    'Nisbah asal': 'Original ratio',
+    'Ulang video (loop)': 'Loop the video',
+    'Sembunyikan bar teks (INFO / Welcome) dan banner promosi pada scene ini': 'Hide the text bar (INFO / Welcome) and promo banner on this scene',
+    'Banner sendiri boleh sebarang saiz: seret pada pratonton untuk alih, tarik sudut untuk besarkan, atau tukar Lebar/Tinggi di atas. "Muat" mengekalkan seluruh gambar, "Penuhi" memotong ikut kotak.': 'Your own banner can be any size: drag it in the preview to move it, pull a corner to enlarge it, or change the Width/Height above. "Fit" keeps the whole picture, "Fill" crops to the box.',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

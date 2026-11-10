@@ -14,7 +14,7 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | Capture card / kamera / kongsi skrin sebagai sumber | ✅ Siap (diuji dengan peranti palsu; **belum dengan capture card sebenar**) |
 | Audio mixer (meter, kelantangan, bisu, banyak input) | ✅ Siap (diuji dengan mikrofon palsu) |
 | **Susun atur MENEGAK 9:16 untuk TikTok LIVE** (lalai) dan mendatar 16:9 untuk YouTube/Facebook, boleh ditukar | ✅ Siap |
-| 6 template MLBB siap (3 menegak, 3 mendatar) + aliran "Sediakan Live" 4 langkah | ✅ Siap |
+| 6 template MLBB siap (3 menegak, 3 mendatar) + Server URL dan Stream Key setiap platform dalam panel Chat (tiada wizard) | ✅ Siap |
 | Widget siaran: bar status, boss game, top like, banner promosi bermaskot, giliran mabar, label peranti, W/L, banner hadiah, draft, pemasa spell, tier list, notis item | ✅ Siap (data diisi manual; panel kawalan dalam tab Game) |
 | Widget: jam, masa main, menang/kalah, logo, bar teks, bingkai | ✅ Siap |
 | Efek: Kill (api), Mati (petir), Victory, Defeat, Item Penuh, Beli Item | ✅ Siap, dicetus manual atau Alt+1…6 |

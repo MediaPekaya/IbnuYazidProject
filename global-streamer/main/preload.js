@@ -1,9 +1,10 @@
 'use strict';
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 /* Jambatan selamat antara antara muka dan proses utama. Hanya fungsi yang diperlukan didedahkan. */
 contextBridge.exposeInMainWorld('gsNative', {
   isNative: true,
+  pathOf: (file) => { try { return webUtils.getPathForFile(file) || ''; } catch (e) { return ''; } },
   vault: {
     get: (id) => ipcRenderer.invoke('vault:get', id),
     set: (id, value) => ipcRenderer.invoke('vault:set', id, value),
