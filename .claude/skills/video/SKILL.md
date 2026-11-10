@@ -65,6 +65,10 @@ npx hyperframes render -o output.mp4  # render index.html
 
 **Best for:** Product announcements, changelogs, data-driven reports, personalized outreach videos.
 
+### Gabungan auto (repo ini)
+
+Tiada tool default. Auto-pilih ikut keperluan: Higgsfield MCP untuk aset AI (imej, video, suara, upscale), Hyperframes atau Remotion untuk komposisi dan render, dan gabungkan. Aliran penuh: skill `video-auto-pipeline`.
+
 ### Remotion (React)
 
 Framework where compositions are React components. Docs: [remotion.dev](https://www.remotion.dev/docs).
