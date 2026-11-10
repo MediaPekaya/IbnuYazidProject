@@ -93,7 +93,7 @@
     scenes: [],
     programId: null,
     previewId: null,
-    settings: { width: 1920, height: 1080, fps: 60, vbitrate: 6000, abitrate: 160, transition: 'fade', transitionMs: 500 },
+    settings: { width: 1920, height: 1080, fps: 60, vbitrate: 6000, abitrate: 160, encoder: 'auto', transition: 'fade', transitionMs: 500 },
     platforms: {
       tiktok: { enabled: false, server: '' },
       facebook: { enabled: false, server: 'rtmps://live-api-s.facebook.com:443/rtmp/' },

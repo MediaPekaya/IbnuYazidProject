@@ -11,7 +11,8 @@
     "start": "electron .",
     "web": "node scripts/serve.js",
     "dist": "electron-builder --win --x64",
-    "check": "node scripts/check-syntax.js"
+    "check": "node scripts/check-syntax.js",
+    "test:engine": "node scripts/test-engine.js"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0"
@@ -23,16 +24,40 @@
   "build": {
     "appId": "com.pekaya.globalstreamer",
     "productName": "Global Streamer",
-    "directories": { "output": "dist" },
-    "files": ["main/**", "renderer/**", "package.json"],
-    "asarUnpack": ["node_modules/ffmpeg-static/**"],
-    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main/**",
+      "renderer/**",
+      "package.json",
+      "THIRD-PARTY-NOTICES.md"
+    ],
+    "asarUnpack": [
+      "node_modules/ffmpeg-static/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Global Streamer"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "THIRD-PARTY-NOTICES.md",
+        "to": "THIRD-PARTY-NOTICES.md"
+      }
+    ]
   }
 }

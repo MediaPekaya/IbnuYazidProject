@@ -76,14 +76,22 @@
     }
     try {
       const s = GS.state.settings;
-      await window.gsNative.stream.start({ targets: L.targets, width: s.width, height: s.height, fps: s.fps, vbitrate: s.vbitrate, abitrate: s.abitrate });
+      L.stats = null;
+      L.encoder = null;
+      await window.gsNative.stream.start({ targets: L.targets, width: s.width, height: s.height, fps: s.fps, vbitrate: s.vbitrate, abitrate: s.abitrate, encoder: s.encoder || 'auto' });
       recorder = makeRecorder(outputStream());
-      recorder.ondataavailable = async (e) => { if (e.data && e.data.size) window.gsNative.stream.chunk(await e.data.arrayBuffer()); };
+      // urutan chunk mesti dikekalkan: rantai janji supaya tidak bertukar tertib
+      let chain = Promise.resolve();
+      recorder.ondataavailable = (e) => {
+        if (!e.data || !e.data.size) return;
+        chain = chain.then(() => e.data.arrayBuffer()).then((buf) => window.gsNative.stream.chunk(buf)).catch(() => {});
+      };
       recorder.start(250);
-      L.targets.forEach((t) => (L.status[t.id] = 'live'));
-      L.state = 'live';
-      L.startedAt = Date.now();
-      render();
+      // status "live" menunggu isyarat 'started' daripada enjin (bingkai pertama dihasilkan)
+      clearTimeout(L.startTimer);
+      L.startTimer = setTimeout(() => {
+        if (L.state === 'connecting') { GS.toast('Tiada bingkai dihasilkan dalam 20 saat. Semak sumber video dan sambungan.', 'warn', 7000); L.stop(); }
+      }, 20000);
       return true;
     } catch (e) {
       L.state = 'idle';
@@ -107,12 +115,53 @@
     GS.toast('Siaran ditamatkan.', 'info');
   };
 
-  if (window.gsNative && window.gsNative.onStreamEvent) {
-    window.gsNative.onStreamEvent((ev) => {
-      if (ev.type === 'error') { GS.toast('Ralat siaran: ' + ev.message, 'warn', 7000); L.state = 'idle'; render(); }
-      if (ev.type === 'ended') { L.state = 'idle'; render(); }
-    });
+  /* peristiwa daripada enjin siaran (app Windows) */
+  function endLive(why) {
+    clearTimeout(L.startTimer);
+    if (recorder && recorder.state !== 'inactive' && !R.active) { try { recorder.stop(); } catch (e) { /* abaikan */ } }
+    L.state = 'idle';
+    L.status = {};
+    L.stats = null;
+    render();
+    if (why) GS.toast(why, 'warn', 8000);
   }
+  L.onEngineEvent = function (ev) {
+    switch (ev.type) {
+      case 'encoder':
+        L.encoder = ev.label;
+        if (ev.fellBack) GS.toast('Pengekod perkakasan tidak tersedia. Menggunakan ' + ev.label + '.', 'info', 5000);
+        break;
+      case 'started':
+        clearTimeout(L.startTimer);
+        L.targets.forEach((t) => { if (L.status[t.id] !== 'failed') L.status[t.id] = 'live'; });
+        L.state = 'live';
+        L.startedAt = Date.now();
+        render();
+        GS.toast('Siaran bermula (' + (L.encoder || 'pengekod') + ').', 'ok');
+        break;
+      case 'stats':
+        L.stats = ev;
+        break;
+      case 'target':
+        if (ev.id) L.status[ev.id] = 'failed';
+        render();
+        GS.toast((ev.name || 'Platform') + ' terputus atau gagal disambung: ' + ev.message, 'warn', 8000);
+        if (ev.remaining === 0) endLive('Semua destinasi gagal. Semak Server URL dan Stream Key.');
+        break;
+      case 'warn':
+        GS.toast(ev.message, 'warn', 7000);
+        break;
+      case 'error':
+        endLive('Ralat siaran: ' + ev.message);
+        break;
+      case 'ended':
+        if (L.state !== 'idle') endLive('');
+        break;
+      default:
+        break;
+    }
+  };
+  if (window.gsNative && window.gsNative.onStreamEvent) window.gsNative.onStreamEvent(L.onEngineEvent);
 
   /* ---------- kemas kini bar atas ---------- */
   function render() {
@@ -141,6 +190,16 @@
     if (rt) {
       rt.parentElement.classList.toggle('hidden', !R.active);
       if (R.active) rt.textContent = GS.fmtDur((Date.now() - R.startedAt) / 1000);
+    }
+    const ec = GS.$('#encChip');
+    if (ec) {
+      const show = L.state === 'live' && !L.demo && L.stats;
+      ec.classList.toggle('hidden', !show);
+      if (show) {
+        const s = L.stats;
+        ec.textContent = (L.encoder || 'Pengekod') + ' · ' + s.fps + ' fps' + (s.speed ? ' · ' + s.speed.toFixed(2) + '×' : '') + ' · drop ' + s.drop;
+        ec.classList.toggle('warn', s.speed != null && s.speed < 0.9);
+      }
     }
   }, 500);
 
@@ -258,7 +317,8 @@
         h('label', { class: 'field' }, h('span', null, 'Resolusi'), sel('width', [[1280, '1280×720 (HD)'], [1920, '1920×1080 (Full HD)'], [2560, '2560×1440 (2K)'], [3840, '3840×2160 (4K)']])),
         h('label', { class: 'field' }, h('span', null, 'Bingkai sesaat (FPS)'), sel('fps', [[30, '30 fps'], [60, '60 fps']])),
         h('label', { class: 'field' }, h('span', null, 'Bitrate video (kbps)'), h('input', { type: 'number', min: 1000, max: 60000, step: 500, value: s.vbitrate, onChange: (e) => { s.vbitrate = GS.clamp(Number(e.target.value) || 6000, 1000, 60000); GS.save(); } })),
-        h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']]))),
+        h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']])),
+        h('label', { class: 'field' }, h('span', null, 'Pengekod video (app Windows)'), sel('encoder', [['auto', 'Auto (GPU jika ada, sandaran CPU)'], ['x264', 'CPU (x264)'], ['nvenc', 'NVIDIA NVENC'], ['qsv', 'Intel Quick Sync'], ['amf', 'AMD AMF']], String))),
       h('p', { class: 'muted note' }, 'TikTok dan Facebook biasanya menghadkan 1080p. 4K hanya sesuai untuk YouTube dan memerlukan PC yang kuat.'),
       h('h3', null, 'Peralihan scene (Mod Studio)'),
       h('div', { class: 'grid2' },

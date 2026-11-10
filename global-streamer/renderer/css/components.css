@@ -264,3 +264,9 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 11px; padding: 
 .auth-err { min-height: 18px; color: #ff9aab; font-size: 12.5px; line-height: 1.45; }
 .link-btn { align-self: flex-start; background: none; border: 0; padding: 2px 0; color: var(--cyan); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
 .link-btn:hover { color: #fff; }
+
+/* ---------- statistik siaran ---------- */
+.chip.enc { color: var(--cyan); border-color: rgba(107, 230, 255, 0.35); font-variant-numeric: tabular-nums; }
+.chip.enc.warn { color: var(--gold); border-color: rgba(255, 211, 107, 0.5); }
+.chip.pf.failed { color: var(--red); border-color: rgba(255, 59, 92, 0.5); }
+.chip.pf.failed i { background: var(--red); opacity: 1; }
