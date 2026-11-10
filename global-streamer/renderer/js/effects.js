@@ -525,58 +525,79 @@
   }
 
 
-  /* ================== BOT: gelembung komik (cakap) di dalam kotak kamera ================== */
+  /* ================== BOT: gelembung komik (cakap) ================== */
   const COMIC = '"Comic Sans MS","Comic Neue","Chalkboard SE","Segoe Print","Segoe UI",system-ui,sans-serif';
+  const area = (r) => r.w * r.h;
+  const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
 
-  /** Kotak tempat gelembung dibenarkan: sumber Kamera yang kelihatan pada scene program. Jika tiada, jalur bawah kanvas. */
-  function botBox(W, H) {
+  /** Tempat gelembung. Kamera BESAR (cth template TikTok): di bawah, di dalam kotak kamera. Kamera KECIL: gelembung diletakkan di
+   *  kotak besar (paparan game), tengah-bawah, supaya tidak menutup muka streamer. Tanpa kamera/game: jalur bawah kanvas. */
+  FX.botPlacement = function (W, H) {
     const sc = GS.scenes && GS.scenes.program && GS.scenes.program();
-    const cam = sc && sc.sources.find((x) => x.type === 'video' && x.props && x.props.kind === 'camera' && x.visible);
-    if (cam) return { x: cam.x, y: cam.y, w: cam.w, h: cam.h, cam: true };
-    return { x: 40, y: Math.round(H * 0.62), w: W - 80, h: Math.round(H * 0.32), cam: false };
-  }
+    const vis = sc ? sc.sources.filter((x) => x.visible) : [];
+    const cam = vis.find((x) => x.type === 'video' && x.props && x.props.kind === 'camera');
+    const games = vis.filter((x) => x.type === 'video' && !(x.props && x.props.kind === 'camera')).sort((a, b) => area(b) - area(a));
+    const host = games[0] || null;
+    const camBig = cam && area(cam) / (W * H) >= 0.22;
+    if (cam && (camBig || !host)) {
+      const cb = { x: cam.x, y: cam.y, w: cam.w, h: cam.h };
+      const obstacles = vis.filter((x) => x !== cam && x.type !== 'video' && x.w * x.h > 0 && x.w * x.h < cb.w * cb.h * 0.5).map((x) => ({ x: x.x, y: x.y, w: x.w, h: x.h }));
+      return { mode: 'cam', box: cb, cam: null, obstacles };
+    }
+    if (host) {
+      // bingkai/latar yang meliputi hampir seluruh kotak bukan halangan sebenar
+      const obstacles = vis.filter((x) => x !== host && x.w * x.h > 0 && x.w * x.h < host.w * host.h * 0.5).map((x) => ({ x: x.x, y: x.y, w: x.w, h: x.h, cam: x === cam }));
+      return { mode: 'game', box: { x: host.x, y: host.y, w: host.w, h: host.h }, cam: cam ? { x: cam.x, y: cam.y, w: cam.w, h: cam.h } : null, obstacles };
+    }
+    return { mode: 'band', box: { x: 40, y: Math.round(H * 0.62), w: W - 80, h: Math.round(H * 0.32) }, cam: null, obstacles: [] };
+  };
+  const MODE_OPT = {
+    cam: { wRatio: 0.85, wCap: 720, hRatio: 0.22, hAbs: 0.09, sizeFactor: 0.03, sizeCap: 30 },
+    band: { wRatio: 0.85, wCap: 720, hRatio: 0.22, hAbs: 0.09, sizeFactor: 0.03, sizeCap: 30 },
+    game: { wRatio: 0.6, wCap: 620, hRatio: 0.2, hAbs: 0.09, sizeFactor: 0.02, sizeCap: 22 },
+  };
 
-  /** Susun atur gelembung. Gelembung melekat di BAWAH kotak, memanjang ke sisi (lebar) dahulu sehingga penuh lebar kotak;
-   *  jika teks masih terlalu tinggi, huruf dikecilkan, dan akhirnya dipotong dengan "…". Sentiasa di dalam kotak. */
-  FX.botLayout = function (ctx, params, box) {
+  /** Susun atur gelembung (saiz, baris). Memanjang ke sisi dahulu sehingga lebar maksimum, kemudian ke bawah (hingga tinggi
+   *  maksimum), kemudian huruf dikecilkan, akhirnya dipotong dengan "…". Kedudukan awal: tengah-bawah kotak hos. */
+  FX.botLayout = function (ctx, params, box, o, canvasH) {
+    o = Object.assign({}, MODE_OPT.cam, o || {});
     const m = Math.max(8, Math.min(18, Math.round(box.w * 0.03)));
-    const tail = Math.max(10, Math.min(22, Math.round(box.h * 0.07)));
-    const availW = Math.max(40, box.w - 2 * m), availH = Math.max(30, box.h - 2 * m - tail);
+    const tail = Math.max(9, Math.min(20, Math.round(Math.min(box.w, box.h) * 0.06)));
+    const maxW = Math.max(60, Math.min(box.w - 2 * m, Math.min(o.wCap, box.w * o.wRatio)));
+    const maxH = Math.max(34, Math.min(box.h - 2 * m - tail, box.h * o.hRatio, (canvasH || box.h) * (o.hAbs || 1))); // lebar dahulu; tinggi dihadkan
     const name = String(params.name || 'BOT').toUpperCase().slice(0, 24);
     const text = String(params.text || '').replace(/\s+/g, ' ').trim();
     const MIN = 12;
     ctx.save();
-    const wrap = (size, maxW) => {
+    const wrap = (size, lineW) => {
       ctx.font = '700 ' + size + 'px ' + COMIC;
       const out = []; let cur = '';
-      const push = (t) => out.push(t);
       text.split(' ').forEach((wd) => {
-        // perkataan yang lebih panjang daripada satu baris dipotong ikut huruf
-        while (ctx.measureText(wd).width > maxW && wd.length > 1) {
-          let k = wd.length - 1; while (k > 1 && ctx.measureText(wd.slice(0, k)).width > maxW) k--;
-          if (cur) { push(cur); cur = ''; }
-          push(wd.slice(0, k)); wd = wd.slice(k);
+        while (ctx.measureText(wd).width > lineW && wd.length > 1) {
+          let k = wd.length - 1; while (k > 1 && ctx.measureText(wd.slice(0, k)).width > lineW) k--;
+          if (cur) { out.push(cur); cur = ''; }
+          out.push(wd.slice(0, k)); wd = wd.slice(k);
         }
         const t = cur ? cur + ' ' + wd : wd;
-        if (ctx.measureText(t).width > maxW && cur) { push(cur); cur = wd; } else cur = t;
+        if (ctx.measureText(t).width > lineW && cur) { out.push(cur); cur = wd; } else cur = t;
       });
-      if (cur) push(cur);
+      if (cur) out.push(cur);
       return out;
     };
-    let size = Math.max(MIN, Math.min(40, Math.round(box.w * 0.045)));
+    let size = Math.max(MIN, Math.min(o.sizeCap, Math.round(box.w * o.sizeFactor)));
     let lines, pad, lh, nameH;
     for (;;) {
       pad = Math.round(size * 0.55); lh = Math.round(size * 1.22); nameH = Math.round(size * 0.74);
-      lines = wrap(size, availW - 2 * pad);
-      if (2 * pad + nameH + lines.length * lh <= availH || size <= MIN) break;
+      lines = wrap(size, maxW - 2 * pad);
+      if (2 * pad + nameH + lines.length * lh <= maxH || size <= MIN) break;
       size -= 1;
     }
-    const maxLines = Math.max(1, Math.floor((availH - 2 * pad - nameH) / lh));
+    const maxLines = Math.max(1, Math.floor((maxH - 2 * pad - nameH) / lh));
     if (lines.length > maxLines) {
       lines = lines.slice(0, maxLines);
       let last = lines[maxLines - 1];
       ctx.font = '700 ' + size + 'px ' + COMIC;
-      while (last.length > 1 && ctx.measureText(last + '…').width > availW - 2 * pad) last = last.slice(0, -1);
+      while (last.length > 1 && ctx.measureText(last + '…').width > maxW - 2 * pad) last = last.slice(0, -1);
       lines[maxLines - 1] = last + '…';
     }
     ctx.font = '700 ' + size + 'px ' + COMIC;
@@ -584,43 +605,74 @@
     ctx.font = '800 ' + Math.round(size * 0.62) + 'px ' + COMIC;
     cw = Math.max(cw, ctx.measureText(name).width + 6);
     ctx.restore();
-    // satu baris: selebar teks; berbilang baris: penuh lebar kotak (memanjang ke sisi, bukan ke bawah)
-    const w = lines.length > 1 ? availW : Math.min(availW, Math.ceil(cw + 2 * pad));
+    const w = lines.length > 1 ? maxW : Math.min(maxW, Math.ceil(cw + 2 * pad));
     const h = 2 * pad + nameH + lines.length * lh;
     const x = Math.round(box.x + (box.w - w) / 2);
-    const y = Math.round(box.y + box.h - m - tail - h);
     const tw = Math.round(tail * 1.15);
     const r = Math.min(Math.round(size * 0.9), Math.floor(h / 3), Math.floor(w / 4));
-    const tailX = Math.round(Math.min(x + w - r - tw, Math.max(x + r + tw, x + w * 0.32)));
-    return { x, y, w, h, r, size, pad, lh, nameH, lines, name, tail, tw, tailX, tipX: tailX - Math.round(tail * 0.55), tipY: y + h + tail, m };
+    return { x, y: Math.round(box.y + box.h - m - tail - h), w, h, r, size, pad, lh, nameH, lines, name, tail, tw, m, up: false, tailX: x + Math.round(w * 0.32), tipX: 0, tipY: 0 };
+  };
+
+  /** Kedudukan akhir: dalam mod "game" gelembung dianjak ke atas sedikit demi sedikit untuk mengelak widget/kamera,
+   *  dan ekor menunjuk ke arah kamera (penutur). Mengembalikan susun atur lengkap termasuk hujung ekor. */
+  FX.botPlace = function (ctx, params, W, H) {
+    const pl = FX.botPlacement(W, H);
+    const L = FX.botLayout(ctx, params, pl.box, MODE_OPT[pl.mode], H);
+    const b = pl.box;
+    let camC = null;
+    if (pl.mode === 'game' || pl.mode === 'cam') {
+      const obs = pl.obstacles;
+      // mod kamera: hanya anjak sedikit ke atas (tidak menutup muka); mod game: anjak bebas dalam kotak besar
+      const maxShift = Math.max(0, Math.min(L.y - (b.y + L.m + L.tail), pl.mode === 'cam' ? Math.round(b.h * 0.2) : Infinity));
+      let best = { dy: 0, ov: Infinity };
+      for (let k = 0; k <= 14; k++) {
+        const dy = Math.min(maxShift, Math.round(k * b.h * 0.035));
+        const rect = { x: L.x, y: L.y - dy, w: L.w, h: L.h };
+        const ov = obs.reduce((a, o) => a + overlap(rect, o) * (o.cam ? 4 : 1), 0);
+        if (ov < best.ov) best = { dy, ov };
+        if (ov === 0 || dy >= maxShift) break;
+      }
+      L.y -= best.dy;
+      if (pl.cam) camC = { x: pl.cam.x + pl.cam.w / 2, y: pl.cam.y + pl.cam.h / 2 };
+    }
+    // ekor: menghala ke kamera jika ada; jika kamera di atas gelembung, ekor di sisi atas
+    L.up = !!(camC && camC.y < L.y);
+    const lim = (v) => Math.min(L.x + L.w - L.r - L.tw, Math.max(L.x + L.r + L.tw, v));
+    L.tailX = lim(camC ? camC.x : L.x + L.w * 0.32);
+    const lean = camC ? Math.max(-1, Math.min(1, (camC.x - L.tailX) / Math.max(1, L.w))) * L.tail * 0.9 : -L.tail * 0.55;
+    L.tipX = Math.round(L.tailX + lean);
+    L.tipY = L.up ? L.y - L.tail : L.y + L.h + L.tail;
+    L.mode = pl.mode; L.box = b;
+    return L;
   };
 
   function drawBotSay(ctx, e, p, now, W, H) {
-    const box = botBox(W, H);
-    const sig = box.x + ',' + box.y + ',' + box.w + ',' + box.h;
-    if (!e.lay || e.laySig !== sig) { e.lay = FX.botLayout(ctx, e.params, box); e.laySig = sig; }
-    const L = e.lay;
+    const pl = FX.botPlacement(W, H);
+    const sig = pl.mode + JSON.stringify(pl.box) + JSON.stringify(pl.cam) + pl.obstacles.length;
+    if (!e.lay || e.laySig !== sig) { e.lay = FX.botPlace(ctx, e.params, W, H); e.laySig = sig; }
+    const L = e.lay, box = L.box;
     const inP = easeBack(p / 0.1), outP = easeOut((p - 0.92) / 0.08);
     const sc = clamp(inP, 0, 1.08);
     ctx.save();
-    ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip(); // tidak pernah keluar daripada kotak kamera
+    ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip(); // tidak pernah keluar daripada kotak hos
     ctx.globalAlpha = 1 - outP;
     ctx.translate(L.tipX, L.tipY); ctx.scale(sc, sc); ctx.translate(-L.tipX, -L.tipY); // "meletup" keluar dari ekor
     const path = (dx, dy) => {
       const { x, y, w, h, r } = L; const bx = x + dx, by = y + dy;
       ctx.beginPath();
-      ctx.moveTo(bx + r, by); ctx.lineTo(bx + w - r, by); ctx.arcTo(bx + w, by, bx + w, by + r, r);
+      ctx.moveTo(bx + r, by);
+      if (L.up) { ctx.lineTo(L.tailX - L.tw / 2 + dx, by); ctx.lineTo(L.tipX + dx, L.tipY + dy); ctx.lineTo(L.tailX + L.tw / 2 + dx, by); }
+      ctx.lineTo(bx + w - r, by); ctx.arcTo(bx + w, by, bx + w, by + r, r);
       ctx.lineTo(bx + w, by + h - r); ctx.arcTo(bx + w, by + h, bx + w - r, by + h, r);
-      ctx.lineTo(L.tailX + L.tw / 2 + dx, by + h); ctx.lineTo(L.tipX + dx, L.tipY + dy); ctx.lineTo(L.tailX - L.tw / 2 + dx, by + h);
+      if (!L.up) { ctx.lineTo(L.tailX + L.tw / 2 + dx, by + h); ctx.lineTo(L.tipX + dx, L.tipY + dy); ctx.lineTo(L.tailX - L.tw / 2 + dx, by + h); }
       ctx.lineTo(bx + r, by + h); ctx.arcTo(bx, by + h, bx, by + h - r, r);
       ctx.lineTo(bx, by + r); ctx.arcTo(bx, by, bx + r, by, r);
       ctx.closePath();
     };
-    const off = Math.max(3, Math.round(L.size * 0.14));
+    const off = Math.max(2, Math.round(L.size * 0.12));
     path(off, off); ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.fill();                      // bayang keras gaya komik
     path(0, 0); ctx.fillStyle = '#ffffff'; ctx.fill();
-    ctx.lineWidth = Math.max(3, Math.round(L.size * 0.14)); ctx.lineJoin = 'round'; ctx.strokeStyle = '#111'; ctx.stroke();
-    // nama bot (kecil, merah komik) dan teks
+    ctx.lineWidth = Math.max(2.5, Math.round(L.size * 0.12)); ctx.lineJoin = 'round'; ctx.strokeStyle = '#111'; ctx.stroke();
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     ctx.font = '800 ' + Math.round(L.size * 0.62) + 'px ' + COMIC; ctx.fillStyle = '#d6262f';
     ctx.fillText(L.name, L.x + L.w / 2, L.y + L.pad + L.nameH * 0.8);
