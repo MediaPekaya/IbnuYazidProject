@@ -12,7 +12,8 @@
     "web": "node scripts/serve.js",
     "dist": "electron-builder --win --x64",
     "check": "node scripts/check-syntax.js",
-    "test:engine": "node scripts/test-engine.js"
+    "test:engine": "node scripts/test-engine.js",
+    "check:i18n": "node scripts/check-i18n.js"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0"

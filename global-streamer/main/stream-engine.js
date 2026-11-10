@@ -137,7 +137,7 @@ class StreamEngine {
     p.on('error', (e) => {
       if (gen !== this.gen) return;
       this.proc = null;
-      this.emit({ type: 'error', message: 'FFmpeg gagal dimulakan: ' + e.message });
+      this.emit({ type: 'error', code: 'spawn', detail: e.message, message: 'FFmpeg gagal dimulakan: ' + e.message });
     });
     p.on('exit', (code) => this.onExit(gen, code, encKey));
     this.emit({ type: 'encoder', encoder: encKey, label: ENCODERS[encKey].label, requested: this.requested, fellBack: this.encIdx > 0 });
@@ -180,7 +180,7 @@ class StreamEngine {
         const stats = { type: 'stats', fps: Number(pr.fps) || 0, speed: Number.isFinite(speed) ? speed : null, drop: Number(pr.drop_frames) || 0, frames: frame, uptime: Math.round((Date.now() - this.startedAt) / 1000) };
         this.emit(stats);
         if (Number.isFinite(speed) && speed < 0.9 && this.ok) {
-          if (++this.slowCount === 4) this.emit({ type: 'warn', code: 'slow', message: 'Pengekod tidak sempat mengejar (kelajuan ' + speed.toFixed(2) + 'x). Turunkan resolusi/FPS atau guna pengekod perkakasan.' });
+          if (++this.slowCount === 4) this.emit({ type: 'warn', code: 'slow', speed, message: 'Pengekod tidak sempat mengejar (kelajuan ' + speed.toFixed(2) + 'x). Turunkan resolusi/FPS atau guna pengekod perkakasan.' });
         } else this.slowCount = 0;
         this.progress = {};
       }
@@ -193,7 +193,7 @@ class StreamEngine {
     const raw = this.stderr;
     if (!this.stopping && early && code !== 0 && ENC_FAIL_RE.test(raw) && this.encIdx < this.candidates.length - 1) {
       // pengekod perkakasan gagal dimulakan: cuba yang seterusnya dengan memainkan semula chunk awal
-      this.emit({ type: 'warn', code: 'encoder-fallback', message: ENCODERS[encKey].label + ' tidak dapat dimulakan, beralih ke ' + ENCODERS[this.candidates[this.encIdx + 1]].label + '.' });
+      this.emit({ type: 'warn', code: 'encoder-fallback', from: ENCODERS[encKey].label, to: ENCODERS[this.candidates[this.encIdx + 1]].label, message: ENCODERS[encKey].label + ' tidak dapat dimulakan, beralih ke ' + ENCODERS[this.candidates[this.encIdx + 1]].label + '.' });
       this.encIdx++;
       this.proc = null;
       this.spawnProc();
@@ -201,14 +201,14 @@ class StreamEngine {
     }
     this.proc = null;
     if (this.stopping || code === 0 || code === null) this.emit({ type: 'ended' });
-    else this.emit({ type: 'error', message: 'FFmpeg berhenti (kod ' + code + '). ' + redact(raw.trim().split('\n').slice(-3).join(' '), this.cfg.targets) });
+    else { const detail = redact(raw.trim().split('\n').slice(-3).join(' '), this.cfg.targets); this.emit({ type: 'error', code: 'exit', exitCode: code, detail, message: 'FFmpeg berhenti (kod ' + code + '). ' + detail }); }
   }
 
   safeWrite(buf) {
     const p = this.proc;
     if (!p || !p.stdin.writable) return;
     if (p.stdin.writableLength > 64 * 1024 * 1024) {
-      this.emit({ type: 'error', message: 'Pengekod terlalu perlahan (penimbal penuh). Siaran dihentikan.' });
+      this.emit({ type: 'error', code: 'buffer-full', message: 'Pengekod terlalu perlahan (penimbal penuh). Siaran dihentikan.' });
       this.stop();
       return;
     }

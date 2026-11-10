@@ -29,6 +29,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Semak sintaks
         run: npm run check
+      - name: Semak terjemahan BM/EN
+        run: npm run check:i18n
       - name: Ujian enjin siaran (RTMP sebenar tempatan)
         run: npm run test:engine
       - name: Bina installer

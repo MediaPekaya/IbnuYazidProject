@@ -180,8 +180,8 @@
       ctx.fillStyle = sg;
       ctx.fillRect(x, sy - 60, w, 120);
       const k = Math.min(w, h);
-      GS.widgets.text(ctx, 'TIADA ISYARAT', x + w / 2, y + h / 2 - k * 0.02, { size: Math.max(14, k * 0.07), weight: 800, spacing: 6, align: 'center', color: '#8aa2c4' });
-      GS.widgets.text(ctx, s.name, x + w / 2, y + h / 2 + k * 0.09, { size: Math.max(11, k * 0.045), weight: 600, align: 'center', color: '#5d7799', maxW: w * 0.9 });
+      GS.widgets.text(ctx, GS.tov('TIADA ISYARAT'), x + w / 2, y + h / 2 - k * 0.02, { size: Math.max(14, k * 0.07), weight: 800, spacing: 6, align: 'center', color: '#8aa2c4' });
+      GS.widgets.text(ctx, GS.tov(s.name), x + w / 2, y + h / 2 + k * 0.09, { size: Math.max(11, k * 0.045), weight: 600, align: 'center', color: '#5d7799', maxW: w * 0.9 });
     }
 
     drawSelection(ctx, scene) {

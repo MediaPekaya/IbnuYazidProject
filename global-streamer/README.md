@@ -16,6 +16,7 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | Widget: jam, masa main, menang/kalah, logo, bar teks, bingkai | ✅ Siap |
 | Efek: Kill (api), Mati (petir), Victory, Defeat, Item Penuh, Beli Item | ✅ Siap, dicetus manual atau Alt+1…6 |
 | Rakaman tempatan (WebM) | ✅ Siap |
+| **Dwibahasa BM / English** (antara muka dan teks overlay siaran, boleh dipilih berasingan) | ✅ Siap, diuji. Lalai BM, pilihan diingati. |
 | Input Server URL + Stream Key (TikTok, Facebook, YouTube, RTMP lain) | ✅ Siap |
 | Mula Live ke banyak platform serentak (app Windows) | ✅ **Diuji hujung ke hujung** dengan app Electron sebenar dan penerima RTMP sebenar tempatan: H.264 + AAC diterima serentak oleh 2 destinasi. Versi web ialah mod demo (pelayar tidak boleh hantar RTMP). |
 | Status setiap platform, statistik (fps, kelajuan pengekodan, bingkai dilepaskan), amaran pengekod perlahan | ✅ Siap |
@@ -54,7 +55,7 @@ global-streamer/
 ├── firebase/            firestore.rules, firestore.indexes.json
 ├── firebase.json        Hosting + Firestore
 ├── scripts/             serve.js (web setempat), check-syntax.js, test-engine.js (ujian siaran RTMP sebenar)
-└── docs/                FIREBASE.md, PELAN.md, REFERENSI-VIDEO.md
+└── docs/                FIREBASE.md, PELAN.md, REFERENSI-VIDEO.md, BAHASA.md
 ```
 
 Tambah game baharu: salin corak `renderer/games/mlbb/` kepada folder baharu, daftar dalam `GS.gameList` dan `GS.games`.

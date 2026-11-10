@@ -188,7 +188,7 @@
     ctx.translate(cx, cy);
     ctx.scale(sc, sc);
     title(ctx, label, 0, -4, 128, pal, now, { top: '#ffffff', mid: '#ffe7a8', bot: '#ff7a2b', glow: 'rgba(255,120,40,0.95)', maxW: bw * 0.9 / sc });
-    GS.widgets.text(ctx, e.params.sub || 'MUSUH TUMBANG', 0, bh / 2 - 14, { size: 22, weight: 700, spacing: 8, align: 'center', color: pal.light });
+    GS.widgets.text(ctx, GS.tov(e.params.sub || 'MUSUH TUMBANG'), 0, bh / 2 - 14, { size: 22, weight: 700, spacing: 8, align: 'center', color: pal.light });
     ctx.restore();
   }
 
@@ -263,7 +263,7 @@
       ctx.translate(W / 2 + shake, H * 0.52 + (p < 0.5 ? rnd(-3, 3) : 0));
       ctx.scale(0.6 + 0.4 * tp, 0.6 + 0.4 * tp);
       title(ctx, (e.params.label || 'ELIMINATED').toUpperCase(), 0, 0, 150, pal, now, { top: '#ffffff', mid: '#bfe8ff', bot: pal.main, glow: pal.glow });
-      GS.widgets.text(ctx, e.params.sub || 'HERO KITA TUMBANG', 0, 96, { size: 24, weight: 700, spacing: 8, align: 'center', color: '#bfe8ff' });
+      GS.widgets.text(ctx, GS.tov(e.params.sub || 'HERO KITA TUMBANG'), 0, 96, { size: 24, weight: 700, spacing: 8, align: 'center', color: '#bfe8ff' });
       ctx.restore();
     }
   }
@@ -326,7 +326,7 @@
     const wl = GS.state.winloss;
     ctx.save();
     ctx.globalAlpha = alpha * easeOut((p - 0.18) / 0.12);
-    GS.widgets.text(ctx, 'MENANG · W' + wl.win + ' – L' + wl.loss, cx, cy + 190, { size: 40, weight: 800, spacing: 10, align: 'center', color: '#ffe9a8', shadow: 'rgba(255,200,90,.8)' });
+    GS.widgets.text(ctx, GS.tov('MENANG · W{0} – L{1}', wl.win, wl.loss), cx, cy + 190, { size: 40, weight: 800, spacing: 10, align: 'center', color: '#ffe9a8', shadow: 'rgba(255,200,90,.8)' });
     ctx.restore();
   }
 
@@ -389,7 +389,7 @@
       }
       title(ctx, 'DEFEAT', W / 2, cy, 190, pal, now, { top: '#ffffff', mid: '#ffd0d8', bot: '#ff6b84', glow: 'rgba(255,40,80,0.9)', spacing: 24 });
       const wl = GS.state.winloss;
-      GS.widgets.text(ctx, 'KALAH · W' + wl.win + ' – L' + wl.loss, W / 2, cy + bh / 2 + 54, { size: 36, weight: 800, spacing: 10, align: 'center', color: '#ffb3c0' });
+      GS.widgets.text(ctx, GS.tov('KALAH · W{0} – L{1}', wl.win, wl.loss), W / 2, cy + bh / 2 + 54, { size: 36, weight: 800, spacing: 10, align: 'center', color: '#ffb3c0' });
       ctx.restore();
     }
     // abu jatuh
@@ -458,11 +458,11 @@
       ctx.save();
       ctx.translate(cx, cy - ch / 2 + 62);
       ctx.scale(pulse, pulse);
-      title(ctx, 'ITEM PENUH!', 0, 0, 92, pal, now, { top: '#ffffff', mid: '#ffe9a8', bot: '#ffa43b', glow: 'rgba(255,200,90,.9)', spacing: 8 });
+      title(ctx, GS.tov('ITEM PENUH!'), 0, 0, 92, pal, now, { top: '#ffffff', mid: '#ffe9a8', bot: '#ffa43b', glow: 'rgba(255,200,90,.9)', spacing: 8 });
       ctx.restore();
-      GS.widgets.text(ctx, '6 / 6 · BUILD LENGKAP', cx, cy + ch / 2 - 26, { size: 22, weight: 700, spacing: 8, align: 'center', color: pal.light });
+      GS.widgets.text(ctx, GS.tov('6 / 6 · BUILD LENGKAP'), cx, cy + ch / 2 - 26, { size: 22, weight: 700, spacing: 8, align: 'center', color: pal.light });
     } else {
-      GS.widgets.text(ctx, 'MEMBINA ITEM…', cx, cy - ch / 2 + 56, { size: 36, weight: 800, spacing: 8, align: 'center', color: pal.light });
+      GS.widgets.text(ctx, GS.tov('MEMBINA ITEM…'), cx, cy - ch / 2 + 56, { size: 36, weight: 800, spacing: 8, align: 'center', color: pal.light });
       const cnt = Math.min(6, filled.filter((f) => f > 0.3).length);
       GS.widgets.text(ctx, cnt + ' / 6', cx, cy + ch / 2 - 26, { size: 22, weight: 700, spacing: 8, align: 'center', color: pal.light });
     }
@@ -495,7 +495,7 @@
     ctx.fillStyle = g; ctx.shadowColor = col; ctx.shadowBlur = 24; ctx.fill(); ctx.shadowBlur = 0;
     ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
     GS.widgets.text(ctx, initials(it.name), hx, hy + 11, { size: 34, weight: 800, align: 'center', color: '#0a1230' });
-    GS.widgets.text(ctx, 'ITEM DIBELI', x + 188, y + 52, { size: 20, weight: 800, spacing: 6, color: pal.light });
+    GS.widgets.text(ctx, GS.tov('ITEM DIBELI'), x + 188, y + 52, { size: 20, weight: 800, spacing: 6, color: pal.light });
     GS.widgets.text(ctx, it.name.toUpperCase(), x + 188, y + 100, { size: 44, weight: 800, maxW: cw - 220, shadow: 'rgba(80,170,255,.7)' });
     const cat = (GS.data.mlbbItemCats && GS.data.mlbbItemCats[it.cat]) || '';
     if (cat) GS.widgets.text(ctx, cat.toUpperCase(), x + 188, y + 134, { size: 18, weight: 700, spacing: 5, color: col });
@@ -511,7 +511,7 @@
     const w = 620, h = 84, x = W / 2 - w / 2, y = 44 - (1 - clamp(inP, 0, 1)) * 140 - outP * 140;
     ctx.save();
     GS.widgets.panel(ctx, x, y, w, h, now, { r: 42 });
-    GS.widgets.text(ctx, (e.params.title || 'TERIMA KASIH').toUpperCase(), x + w / 2, y + 34, { size: 18, weight: 800, spacing: 6, align: 'center', color: e.pal.light });
+    GS.widgets.text(ctx, GS.tov(e.params.title || 'TERIMA KASIH').toUpperCase(), x + w / 2, y + 34, { size: 18, weight: 800, spacing: 6, align: 'center', color: e.pal.light });
     GS.widgets.text(ctx, e.params.name || '@penonton', x + w / 2, y + 66, { size: 28, weight: 800, align: 'center', maxW: w - 60 });
     ctx.restore();
   }

@@ -20,7 +20,7 @@
     'auth/unauthorized-domain': 'Domain ini belum dibenarkan di Firebase Console > Authentication > Settings > Authorized domains.',
     'auth/user-disabled': 'Akaun ini telah dinyahaktifkan.',
   };
-  const errText = (e) => msgs[e && e.code] || ('Ralat: ' + ((e && (e.code || e.message)) || 'tidak diketahui'));
+  const errText = (e) => (msgs[e && e.code] ? GS.t(msgs[e.code]) : GS.t('Ralat: {0}', (e && (e.code || e.message)) || GS.t('tidak diketahui')));
 
   /* ---------- muat SDK (versi dikunci) ---------- */
   async function loadSdk() {
@@ -88,10 +88,11 @@
         h('span', { html: '<svg class="brand-logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2ea8ff"/><stop offset=".55" stop-color="#7a5cff"/><stop offset="1" stop-color="#ff3b5c"/></linearGradient></defs><path d="M24 3l18 10.5v21L24 45 6 34.5v-21z" fill="none" stroke="url(#ag)" stroke-width="3.5" stroke-linejoin="round"/><path d="M31 19a8 8 0 1 0 0 10h-7" fill="none" stroke="#eaf4ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' }),
         h('span', { class: 'brand-name' }, 'GLOBAL STREAMER')));
 
+    body.append(GS.i18n.switcher());
     if (mode === 'license') {
       body.append(
         h('h2', null, 'Lesen diperlukan'),
-        h('p', { class: 'muted' }, 'Akaun ' + (A.user && A.user.email ? A.user.email : '') + ' tiada lesen aktif (' + licenseLabel[A.licenseState()].toLowerCase() + '). Hubungi penjual untuk mengaktifkan lesen.'),
+        h('p', { class: 'muted' }, GS.t('Akaun {0} tiada lesen aktif ({1}). Hubungi penjual untuk mengaktifkan lesen.', (A.user && A.user.email) || '', GS.t(licenseLabel[A.licenseState()]).toLowerCase())),
         h('div', { class: 'btn-row' }, h('button', { class: 'btn', onClick: () => A.signOut() }, 'Log keluar')));
     } else {
       const email = h('input', { type: 'email', autocomplete: 'email', placeholder: 'Emel', 'aria-label': 'Emel' });
@@ -109,9 +110,9 @@
             h('button', { class: 'btn primary', type: 'submit' }, 'Log masuk'),
             c.allowSignup ? h('button', { class: 'btn ghost', type: 'button', onClick: () => run(() => auth.createUserWithEmailAndPassword(authInst, email.value.trim(), pass.value)) }, 'Daftar akaun') : null)),
         h('button', { class: 'link-btn', type: 'button', onClick: () => run(async () => {
-          if (!email.value.trim()) { say('Masukkan emel dahulu, kemudian tekan "Lupa kata laluan".'); return; }
+          if (!email.value.trim()) { say(GS.t('Masukkan emel dahulu, kemudian tekan "Lupa kata laluan".')); return; }
           await auth.sendPasswordResetEmail(authInst, email.value.trim());
-          say('Emel tetapan semula kata laluan telah dihantar (semak juga folder spam).');
+          say(GS.t('Emel tetapan semula kata laluan telah dihantar (semak juga folder spam).'));
         }) }, 'Lupa kata laluan?'),
         err,
         c.allowGuest ? h('button', { class: 'link-btn', type: 'button', onClick: () => { A.guest = true; closeGate(); renderChip(); GS.emit('auth:changed'); } }, 'Teruskan sebagai tetamu (demo)') : null);
@@ -129,6 +130,7 @@
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn primary', onClick: () => location.reload() }, 'Cuba lagi'),
         cfg().allowGuest ? h('button', { class: 'btn ghost', onClick: () => { A.guest = true; closeGate(); renderChip(); GS.emit('auth:changed'); } }, 'Teruskan sebagai tetamu') : null));
+    body.append(GS.i18n.switcher());
     gate = h('div', { class: 'auth-gate', role: 'alertdialog' }, body);
     document.body.append(gate);
     requestAnimationFrame(() => gate && gate.classList.add('in'));
@@ -145,10 +147,10 @@
       return;
     }
     const st = A.licenseState();
-    const name = A.user.displayName || A.user.email || 'Pengguna';
+    const name = A.user.displayName || A.user.email || GS.t('Pengguna');
     el.append(
       h('span', { class: 'avatar', 'aria-hidden': 'true' }, name.trim()[0].toUpperCase()),
-      h('span', { class: 'who' }, h('b', null, name), h('small', { class: 'lic ' + st }, (A.isAdmin ? 'Admin · ' : '') + licenseLabel[st])),
+      h('span', { class: 'who' }, h('b', null, name), h('small', { class: 'lic ' + st }, (A.isAdmin ? 'Admin · ' : '') + GS.t(licenseLabel[st]))),
       h('button', { class: 'icon-btn', title: 'Log keluar', 'aria-label': 'Log keluar', onClick: () => A.signOut(), html: icon('x', 16) }));
   }
 

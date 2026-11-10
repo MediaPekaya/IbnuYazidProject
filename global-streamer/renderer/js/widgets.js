@@ -153,7 +153,7 @@
     const tw = (() => { ctx.save(); ctx.font = '700 ' + big + 'px ' + FONT; const m = ctx.measureText(hm).width; ctx.restore(); return m; })();
     W.text(ctx, sec, x + w * 0.06 + tw + 6, y + h * 0.62, { size: big * 0.42, weight: 600, color: C.cyan });
     const rx = x + w * 0.62;
-    W.text(ctx, 'MASA MAIN', rx, y + h * 0.36, { size: Math.max(11, h * 0.14), weight: 700, spacing: 2.5, color: C.muted });
+    W.text(ctx, GS.tov('MASA MAIN'), rx, y + h * 0.36, { size: Math.max(11, h * 0.14), weight: 700, spacing: 2.5, color: C.muted });
     W.text(ctx, GS.fmtDur((Date.now() - GS.state.sessionStart) / 1000), rx, y + h * 0.68, { size: h * 0.3, weight: 700, color: C.gold, maxW: w * 0.34 });
   };
 
@@ -172,7 +172,7 @@
     // tengah: WR + streak
     W.text(ctx, 'WR ' + wr + '%', x + w / 2, y + h * 0.44, { size: Math.max(12, h * 0.19), weight: 800, align: 'center', color: wr >= 50 ? C.gold : C.muted });
     const st = wl.streak;
-    const stTxt = st > 0 ? 'MENANG ×' + st : st < 0 ? 'KALAH ×' + Math.abs(st) : '—';
+    const stTxt = st > 0 ? GS.tov('MENANG ×{0}', st) : st < 0 ? GS.tov('KALAH ×{0}', Math.abs(st)) : '—';
     W.text(ctx, stTxt, x + w / 2, y + h * 0.74, { size: Math.max(10, h * 0.13), weight: 700, spacing: 1.5, align: 'center', color: st < 0 ? C.red : C.muted });
     // bar WR
     const bx = x + w * 0.3, bw = w * 0.4, by = y + h * 0.86;
@@ -212,7 +212,7 @@
     const { x, y, w, h } = s;
     W.panel(ctx, x, y, w, h, t, { phase: 2.6 });
     const g = GS.games[GS.state.game];
-    W.text(ctx, (s.props.text || 'GLOBAL STREAMER').toUpperCase(), x + w / 2, y + h * 0.5, { size: h * 0.3, weight: 800, spacing: 3, align: 'center', color: C.text, maxW: w * 0.86, shadow: 'rgba(80,170,255,.7)' });
+    W.text(ctx, GS.tov(s.props.text || 'GLOBAL STREAMER').toUpperCase(), x + w / 2, y + h * 0.5, { size: h * 0.3, weight: 800, spacing: 3, align: 'center', color: C.text, maxW: w * 0.86, shadow: 'rgba(80,170,255,.7)' });
     W.text(ctx, (g ? g.short : '') + ' · LIVE', x + w / 2, y + h * 0.78, { size: h * 0.15, weight: 700, spacing: 4, align: 'center', color: C.cyan, maxW: w * 0.86 });
   };
 
@@ -242,7 +242,7 @@
     ctx.rect(x + chipW + 20, y + 4, w - chipW - 80, h - 8);
     ctx.clip();
     ctx.globalAlpha = (1 - outP) * ease;
-    W.text(ctx, msgs[idx].toUpperCase(), tx, y + h * 0.64 + (1 - ease) * h * 0.5 - outP * h * 0.5, { size: h * 0.42, weight: 800, spacing: 2, maxW });
+    W.text(ctx, GS.tov(msgs[idx]).toUpperCase(), tx, y + h * 0.64 + (1 - ease) * h * 0.5 - outP * h * 0.5, { size: h * 0.42, weight: 800, spacing: 2, maxW });
     ctx.restore();
     // titik denyut kanan
     for (let i = 0; i < 3; i++) {

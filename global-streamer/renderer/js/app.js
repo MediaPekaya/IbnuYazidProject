@@ -36,10 +36,13 @@
     $('#btnLive').addEventListener('click', () => {
       GS.audio.ensure();
       if (GS.live.state === 'idle') GS.live.openWizard(hasConfig() ? 3 : 0);
-      else if (confirm('Tamatkan siaran langsung sekarang?')) GS.live.stop();
+      else if (confirm(GS.t('Tamatkan siaran langsung sekarang?'))) GS.live.stop();
     });
     $('#btnRec').addEventListener('click', () => { GS.audio.ensure(); GS.rec.toggle(); });
     $('#btnSettings').addEventListener('click', GS.live.openSettings);
+    const ls = GS.i18n.switcher();
+    ls.id = 'langSwitch';
+    $('#btnSettings').before(ls);
     $('#btnTransition').addEventListener('click', GS.scenes.doTransition);
 
     const sel = $('#selTransition');
@@ -47,7 +50,7 @@
     sel.addEventListener('change', () => { GS.state.settings.transition = sel.value; GS.save(); });
 
     const gsel = $('#gameSelect');
-    GS.gameList.forEach((g) => gsel.append(h('option', { value: g.id, disabled: !g.ready, selected: g.id === GS.state.game }, g.name + (g.ready ? '' : ' (akan datang)'))));
+    GS.gameList.forEach((g) => gsel.append(h('option', { value: g.id, disabled: !g.ready, selected: g.id === GS.state.game }, g.ready ? g.name : GS.t('{0} (akan datang)', g.name))));
     gsel.addEventListener('change', () => { GS.state.game = gsel.value; GS.save(); });
 
     // tab panel kanan
@@ -124,6 +127,7 @@
   }
 
   A.init = async function () {
+    GS.i18n.applyStatic();
     staticIcons();
     GS.auth.init().catch((e) => console.error('[GS] ralat log masuk', e)); // tidak menyekat permulaan; skrin log masuk dipaparkan bila SDK sedia
     await GS.platforms.loadKeys();
@@ -148,5 +152,5 @@
     document.body.classList.add('ready');
   };
 
-  document.addEventListener('DOMContentLoaded', () => A.init().catch((e) => { console.error(e); GS.toast('Ralat permulaan: ' + e.message, 'warn', 8000); }));
+  document.addEventListener('DOMContentLoaded', () => A.init().catch((e) => { console.error(e); GS.toast(GS.t('Ralat permulaan: {0}', e.message), 'warn', 8000); }));
 })();

@@ -90,7 +90,7 @@
       persist();
       GS.emit('audio:changed');
     } catch (e) {
-      if (!silent) GS.toast('Tidak dapat buka input audio: ' + (e.message || e.name), 'warn');
+      if (!silent) GS.toast(GS.t('Tidak dapat buka input audio: {0}', e.message || e.name), 'warn');
     }
   };
 
@@ -114,7 +114,7 @@
       persist();
       GS.emit('audio:changed');
     } catch (e) {
-      if (e && e.name !== 'NotAllowedError') GS.toast('Gagal kongsi audio skrin: ' + e.message, 'warn');
+      if (e && e.name !== 'NotAllowedError') GS.toast(GS.t('Gagal kongsi audio skrin: {0}', e.message), 'warn');
     }
   };
 
@@ -244,7 +244,7 @@
         GS.h('div', { class: 'strip-body' },
           meter,
           GS.h('input', {
-            type: 'range', min: 0, max: 100, value: Math.round(ch.vol * 100), class: 'fader', 'aria-label': 'Kelantangan ' + ch.label,
+            type: 'range', min: 0, max: 100, value: Math.round(ch.vol * 100), class: 'fader', 'aria-label': GS.t('Kelantangan {0}', GS.t(ch.label)),
             onInput: (e) => A.setVolume(ch.id, e.target.value / 100),
           }),
           GS.h('button', { class: 'icon-btn' + (ch.muted ? ' on' : ''), title: ch.muted ? 'Nyahbisu' : 'Bisu', onClick: () => A.toggleMute(ch.id), html: GS.icon(ch.muted ? 'mute' : 'volume', 16) })),
@@ -254,8 +254,8 @@
       root.append(strip);
     });
     root.append(GS.h('div', { class: 'mixer-add' },
-      GS.h('button', { class: 'btn ghost', onClick: A.addInput, html: GS.icon('plus', 14) + ' Input' }),
-      GS.h('button', { class: 'btn ghost', onClick: A.connectDisplayAudio, html: GS.icon('monitor', 14) + ' Audio skrin' })));
+      GS.h('button', { class: 'btn ghost', onClick: A.addInput, html: GS.icon('plus', 14) + ' ' + GS.t('Input') }),
+      GS.h('button', { class: 'btn ghost', onClick: A.connectDisplayAudio, html: GS.icon('monitor', 14) + ' ' + GS.t('Audio skrin') })));
   };
 
   A.pickDevice = async function (id) {
@@ -270,7 +270,7 @@
     if (!devs.length) { GS.toast('Tiada peranti audio dijumpai.', 'warn'); return; }
     const list = GS.h('div', { class: 'device-list' }, devs.map((d, i) =>
       GS.h('button', { class: 'device', onClick: async () => { m.close(); await A.connectDevice(id, d.deviceId); } },
-        GS.h('span', { html: GS.icon('mic', 16) }), GS.h('span', null, d.label || 'Peranti audio ' + (i + 1)))));
+        GS.h('span', { html: GS.icon('mic', 16) }), GS.h('span', null, d.label || GS.t('Peranti audio {0}', i + 1)))));
     const m = GS.modal({ title: 'Pilih input audio', body: list });
   };
 

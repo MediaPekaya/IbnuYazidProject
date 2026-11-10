@@ -6,6 +6,7 @@
   /* ---------- DOM helpers ---------- */
   GS.$ = (s, r = document) => r.querySelector(s);
   GS.$$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const TR_ATTR = new Set(['title', 'aria-label', 'placeholder', 'alt']);
   GS.h = function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
     if (attrs) {
@@ -23,12 +24,12 @@
         else if (k.length > 2 && k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
         else if (k === 'value') el.value = v;
         else if (k === 'checked') el.checked = !!v;
-        else el.setAttribute(k, v === true ? '' : v);
+        else el.setAttribute(k, v === true ? '' : TR_ATTR.has(k) && typeof v === 'string' && GS.t ? GS.t(v) : v);
       }
     }
     for (const kid of kids.flat(Infinity)) {
       if (kid == null || kid === false) continue;
-      el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+      el.append(kid.nodeType ? kid : document.createTextNode(typeof kid === 'string' && GS.t ? GS.t(kid) : String(kid)));
     }
     return el;
   };

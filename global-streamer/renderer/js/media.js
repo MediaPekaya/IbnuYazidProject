@@ -85,7 +85,7 @@
         await M.open(source.id, 'screen');
         return true;
       } catch (e) {
-        if (e.name !== 'NotAllowedError') GS.toast('Gagal kongsi skrin: ' + e.message, 'warn');
+        if (e.name !== 'NotAllowedError') GS.toast(GS.t('Gagal kongsi skrin: {0}', GS.t(e.message)), 'warn');
         return false;
       }
     }
@@ -93,7 +93,7 @@
     try {
       devs = await M.listVideoDevices();
     } catch (e) {
-      GS.toast('Tiada akses ke kamera/capture card: ' + (e.message || e.name), 'warn');
+      GS.toast(GS.t('Tiada akses ke kamera/capture card: {0}', GS.t(e.message || e.name)), 'warn');
       return false;
     }
     if (!devs.length) {
@@ -115,10 +115,10 @@
               m.close();
               finish(true);
             } catch (e) {
-              GS.toast('Gagal buka peranti: ' + (e.message || e.name), 'warn');
+              GS.toast(GS.t('Gagal buka peranti: {0}', e.message || e.name), 'warn');
             }
           },
-        }, GS.h('span', { html: GS.icon(kind === 'capture' ? 'monitor' : 'camera', 16) }), GS.h('span', null, d.label || 'Peranti video ' + (i + 1)))));
+        }, GS.h('span', { html: GS.icon(kind === 'capture' ? 'monitor' : 'camera', 16) }), GS.h('span', null, d.label || GS.t('Peranti video {0}', i + 1)))));
       const m = GS.modal({
         title: kind === 'capture' ? 'Pilih Capture Card' : 'Pilih Kamera',
         body: GS.h('div', null,

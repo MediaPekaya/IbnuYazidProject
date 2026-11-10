@@ -73,12 +73,12 @@
       const status = h('span', { class: 'pf-status' });
       const upd = () => {
         const v = P.validate(id);
-        status.textContent = v.off ? 'Tidak digunakan' : v.msg;
+        status.textContent = GS.t(v.off ? 'Tidak digunakan' : v.msg);
         status.className = 'pf-status ' + (v.off ? 'off' : v.ok ? 'ok' : 'bad');
         card.classList.toggle('on', cfg.enabled);
         if (onChange) onChange();
       };
-      const keyInput = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'Stream key', value: P.getKey(id), 'aria-label': 'Stream key ' + def.name,
+      const keyInput = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'Stream key', value: P.getKey(id), 'aria-label': GS.t('Stream key {0}', GS.t(def.name)),
         onInput: (e) => { P.setKey(id, e.target.value); upd(); } });
       const toggle = h('label', { class: 'switch' },
         h('input', { type: 'checkbox', checked: cfg.enabled, onChange: (e) => { cfg.enabled = e.target.checked; GS.save(); upd(); } }),

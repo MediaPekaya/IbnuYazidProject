@@ -31,7 +31,7 @@
       h('div', { class: 'gd-sec' },
         h('h4', null, 'Efek skrin'),
         h('div', { class: 'fx-grid' }, game.effects.map((e) =>
-          h('button', { class: 'fx-btn', onClick: () => D.trigger(e.id), title: 'Alt + ' + e.hotkey, html: icon(e.icon, 18) + '<span>' + e.label + '</span><kbd>' + e.hotkey + '</kbd>' }))),
+          h('button', { class: 'fx-btn', onClick: () => D.trigger(e.id), title: 'Alt + ' + e.hotkey, html: icon(e.icon, 18) + '<span>' + GS.t(e.label) + '</span><kbd>' + e.hotkey + '</kbd>' }))),
         h('div', { class: 'grid2' },
           h('label', { class: 'field' }, h('span', null, 'Jenis kill'), killSel),
           h('label', { class: 'field' }, h('span', null, 'Item untuk "Beli Item"'), itemSel)),
@@ -61,7 +61,7 @@
       GS.emit('winloss:changed');
     };
     return h('div', { class: 'wl-box ' + tone }, h('span', null, label),
-      h('div', null, h('button', { class: 'icon-btn', 'aria-label': 'Kurang ' + label, onClick: () => adj(-1) }, '−'), val, h('button', { class: 'icon-btn', 'aria-label': 'Tambah ' + label, onClick: () => adj(1) }, '+')));
+      h('div', null, h('button', { class: 'icon-btn', 'aria-label': GS.t('Kurang {0}', label), onClick: () => adj(-1) }, '−'), val, h('button', { class: 'icon-btn', 'aria-label': GS.t('Tambah {0}', label), onClick: () => adj(1) }, '+')));
   }
 
   /* ---------- tab: hero (peribadi) ---------- */

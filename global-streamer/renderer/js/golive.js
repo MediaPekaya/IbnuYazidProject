@@ -40,14 +40,14 @@
         document.body.append(a);
         a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-        GS.toast('Rakaman disimpan: ' + name, 'ok');
+        GS.toast(GS.t('Rakaman disimpan: {0}', name), 'ok');
       };
       recorder.start(1000);
       R.active = true;
       R.startedAt = Date.now();
       render();
     } catch (e) {
-      GS.toast('Gagal mula rakaman: ' + e.message, 'warn');
+      GS.toast(GS.t('Gagal mula rakaman: {0}', e.message), 'warn');
     }
   };
   R.stop = function () {
@@ -96,7 +96,7 @@
     } catch (e) {
       L.state = 'idle';
       render();
-      GS.toast('Gagal mula siaran: ' + e.message, 'warn', 6000);
+      GS.toast(GS.t('Gagal mula siaran: {0}', e.message), 'warn', 6000);
       return false;
     }
   };
@@ -125,11 +125,22 @@
     render();
     if (why) GS.toast(why, 'warn', 8000);
   }
+  /* mesej enjin mengikut kod supaya boleh diterjemah */
+  function engMsg(ev) {
+    switch (ev.code) {
+      case 'slow': return GS.t('Pengekod tidak sempat mengejar (kelajuan {0}×). Turunkan resolusi/FPS atau guna pengekod perkakasan.', Number(ev.speed).toFixed(2));
+      case 'encoder-fallback': return GS.t('{0} tidak dapat dimulakan, beralih ke {1}.', ev.from, ev.to);
+      case 'buffer-full': return GS.t('Pengekod terlalu perlahan (penimbal penuh). Siaran dihentikan.');
+      case 'spawn': return GS.t('FFmpeg gagal dimulakan: {0}', ev.detail);
+      case 'exit': return GS.t('FFmpeg berhenti (kod {0}). {1}', ev.exitCode, ev.detail);
+      default: return ev.message;
+    }
+  }
   L.onEngineEvent = function (ev) {
     switch (ev.type) {
       case 'encoder':
         L.encoder = ev.label;
-        if (ev.fellBack) GS.toast('Pengekod perkakasan tidak tersedia. Menggunakan ' + ev.label + '.', 'info', 5000);
+        if (ev.fellBack) GS.toast(GS.t('Pengekod perkakasan tidak tersedia. Menggunakan {0}.', ev.label), 'info', 5000);
         break;
       case 'started':
         clearTimeout(L.startTimer);
@@ -137,7 +148,7 @@
         L.state = 'live';
         L.startedAt = Date.now();
         render();
-        GS.toast('Siaran bermula (' + (L.encoder || 'pengekod') + ').', 'ok');
+        GS.toast(GS.t('Siaran bermula ({0}).', L.encoder || GS.t('Pengekod').toLowerCase()), 'ok');
         break;
       case 'stats':
         L.stats = ev;
@@ -145,14 +156,14 @@
       case 'target':
         if (ev.id) L.status[ev.id] = 'failed';
         render();
-        GS.toast((ev.name || 'Platform') + ' terputus atau gagal disambung: ' + ev.message, 'warn', 8000);
+        GS.toast(GS.t('{0} terputus atau gagal disambung: {1}', ev.name || 'Platform', ev.message), 'warn', 8000);
         if (ev.remaining === 0) endLive('Semua destinasi gagal. Semak Server URL dan Stream Key.');
         break;
       case 'warn':
-        GS.toast(ev.message, 'warn', 7000);
+        GS.toast(engMsg(ev), 'warn', 7000);
         break;
       case 'error':
-        endLive('Ralat siaran: ' + ev.message);
+        endLive(GS.t('Ralat siaran: {0}', engMsg(ev)));
         break;
       case 'ended':
         if (L.state !== 'idle') endLive('');
@@ -169,14 +180,14 @@
     if (!live) return;
     const on = L.state !== 'idle';
     live.classList.toggle('live', on);
-    live.innerHTML = on ? icon('stop', 16) + '<span>' + (L.state === 'connecting' ? 'MENYAMBUNG…' : 'TAMAT LIVE') + '</span>' : icon('play', 16) + '<span>MULA LIVE</span>';
+    live.innerHTML = on ? icon('stop', 16) + '<span>' + GS.t(L.state === 'connecting' ? 'MENYAMBUNG…' : 'TAMAT LIVE') + '</span>' : icon('play', 16) + '<span>' + GS.t('MULA LIVE') + '</span>';
     rec.classList.toggle('rec', R.active);
     rec.innerHTML = icon(R.active ? 'stop' : 'rec', 16) + '<span>' + (R.active ? 'STOP REC' : 'REC') + '</span>';
     const chips = GS.$('#platformChips');
     chips.innerHTML = '';
     Object.keys(L.status).forEach((id) => {
       const d = GS.platforms.defs[id];
-      chips.append(h('span', { class: 'chip pf ' + L.status[id], style: { '--pf': d.color }, title: d.name + ' · ' + L.status[id] }, h('i'), d.name.split(' ')[0]));
+      chips.append(h('span', { class: 'chip pf ' + L.status[id], style: { '--pf': d.color }, title: GS.t(d.name) + ' · ' + GS.t({ connecting: 'Menyambung', live: 'Live', failed: 'Gagal' }[L.status[id]] || L.status[id]) }, h('i'), d.name.split(' ')[0]));
     });
   }
   L.render = render;
@@ -197,7 +208,7 @@
       ec.classList.toggle('hidden', !show);
       if (show) {
         const s = L.stats;
-        ec.textContent = (L.encoder || 'Pengekod') + ' · ' + s.fps + ' fps' + (s.speed ? ' · ' + s.speed.toFixed(2) + '×' : '') + ' · drop ' + s.drop;
+        ec.textContent = (L.encoder || GS.t('Pengekod')) + ' · ' + s.fps + ' fps' + (s.speed ? ' · ' + s.speed.toFixed(2) + '×' : '') + ' · drop ' + s.drop;
         ec.classList.toggle('warn', s.speed != null && s.speed < 0.9);
       }
     }
@@ -237,7 +248,7 @@
       stepper.innerHTML = '';
       STEPS.forEach((s, i) => stepper.append(h('li', { class: i === wiz.step ? 'cur' : i < wiz.step ? 'done' : '' }, h('span', null, i < wiz.step ? '✓' : i + 1), s)));
       back.disabled = wiz.step === 0;
-      next.textContent = wiz.step === 3 ? (L.state === 'idle' ? 'MULA LIVE' : 'Tutup') : 'Seterusnya';
+      next.textContent = GS.t(wiz.step === 3 ? (L.state === 'idle' ? 'MULA LIVE' : 'Tutup') : 'Seterusnya');
       next.classList.toggle('go', wiz.step === 3);
       stage.classList.remove('in');
       stage.innerHTML = '';
@@ -261,7 +272,7 @@
         GS.Compositor.thumb(cv, t.build());
         grid.append(h('button', { class: 'pick-card tpl' + (wiz.tpl === t.id ? ' sel' : ''), onClick: () => { wiz.tpl = t.id; draw(); } },
           cv, h('strong', null, t.name), h('span', null, t.desc),
-          h('span', { class: 'fxtag' }, 'Gaya efek: ' + ({ holo: 'Hologram biru-merah', crimson: 'Merah menyala', gold: 'Emas' }[t.fxStyle]))));
+          h('span', { class: 'fxtag' }, GS.t('Gaya efek: {0}', GS.t({ holo: 'Hologram biru-merah', crimson: 'Merah menyala', gold: 'Emas' }[t.fxStyle])))));
       });
       stage.append(grid);
     }
@@ -287,7 +298,7 @@
         [tpl ? 'ok' : 'bad', 'Template', tpl ? tpl.name : 'Belum dipilih'],
         [sig ? 'ok' : 'warn', 'Isyarat game (Capture Card)', sig ? 'Ada isyarat' : 'Tiada isyarat. Pilih capture card pada sumber game.'],
         [aud ? 'ok' : 'warn', 'Audio', aud ? 'Input audio disambung' : 'Tiada input audio disambung.'],
-        [enabled.length && !bad.length ? 'ok' : enabled.length ? (native() ? 'bad' : 'warn') : 'bad', 'Platform', enabled.length ? enabled.map((id) => GS.platforms.defs[id].name + (GS.platforms.validate(id).ok ? '' : ' (belum lengkap)')).join(', ') : 'Tiada platform dipilih'],
+        [enabled.length && !bad.length ? 'ok' : enabled.length ? (native() ? 'bad' : 'warn') : 'bad', 'Platform', enabled.length ? enabled.map((id) => (GS.platforms.validate(id).ok ? GS.platforms.defs[id].name : GS.t('{0} (belum lengkap)', GS.platforms.defs[id].name))).join(', ') : 'Tiada platform dipilih'],
         ['ok', 'Output', s.width + '×' + s.height + ' · ' + s.fps + ' fps · ' + s.vbitrate + ' kbps'],
       ];
       stage.append(h('p', { class: 'lead' }, 'Semak sebelum mula. Bila ditekan MULA LIVE, semua platform yang dipilih dimulakan serentak.'),
@@ -312,13 +323,20 @@
       opts.map(([v, l]) => h('option', { value: v, selected: String(s[key]) === String(v) }, l)));
     const applyRes = () => { s.height = Math.round((s.width * 9) / 16); GS.app.applyResolution(); };
     const body = h('div', { class: 'settings' },
+      h('h3', null, 'Bahasa'),
+      h('div', { class: 'grid2' },
+        h('label', { class: 'field' }, h('span', null, 'Bahasa antara muka'), h('select', { onChange: (e) => { if (GS.i18n.setLang(e.target.value) === false) e.target.value = GS.state.lang; } },
+          [['ms', 'Bahasa Melayu'], ['en', 'English']].map(([v, l]) => h('option', { value: v, selected: GS.state.lang === v }, l)))),
+        h('label', { class: 'field' }, h('span', null, 'Bahasa overlay siaran'), h('select', { onChange: (e) => GS.i18n.setOverlayLang(e.target.value) },
+          [['auto', 'Ikut bahasa antara muka'], ['ms', 'Bahasa Melayu'], ['en', 'English']].map(([v, l]) => h('option', { value: v, selected: GS.state.overlayLang === v }, l))))),
+      h('p', { class: 'muted note' }, 'Teks pada skrin siaran (cth "MASA MAIN", efek) menggunakan bahasa overlay. Menukar bahasa antara muka memuat semula halaman.'),
       h('h3', null, 'Output video'),
       h('div', { class: 'grid2' },
         h('label', { class: 'field' }, h('span', null, 'Resolusi'), sel('width', [[1280, '1280×720 (HD)'], [1920, '1920×1080 (Full HD)'], [2560, '2560×1440 (2K)'], [3840, '3840×2160 (4K)']])),
         h('label', { class: 'field' }, h('span', null, 'Bingkai sesaat (FPS)'), sel('fps', [[30, '30 fps'], [60, '60 fps']])),
         h('label', { class: 'field' }, h('span', null, 'Bitrate video (kbps)'), h('input', { type: 'number', min: 1000, max: 60000, step: 500, value: s.vbitrate, onChange: (e) => { s.vbitrate = GS.clamp(Number(e.target.value) || 6000, 1000, 60000); GS.save(); } })),
         h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']])),
-        h('label', { class: 'field' }, h('span', null, 'Pengekod video (app Windows)'), sel('encoder', [['auto', 'Auto (GPU jika ada, sandaran CPU)'], ['x264', 'CPU (x264)'], ['nvenc', 'NVIDIA NVENC'], ['qsv', 'Intel Quick Sync'], ['amf', 'AMD AMF']], String))),
+        h('label', { class: 'field span2' }, h('span', null, 'Pengekod video (app Windows)'), sel('encoder', [['auto', 'Auto (GPU jika ada, sandaran CPU)'], ['x264', 'CPU (x264)'], ['nvenc', 'NVIDIA NVENC'], ['qsv', 'Intel Quick Sync'], ['amf', 'AMD AMF']], String))),
       h('p', { class: 'muted note' }, 'TikTok dan Facebook biasanya menghadkan 1080p. 4K hanya sesuai untuk YouTube dan memerlukan PC yang kuat.'),
       h('h3', null, 'Peralihan scene (Mod Studio)'),
       h('div', { class: 'grid2' },
@@ -330,8 +348,8 @@
         h('li', null, h('kbd', null, 'Delete'), 'Padam sumber dipilih'),
         h('li', null, h('kbd', null, 'Anak panah'), 'Gerak sumber (Shift = lebih jauh)')),
       h('h3', null, 'Data'),
-      h('div', { class: 'btn-row' }, h('button', { class: 'btn danger', onClick: () => { if (confirm('Padam SEMUA tetapan, scene dan data tempatan?')) GS.resetState(); } }, 'Set semula semua data')),
-      h('p', { class: 'muted note' }, 'Global Streamer v' + GS.version + ' · ' + (native() ? 'App Windows' : 'Versi web (demo)')));
+      h('div', { class: 'btn-row' }, h('button', { class: 'btn danger', onClick: () => { if (confirm(GS.t('Padam SEMUA tetapan, scene dan data tempatan?'))) GS.resetState(); } }, 'Set semula semua data')),
+      h('p', { class: 'muted note' }, GS.t('Global Streamer v{0} · {1}', GS.version, GS.t(native() ? 'App Windows' : 'Versi web (demo)'))));
     GS.modal({ title: 'Tetapan', body });
   };
 })();

@@ -27,7 +27,7 @@
     return h('div', { class: 'chat-msg ' + m.type, style: { '--pf': colors[m.platform] || colors.other } },
       h('span', { class: 'cm-badge', title: labels[m.platform] }, (labels[m.platform] || '?')[0]),
       h('span', { class: 'cm-user' }, m.user),
-      h('span', { class: 'cm-text' }, m.type === 'follow' ? 'follow anda' : m.type === 'gift' ? 'hantar gift ' + (m.text || '') : m.text),
+      h('span', { class: 'cm-text' }, m.type === 'follow' ? GS.t('follow anda') : m.type === 'gift' ? GS.t('hantar gift') + ' ' + (m.text || '') : m.text),
       m.demo ? h('span', { class: 'cm-demo' }, 'demo') : null,
       h('span', { class: 'cm-time' }, GS.pad(time.getHours()) + ':' + GS.pad(time.getMinutes())));
   }
@@ -60,10 +60,12 @@
   /* contoh paparan (ditanda "demo", tidak mencetus alert siaran) */
   let demoTimer = null;
   function toggleDemo(btn) {
-    if (demoTimer) { clearInterval(demoTimer); demoTimer = null; btn.textContent = 'Pratonton demo'; return; }
-    btn.textContent = 'Henti demo';
+    if (demoTimer) { clearInterval(demoTimer); demoTimer = null; btn.textContent = GS.t('Pratonton demo'); return; }
+    btn.textContent = GS.t('Henti demo');
     const users = ['aiman_gamer', 'kak_nana', 'rizal.ml', 'syafiq99', 'MythicDaily', 'dina_live', 'hakim_rank'];
-    const texts = ['gg bro!', 'first blood 🔥', 'main hero apa tu?', 'follow back boleh?', 'mantap kill tadi', 'joki rank brp?', 'salam semua', 'savage!!'];
+    const texts = GS.state.lang === 'en'
+      ? ['gg bro!', 'first blood 🔥', 'what hero is that?', 'follow back please?', 'nice kill just now', 'how much for rank boosting?', 'hi everyone', 'savage!!']
+      : ['gg bro!', 'first blood 🔥', 'main hero apa tu?', 'follow back boleh?', 'mantap kill tadi', 'joki rank brp?', 'salam semua', 'savage!!'];
     const plats = ['tiktok', 'youtube', 'facebook'];
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
     const tick = () => {

@@ -62,7 +62,7 @@
 
   /* ---------- scene ---------- */
   S.add = function () {
-    const sc = { id: GS.uid('scene'), name: 'Scene ' + (st().scenes.length + 1), fxStyle: 'holo', templateId: null, sources: [] };
+    const sc = { id: GS.uid('scene'), name: GS.t('Scene {0}', st().scenes.length + 1), fxStyle: 'holo', templateId: null, sources: [] };
     st().scenes.push(sc);
     S.select(sc.id);
     changed();
@@ -72,7 +72,7 @@
     if (!src) return;
     const copy = GS.clone(src);
     copy.id = GS.uid('scene');
-    copy.name = src.name + ' (salinan)';
+    copy.name = GS.t('{0} (salinan)', GS.t(src.name));
     copy.sources.forEach((s, i) => {
       const oldId = src.sources[i].id;
       s.id = GS.uid('src');
@@ -84,7 +84,7 @@
   S.remove = function (id) {
     if (st().scenes.length <= 1) { GS.toast('Mesti ada sekurang-kurangnya satu scene.', 'warn'); return; }
     const sc = byId(id);
-    if (!sc || !confirm('Padam scene "' + sc.name + '"?')) return;
+    if (!sc || !confirm(GS.t('Padam scene "{0}"?', GS.t(sc.name)))) return;
     sc.sources.forEach((s) => GS.media.close(s.id));
     st().scenes = st().scenes.filter((s) => s.id !== id);
     if (st().programId === id) st().programId = st().scenes[0].id;
@@ -212,7 +212,7 @@
   function popover(anchor, entries) {
     GS.$$('.popover').forEach((p) => p.remove());
     const pop = h('div', { class: 'popover', role: 'menu' }, entries.map((e) => e === '-' ? h('hr') :
-      h('button', { class: 'pop-item', role: 'menuitem', onClick: () => { close(); e.run(); }, html: icon(e.icon || 'plus', 16) + '<span>' + GS.escapeHtml(e.label) + '</span>' })));
+      h('button', { class: 'pop-item', role: 'menuitem', onClick: () => { close(); e.run(); }, html: icon(e.icon || 'plus', 16) + '<span>' + GS.escapeHtml(GS.t(e.label)) + '</span>' })));
     document.body.append(pop);
     const r = anchor.getBoundingClientRect();
     const pr = pop.getBoundingClientRect();
@@ -320,7 +320,7 @@
     }
     if (s.type === 'video') {
       const rec = GS.media.videos[s.id];
-      const info = rec ? (rec.label || 'Peranti') + ' · ' + (rec.video.videoWidth || '?') + '×' + (rec.video.videoHeight || '?') : 'Tiada isyarat';
+      const info = rec ? (rec.label || GS.t('Peranti')) + ' · ' + (rec.video.videoWidth || '?') + '×' + (rec.video.videoHeight || '?') : 'Tiada isyarat';
       root.append(h('div', { class: 'prop-info' }, info));
       root.append(h('div', { class: 'btn-row' },
         h('button', { class: 'btn', onClick: async () => { if (await GS.media.pick(s)) S.afterPick(s); renderProps(); } }, s.props.kind === 'screen' ? 'Kongsi skrin' : 'Pilih peranti'),
