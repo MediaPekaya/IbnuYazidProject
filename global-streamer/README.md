@@ -5,7 +5,7 @@ Dibina dengan HTML, CSS dan JavaScript vanilla. Untuk **PC dan laptop (Windows)*
 
 Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 
-## Status (Fasa 1 siap)
+## Status (Fasa 1 dan 2 siap)
 
 | Bahagian | Status |
 |---|---|
@@ -17,12 +17,16 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | Efek: Kill (api), Mati (petir), Victory, Defeat, Item Penuh, Beli Item | ✅ Siap, dicetus manual atau Alt+1…6 |
 | Rakaman tempatan (WebM) | ✅ Siap |
 | Input Server URL + Stream Key (TikTok, Facebook, YouTube, RTMP lain) | ✅ Siap |
-| Mula Live ke 3 platform | ⚠️ **Mod demo sahaja di web.** Siaran sebenar memerlukan app Windows (kerangka FFmpeg ada, **belum diuji siaran sebenar**) |
+| Mula Live ke banyak platform serentak (app Windows) | ✅ **Diuji hujung ke hujung** dengan app Electron sebenar dan penerima RTMP sebenar tempatan: H.264 + AAC diterima serentak oleh 2 destinasi. Versi web ialah mod demo (pelayar tidak boleh hantar RTMP). |
+| Status setiap platform, statistik (fps, kelajuan pengekodan, bingkai dilepaskan), amaran pengekod perlahan | ✅ Siap |
+| Pengekod perkakasan NVENC / Quick Sync / AMF dengan sandaran automatik ke CPU | ✅ Logik sandaran diuji. **NVENC/QSV/AMF sebenar belum diuji (tiada GPU di persekitaran ujian).** |
+| Key disulitkan pada PC (Windows DPAPI) | ⚠️ Kod siap. **Belum diuji pada Windows** (persekitaran ujian Linux tiada keyring). |
+| **Siaran sebenar ke TikTok / Facebook / YouTube dengan key sebenar** | ⚠️ **Belum diuji.** Hanya diuji ke penerima RTMP tempatan. |
 | Chat TikTok / Facebook / YouTube sebenar | ⏳ Fasa 3 (antara muka siap, penyambung belum) |
 | Pengesan auto kill / item / hero / victory daripada capture card | ⏳ Fasa 5 |
 | Analisis tournament MPL/MAL setiap 5 minit, cadangan draft | ⏳ Fasa 5 |
-| Log masuk, lesen | ⏳ Auth disediakan oleh pemilik, peraturan Firestore sudah siap |
-| Installer Windows (.exe) | ⏳ Aliran GitHub Actions sudah ada, belum diuji |
+| Log masuk (Google / emel), profil, peranan admin, semakan lesen | ✅ Siap di web (diuji dengan SDK tiruan; log masuk sebenar oleh pemilik). App Windows: emel + kata laluan sahaja buat masa ini. |
+| Installer Windows (.exe) | ⏳ Dibina oleh GitHub Actions pada setiap push (lihat tab Actions). Belum dipasang pada PC Windows sebenar. |
 
 Data hero/item/emblem MLBB ialah **dataset awal** dan perlu disahkan mengikut patch semasa.
 
@@ -49,7 +53,7 @@ global-streamer/
 ├── main/                app Windows (Electron): main.js, preload.js, stream-engine.js
 ├── firebase/            firestore.rules, firestore.indexes.json
 ├── firebase.json        Hosting + Firestore
-├── scripts/             serve.js (web setempat), check-syntax.js
+├── scripts/             serve.js (web setempat), check-syntax.js, test-engine.js (ujian siaran RTMP sebenar)
 └── docs/                FIREBASE.md, PELAN.md, REFERENSI-VIDEO.md
 ```
 
@@ -64,6 +68,7 @@ Tambah game baharu: salin corak `renderer/games/mlbb/` kepada folder baharu, daf
 ## Had yang perlu diketahui
 
 * Pelayar tidak boleh menghantar RTMP. Itu sebab siaran sebenar memerlukan app Windows.
+* Destinasi yang terputus semasa siaran **tidak disambung semula secara automatik** (ditanda merah). Sambung semula perlu mulakan siaran semula. Cadangan Fasa 2.1.
+* FFmpeg yang dibundel ialah binaan **GPLv3**. Lihat `THIRD-PARTY-NOTICES.md` dan dapatkan nasihat undang-undang sebelum menjual.
 * TikTok tiada API untuk mencipta siaran. Stream key perlu ditampal manual. Akaun perlu layak LIVE.
 * Kelajuan lukisan 1080p60 diukur hanya pada CPU tanpa GPU (≈30 ms/bingkai). **Perlu diuji pada PC sebenar**, terutamanya untuk 4K.
-* FFmpeg: semak lesen binari sebelum menjual (guna binaan LGPL jika boleh).
