@@ -37,6 +37,7 @@ Video templates live in `.claude/templates/video/` (storyboard, shot-list, short
 | `video-hook-library` | Formula hook 2 saat pertama |
 | `video-remotion-builder` | Bina video guna templat Remotion di `templates/video/remotion/` |
 | `video-sound-and-captions` | SFX, muzik, kapsyen BM |
+| `video-auto-pipeline` | Pipeline gabungan tanpa default: auto-pilih Higgsfield MCP / Hyperframes / Remotion / Canva ikut keperluan |
 
 Templat tambahan: `templates/video/` (dokumen skrip/storyboard/senarai semak dan komponen Remotion).
 

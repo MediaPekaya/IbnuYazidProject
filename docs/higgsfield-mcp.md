@@ -29,5 +29,6 @@ Settings → Connectors → **Add custom connector** → URL `https://mcp.higgsf
 
 - Penjanaan imej/video guna kredit akaun Higgsfield anda.
 - Sahkan URL terkini di https://higgsfield.ai/mcp jika sambungan gagal.
-- Sesuai digabung dengan skill video repo ini (`video-storyboard`, `shot-list`,
-  `video-script-bm`) untuk jana visual terus dari storyboard.
+- Tiada tool default: Claude auto-pilih Higgsfield, Hyperframes, Remotion atau
+  Canva ikut keperluan dan menggabungkannya. Aliran penuh: skill
+  `video-auto-pipeline`.
