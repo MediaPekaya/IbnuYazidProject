@@ -1,0 +1,17 @@
+const assert = require('assert');
+const { openLink, chromePath } = require('../main/open-link');
+let n = 0; const ok = (c, m) => { assert(c, m); console.log('LULUS ' + m); n++; };
+const calls = []; const shell = { openExternal: (u) => calls.push(['shell', u]) };
+const fake = () => ({ on() {}, unref() {} });
+let spawned = null;
+ok(openLink('https://example.com/a?b=1', shell, { chromePath: () => 'C:\\Chrome\\chrome.exe', spawn: (e, a, o) => { spawned = [e, a, o]; return fake(); } }) === 'chrome' && spawned[0].endsWith('chrome.exe') && spawned[1][0] === 'https://example.com/a?b=1' && spawned[2].detached, 'Chrome dipasang: dibuka terus dalam Chrome (bukan pelayar lalai)');
+ok(calls.length === 0, 'tidak melalui pelayar lalai sistem (Edge)');
+ok(openLink('https://example.com', shell, { chromePath: () => '' }) === 'system' && calls.length === 1, 'tiada Chrome: sandaran ke pelayar lalai sistem');
+calls.length = 0;
+for (const bad of ['http://example.com', 'file:///C:/x', 'javascript:alert(1)', '', null, 'ftp://a.com']) ok(openLink(bad, shell, { chromePath: () => 'x', spawn: () => { throw new Error('tidak patut dipanggil'); } }) === 'refused', 'ditolak: ' + JSON.stringify(bad));
+const env = { 'ProgramFiles(x86)': 'C:\\PF86', LOCALAPPDATA: 'C:\\L' };
+ok(chromePath(env, 'win32', (p) => p.startsWith('C:\\PF86') || p.includes('PF86')) .includes('PF86'), 'jumpa chrome.exe di Program Files (x86)');
+ok(chromePath({}, 'win32', () => false) === '', 'tiada Chrome => kosong');
+openLink('https://example.com', shell, { chromePath: () => 'x', spawn: () => { throw new Error('gagal lancar'); } });
+ok(calls.length === 1, 'spawn gagal: sandaran ke pelayar lalai');
+console.log('SEMUA LULUS (' + n + ')');

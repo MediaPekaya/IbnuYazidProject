@@ -5,6 +5,7 @@ const { app, BrowserWindow, ipcMain, safeStorage, session, desktopCapturer, shel
 const path = require('path');
 const fs = require('fs');
 const { StreamEngine } = require('./stream-engine');
+const { openLink } = require('./open-link');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -65,7 +66,7 @@ function createWindow() {
   win.once('ready-to-show', () => win.show());
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   // pautan luaran dibuka dalam pelayar, bukan dalam app
-  win.webContents.setWindowOpenHandler(({ url }) => { if (/^https:\/\//.test(url)) shell.openExternal(url); return { action: 'deny' }; });
+  win.webContents.setWindowOpenHandler(({ url }) => { openLink(url, shell); return { action: 'deny' }; });
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file://')) e.preventDefault(); });
 }
 

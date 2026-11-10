@@ -24,6 +24,7 @@
     "test:reconnect": "node scripts/test-reconnect.js",
     "test:chat": "node scripts/test-chat.js",
     "test:icons": "node scripts/test-icons.js",
+    "test:openlink": "node scripts/test-openlink.js",
     "release:stage": "node scripts/release-stage.js"
   },
   "dependencies": {
