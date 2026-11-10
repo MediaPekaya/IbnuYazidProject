@@ -42,3 +42,7 @@ Tajuk sahaja sepanjang video. Sub tajuk hanya pada intro (tarikh) dan penutup (t
 - **Cincin:** hanya detik tangan dipegang dan cincin masuk (112404, 1.5–3.4s); tiada teks di atasnya.
 - **Transition:** setiap pertukaran shot 0.68s: bloom / glide / zoom / light, dengan glitter 4-penjuru, wash emas dan light sweep; `light` tambah light leak + flare.
 - **Teks:** fon berangkai (Parisienne untuk nama, Dancing Script untuk tajuk), huruf ditulis kiri ke kanan.
+
+## Stabilisasi & gred (v4)
+- Stabilisasi **dua pass** (pelicinan gimbal + pass kedua halus untuk buang getaran kecil), lalai untuk semua shot; `stab:false`, `smooth`, `maxshift`, `maxangle`, `stab2` boleh ditetapkan per shot dalam `shots.json`. Sedikit penajaman (`unsharp`) pada semua proxy untuk rasa "4K" pada 1080p.
+- Shot cincin (S15) ada `grade` per shot (lengkung + brightness) untuk terangkan tangan pengantin dan mertua.

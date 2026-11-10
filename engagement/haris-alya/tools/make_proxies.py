@@ -30,7 +30,8 @@ def run(sh):
     dur = n * per + pre + POST                 # output seconds
     ss = max(0.0, s0 - pre * sp)               # source seconds
     src = os.path.join(SRC, f"VID_20261107_{clip}.mp4")
-    out = os.path.join(ROOT, "assets", "shots", f"{sid}.mp4")
+    out = os.path.join(os.environ.get("HF_OUT_DIR", os.path.join(ROOT, "assets", "shots")), f"{sid}.mp4")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     fps = src_fps(src)
     m0 = min(MARGIN, ss)                       # margin actually available before the cut (source seconds)
     seg = ["-ss", f"{ss - m0:.3f}", "-t", f"{dur * sp + m0 + MARGIN:.3f}", "-i", src]
@@ -39,15 +40,25 @@ def run(sh):
     if use_stab:
         subprocess.run(["ffmpeg","-v","error","-y",*seg,"-an","-vf",f"vidstabdetect=shakiness=7:accuracy=15:result={trf}","-f","null","-"], check=True)
     smooth = sh.get('smooth', SMOOTH)   # per-shot override in shots.json (big moving subjects confuse the tracker)
-    stab = f"vidstabtransform=input={trf}:smoothing={smooth}:optzoom=1:zoom=0:maxshift={MAXSHIFT}:maxangle={MAXANGLE}:interpol=bicubic:crop=black:relative=1"
+    stab = f"vidstabtransform=input={trf}:smoothing={smooth}:optzoom=1:zoom=0:maxshift={sh.get('maxshift', MAXSHIFT)}:maxangle={sh.get('maxangle', MAXANGLE)}:interpol=bicubic:crop=black:relative=1"
     if sp < 0.999:
         rate = f"setpts=PTS/{sp},minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,unsharp=5:5:0.6"
     elif fps > 58: rate = "fps=60"                                                    # native 60
     elif fps > 45: rate = "framerate=fps=60:interp_start=0:interp_end=255:scene=100"  # 50 -> 60, weighted blend (no stutter)
     else:          rate = "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"  # 26 -> 60, motion-compensated
-    vf = f"{stab + ',' if use_stab else ''}scale=1920:1080:flags=lanczos,{rate},trim=start={m0 / sp:.3f}:duration={dur:.3f},setpts=PTS-STARTPTS,format=yuv420p"
+    grade = sh.get("grade")                    # optional ffmpeg colour filter (e.g. lift the hands on the ring shot)
+    crisp = "unsharp=5:5:0.45:5:5:0" if sp >= 0.999 else ""   # slight crispness so zoomed/stabilised frames keep a "4K" bite
+    post = ",".join(x for x in (grade, crisp) if x)
+    vf = f"{stab + ',' if use_stab else ''}scale=1920:1080:flags=lanczos,{rate},{post + ',' if post else ''}trim=start={m0 / sp:.3f}:duration={dur:.3f},setpts=PTS-STARTPTS,format=yuv420p"
     subprocess.run(["ffmpeg","-v","error","-y",*seg,"-an","-vf",vf,
                     "-c:v","libx264","-preset","veryfast","-crf","18","-g","30","-bf","0","-movflags","+faststart",out], check=True)
+    s2 = sh.get("stab2", int(os.environ.get("HF_STAB2", 40)))   # second, gentler pass removes the residual micro-jitter
+    if s2 and use_stab:
+        trf2 = os.path.join(SCRATCH, f"{sid}_2.trf"); tmp = out + ".p2.mp4"
+        subprocess.run(["ffmpeg","-v","error","-y","-i",out,"-an","-vf",f"vidstabdetect=shakiness=5:accuracy=15:result={trf2}","-f","null","-"], check=True)
+        subprocess.run(["ffmpeg","-v","error","-y","-i",out,"-an","-vf",f"vidstabtransform=input={trf2}:smoothing={int(s2)}:optzoom=1:zoom=0:maxshift=40:maxangle=0.02:interpol=bicubic:crop=black:relative=1,format=yuv420p",
+                        "-c:v","libx264","-preset","veryfast","-crf","18","-g","30","-bf","0","-movflags","+faststart",tmp], check=True)
+        os.replace(tmp, out)
     print(f"{sid} clip {clip} {fps:.0f}fps ss={ss:.2f} dur={dur:.2f} speed={sp} {'stabilised' if use_stab else 'raw (stab off)'}", flush=True)
 
 if __name__ == "__main__":

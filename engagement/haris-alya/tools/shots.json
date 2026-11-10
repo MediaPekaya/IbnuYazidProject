@@ -140,7 +140,8 @@
    "s0": 1.5,
    "n": 4,
    "enter": "dissolve",
-   "kb": "in"
+   "kb": "in",
+   "grade": "curves=all='0/0.02 0.15/0.34 0.35/0.63 0.6/0.84 1/1',eq=brightness=0.04:saturation=1.12"
   },
   {
    "id": "S16",
@@ -244,7 +245,11 @@
    "s0": 2.0,
    "n": 4,
    "enter": "dissolve",
-   "kb": "out"
+   "kb": "out",
+   "smooth": 150,
+   "maxshift": 140,
+   "maxangle": 0.05,
+   "stab2": 0
   },
   {
    "id": "S29",
