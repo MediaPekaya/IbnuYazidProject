@@ -131,11 +131,16 @@ function sendUpd(patch) {
 function setupUpdater() {
   const test = !!process.env.GS_UPDATE_TEST;
   if (!app.isPackaged && !test) { updState.state = 'dev'; return; }
+  if (test && process.env.GS_FAKE_WIN) Object.defineProperty(process, 'platform', { value: 'win32' }); // ujian sahaja: cari latest.yml seperti pada Windows
   try { updater = require('electron-updater').autoUpdater; } catch (e) { updState.state = 'unavailable'; return; }
   updater.autoDownload = !test;
   updater.autoInstallOnAppQuit = true;
   updater.logger = null;
-  if (test && process.env.GS_UPDATE_URL) { updater.forceDevUpdateConfig = true; updater.setFeedURL({ provider: 'generic', url: process.env.GS_UPDATE_URL }); }
+  if (test && process.env.GS_UPDATE_URL) {
+    updater.forceDevUpdateConfig = true;
+    // ujian: 'github' = penyedia GitHub seperti app yang dipasang; lain-lain = suapan generik
+    updater.setFeedURL(process.env.GS_UPDATE_URL === 'github' ? { provider: 'github', owner: 'MediaPekaya', repo: 'IbnuYazidProject' } : { provider: 'generic', url: process.env.GS_UPDATE_URL });
+  }
   updater.on('checking-for-update', () => sendUpd({ state: 'checking', message: '' }));
   updater.on('update-available', (i) => sendUpd({ state: 'available', version: i.version, message: '' }));
   updater.on('update-not-available', () => sendUpd({ state: 'current', message: '' }));
