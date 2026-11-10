@@ -1,6 +1,6 @@
 # Haris & Alya – Engagement Day (HyperFrames edit)
 
-16:9 / 1920×1080 / **60 fps** · ~89.5 s · 34 shots (31 klip asal, kronologi asal dikekalkan) · muzik 126 BPM.
+16:9 / 1920×1080 / **60 fps** · ~85.2 s · 32 shots (31 klip asal, kronologi asal dikekalkan) · muzik 126 BPM.
 Audio = lagu sahaja (audio asal klip dimute, tiada SFX).
 
 ## Struktur
@@ -36,3 +36,9 @@ Grade emas (soft-light), bokeh emas perlahan, light leak pada transition `light`
 
 ## Teks
 Tajuk sahaja sepanjang video. Sub tajuk hanya pada intro (tarikh) dan penutup (tarikh + doa).
+
+## Hook, transition, teks (v3)
+- **Hook:** wajah pengantin perempuan menghadap kamera (115040, slow-mo 0.5×), tajuk nama + tarikh rata kiri di bawah muka, tidak menindih muka mahupun tulisan banner.
+- **Cincin:** hanya detik tangan dipegang dan cincin masuk (112404, 1.5–3.4s); tiada teks di atasnya.
+- **Transition:** setiap pertukaran shot 0.68s: bloom / glide / zoom / light, dengan glitter 4-penjuru, wash emas dan light sweep; `light` tambah light leak + flare.
+- **Teks:** fon berangkai (Parisienne untuk nama, Dancing Script untuk tajuk), huruf ditulis kiri ke kanan.
