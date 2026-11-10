@@ -1,7 +1,7 @@
 {
   "name": "global-streamer",
   "productName": "Global Streamer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Studio live seperti OBS dengan template, efek dan chat untuk TikTok, Facebook dan YouTube.",
   "main": "main/main.js",
   "private": true,
