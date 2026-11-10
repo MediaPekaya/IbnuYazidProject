@@ -64,7 +64,22 @@ try {
     if ($g -eq 'male') { $gender = [System.Speech.Synthesis.VoiceGender]::Male } elseif ($g -eq 'female') { $gender = [System.Speech.Synthesis.VoiceGender]::Female }
     $done = $false
     if ($c) { try { $s.SelectVoiceByHints($gender, [System.Speech.Synthesis.VoiceAge]::NotSet, 0, (New-Object System.Globalization.CultureInfo($c))); $done = $true } catch { } }
-    if (-not $done) { try { $s.SelectVoiceByHints($gender) } catch { } }
+    if (-not $done) {
+      # tiada suara Melayu: JANGAN biarkan Windows memilih sebarang suara (boleh jadi Indonesia/Cina/India); utamakan Melayu, kemudian Inggeris
+      try {
+        $all = @($s.GetInstalledVoices() | Where-Object { $_.Enabled })
+        foreach ($pref in @('ms', 'en')) {
+          if ($done) { break }
+          $m = @($all | Where-Object { $_.VoiceInfo.Culture.TwoLetterISOLanguageName -eq $pref })
+          if ($m.Count -gt 0) {
+            $gm = @($m | Where-Object { $gender -eq [System.Speech.Synthesis.VoiceGender]::NotSet -or $_.VoiceInfo.Gender -eq $gender })
+            if ($gm.Count -gt 0) { $pick = $gm[0] } else { $pick = $m[0] }
+            $s.SelectVoice($pick.VoiceInfo.Name)
+            $done = $true
+          }
+        }
+      } catch { }
+    }
   }
   $s.Rate = [int]$env:GS_RATE
   $s.SetOutputToWaveFile($env:GS_OUT)
