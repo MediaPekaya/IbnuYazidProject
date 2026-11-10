@@ -9,6 +9,7 @@ const { openLink } = require('./open-link');
 const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
 const { fetchTTS, elevenApi } = require('./tts-net');
+const { chat: aiChat } = require('./ai-net');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -20,7 +21,7 @@ const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.web
 /* ---------- simpanan key disulitkan (OS) ---------- */
 const vaultFile = () => path.join(app.getPath('userData'), 'vault.json');
 function readVault() { try { return JSON.parse(fs.readFileSync(vaultFile(), 'utf8')); } catch (e) { return {}; } }
-const FIXED_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure']);
+const FIXED_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure', 'ai-gemini', 'ai-groq']);
 const VALID_IDS = { has: (id) => typeof id === 'string' && (FIXED_IDS.has(id) || /^x\d{1,3}$/.test(id)) }; // x1, x2... = platform tambahan
 
 ipcMain.handle('vault:get', (_e, id) => {
@@ -64,6 +65,7 @@ ipcMain.handle('tts:fetch', async (_e, kind, p) => {
   return r.ok ? { ok: true, audio: new Uint8Array(r.audio) } : r;
 });
 
+ipcMain.handle('ai:chat', (_e, p) => aiChat(p && typeof p === 'object' ? p : {}));
 ipcMain.handle('tts:eleven', (_e, op, p) => elevenApi(String(op), p && typeof p === 'object' ? p : {}));
 
 /* ---------- suara (pengecam luar talian + suara bot) ---------- */

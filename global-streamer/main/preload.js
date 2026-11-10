@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld('gsNative', {
     fetch: (kind, params) => ipcRenderer.invoke('tts:fetch', kind, params),
     eleven: (op, params) => ipcRenderer.invoke('tts:eleven', op, params),
   },
+  ai: {
+    chat: (params) => ipcRenderer.invoke('ai:chat', params),
+  },
   rec: {
     open: () => ipcRenderer.invoke('rec:open'),
     chunk: (buf) => ipcRenderer.send('rec:chunk', buf),

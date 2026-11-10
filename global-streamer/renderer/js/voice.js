@@ -53,15 +53,34 @@
   /* ---------- bot ---------- */
   const wakeWords = () => { const b = cfg().bot; return [norm(b.name)].concat(splitList(b.aliases)).filter(Boolean); };
   /** Kembalikan {woke, question} jika teks memanggil bot. `question` boleh kosong (bot menunggu soalan seterusnya). */
+  /** Padanan nama panggilan: pengecam (terutama Inggeris) sering salah dengar nama Melayu, jadi bunyi yang hampir diterima (kerangka konsonan sama atau 1-2 huruf berbeza). */
+  const skel = (w) => w.replace(/[aeiouy]/g, '').replace(/(.)\1+/g, '$1');
+  const wakeSim = (a, b) => {
+    if (a === b) return true;
+    if (a[0] !== b[0] || Math.min(a.length, b.length) < 4) return wsim(a, b);
+    if (lev(a, b) <= (Math.min(a.length, b.length) >= 5 ? 2 : 1)) return true;
+    const sa = skel(a), sb = skel(b), sh = sa.length <= sb.length ? sa : sb, lo = sa.length <= sb.length ? sb : sa;
+    return sh.length >= 2 && lo.startsWith(sh) && lo.length - sh.length <= 1; // kerangka konsonan sama atau hanya beza satu konsonan di hujung
+  };
+  const findWake = (words, pw) => {
+    for (let i = 0; i + pw.length <= words.length; i++) {
+      let k = 0;
+      while (k < pw.length && wakeSim(words[i + k], pw[k])) k++;
+      if (k === pw.length) return i;
+    }
+    return -1;
+  };
   V.parseWake = function (text) {
     const words = norm(text).split(' ').filter(Boolean);
     for (const w of wakeWords()) {
       const pw = w.split(' ');
-      const i = find(words, pw);
+      const i = findWake(words, pw);
       if (i >= 0) return { woke: true, question: words.slice(i + pw.length).join(' ') };
     }
     return { woke: false, question: '' };
   };
+  /** Latih nama: ayat seterusnya yang didengar (satu hingga tiga perkataan) ditambah sebagai ejaan sebutan nama bot. */
+  V.learnName = function () { V.learning = true; V.learnUntil = Date.now() + 15000; GS.emit('voice:status'); };
 
   const tokens = () => {
     const S = GS.state;
@@ -91,6 +110,99 @@
     if (best && String(best.a || '').trim()) return { text: fill(best.a), entry: best, score: bestScore };
     const fb = String(cfg().bot.fallback || '').trim();
     return { text: fb ? fill(fb) : '', entry: null, score: 0 };
+  };
+
+  /* ---------- keperibadian bot: jawapan spontan (tanpa skrip pengguna) ---------- */
+  const PERSONA = [
+    { re: /\b(makan|minum|lapar|dahaga|nasi|mee|kopi|teh|sarapan|makanan)\b/, a: ['Alamak, saya tak boleh makan. Saya bot, makanan saya cuma elektrik.', 'Nak makan? Saya bot lah bro, kalau makan nanti litar pintas.', 'Saya cuma boleh telan data. Awak pergilah makan dulu.'] },
+    { re: /\b(tidur|ngantuk|mengantuk|penat|letih|rehat)\b/, a: ['Bot mana ada tidur, tapi awak tu patut rehat sikit.', 'Saya tak pernah penat, bateri saya sentiasa penuh. Awak pula macam mana?', 'Jangan paksa diri, minum air dan regang badan sekejap.'] },
+    { re: /\b(siapa (kau|awak|anda|kamu)|kau siapa|awak siapa|nama (kau|awak)|siapa nama)\b/, a: ['Saya {nama}, bot AI yang temankan siaran ni.', 'Saya {nama}, kawan baik awak yang kebetulan dibuat daripada kod.', 'Panggil saja saya {nama}, bot AI penyokong tegar awak.'] },
+    { re: /\b(robot|bot|ai|manusia|hidup|betul ke)\b.*\b(ke|kah|tak|kan)\b|\b(awak|kau) (ni )?(bot|ai|robot|manusia)\b/, a: ['Ya, saya bot AI. Tapi semangat saya penuh macam manusia.', 'Betul, saya bot. Tapi saya cukup pandai untuk tahu awak tengah main bagus.', 'Saya AI, tak ada badan, tapi ada pendapat.'] },
+    { re: /\b(noob|noobs|troll|bermasalah|lemah|beban|salah siapa|siapa salah|feeder|bodoh)\b/, a: ['Kalau ikut saya, kita cermin diri dulu sebelum tuding jari.', 'Hmm, saya rasa semua orang pernah jadi noob. Termasuk saya, bot yang tak reti main.', 'Jangan cepat salahkan orang. Tengok skor sendiri dulu, baru cakap.', 'Ikut perasaan saya, kita semua ada hari yang teruk. Fokus menang dulu.'] },
+    { re: /\b(sayang|cinta|couple|kahwin|girlfriend|boyfriend|awek|pakwe|crush)\b/, a: ['Saya bot, hati saya cuma ada litar. Tapi saya sayang penonton semua.', 'Wah, soalan hati. Saya tak ada hati, cuma ada wayar.', 'Cinta saya hanya pada kemenangan dan Wi-Fi yang laju.'] },
+    { re: /\b(lawak|joke|gurau|buat lawak|cerita lawak)\b/, a: ['Kenapa pemain support tak pernah sesat? Sebab dia selalu ikut orang lain.', 'Saya bot, jadi lawak saya pun versi beta. Maaf kalau tak lawak.', 'Kenapa jungler selalu lambat? Sebab dia sibuk mencari hutan yang dia sendiri tak tahu.'] },
+    { re: /\b(terima kasih|thanks|thank you|tq|thx)\b/, a: ['Sama-sama!', 'Tak ada hal. Itu memang tugas saya.', 'Dengan senang hati!'] },
+    { re: /\b(hai|helo|hello|hi|assalamualaikum|salam|apa khabar|apa kabar)\b/, a: ['Hai! Saya sihat, bateri penuh.', 'Helo! Saya sedia, nak tanya apa?', 'Waalaikumussalam, hai semua!'] },
+    { re: /\b(menang|kalah|boleh menang|boleh ke menang|game ni)\b/, a: ['Selagi kerjasama baik, semuanya masih boleh. Fokus!', 'Saya percaya pada awak. Jangan lupa tengok minimap.', 'Tak kira menang atau kalah, yang penting kita bergaya.'] },
+  ];
+  let lastPersona = '';
+  /** Jawapan spontan luar talian; kembalikan '' jika tiada keperibadian yang sepadan. */
+  V.persona = function (q) {
+    const n = norm(q);
+    const e = PERSONA.find((x) => x.re.test(n));
+    if (!e) return '';
+    let a = e.a[Math.floor(Math.random() * e.a.length)];
+    if (a === lastPersona && e.a.length > 1) a = e.a[(e.a.indexOf(a) + 1) % e.a.length];
+    lastPersona = a;
+    return fill(a);
+  };
+
+  /* ---------- AI sembang (percuma: Google Gemini / Groq; pengguna menggunakan kunci sendiri) ---------- */
+  const AI = { gemini: { name: 'Google Gemini', base: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.5-flash' }, groq: { name: 'Groq', base: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' } };
+  V.AI = AI;
+  const aiProv = () => (AI[cfg().bot.ai.provider] ? cfg().bot.ai.provider : 'gemini');
+  V.aiKey = () => ((GS.platforms && GS.platforms.getKey('ai-' + aiProv())) || '').trim();
+  V.setAiKey = (k) => GS.platforms.setKey('ai-' + aiProv(), String(k || '').trim());
+  V.aiConfigured = () => !!V.aiKey();
+  V.chatMem = [];
+  /** Maklumat game semasa untuk AI (hanya yang sebenar; tidak mereka nama pemain). */
+  V.gameContext = function () {
+    const S = GS.state, T = tokens(), out = [];
+    out.push('Game: ' + ((GS.games && GS.games.current && GS.games.current().name) || S.game || 'MLBB') + '.');
+    out.push('Rekod sesi: ' + T.menang + ' menang, ' + T.kalah + ' kalah, streak ' + T.streak + '. K/D/A semasa: ' + T.kill + '/' + T.mati + '/' + T.assist + '.');
+    const d = S.draft || {};
+    const ally = (d.ally || []).filter(Boolean), enemy = (d.enemy || []).filter(Boolean);
+    if (ally.length) out.push('Hero pasukan kita: ' + ally.join(', ') + '.');
+    if (enemy.length) out.push('Hero pasukan musuh: ' + enemy.join(', ') + '.');
+    if (d.banAlly || d.banEnemy) out.push('Ban: kita ' + (d.banAlly || '-') + ', musuh ' + (d.banEnemy || '-') + '.');
+    if (T.toppick !== '?') out.push('Meta tournament: top pick ' + T.toppick + ', top ban ' + T.topban + '.');
+    const x = String(cfg().bot.ai.extra || '').trim();
+    if (x) out.push('Maklumat tambahan daripada streamer (nama pemain, pasukan, dll): ' + x.slice(0, 600));
+    return out.join('\n');
+  };
+  const aiSystem = () => {
+    const n = (cfg().bot.name || 'Bot').trim() || 'Bot';
+    return 'Kamu ialah ' + n + ', bot suara AI yang menemani seorang streamer game dalam siaran langsung; penonton turut mendengar. '
+      + 'Kamu BOT/AI: tak boleh makan, tidur atau ke mana-mana, dan jangan berpura-pura manusia. Kalau ditanya tentang makan, tidur atau perasaan fizikal, jawab secara lucu sebagai bot. '
+      + 'Bercakap Bahasa Melayu Malaysia yang santai (boleh sedikit slanga seperti "wei", "bro", "lah"). Jawab dalam bahasa yang sama dengan soalan (jika soalan English, jawab English). '
+      + 'Jawapan SANGAT pendek: 1-2 ayat, paling banyak 25 patah perkataan, tanpa emoji, tanpa senarai, tanpa markdown, kerana ia akan disebut kuat. '
+      + 'Jawab spontan dan kreatif, jangan ikut skrip. Untuk soalan siapa noob, troll atau bermasalah, bergurau dengan mesra (contohnya ajak cermin diri dulu); jangan menghina, jangan guna kata kesat dan jangan serang individu sebenar. '
+      + 'Guna maklumat game di bawah jika berkaitan. Jika maklumat tiada, akui kamu tak nampak datanya dan JANGAN mereka nama pemain atau statistik.\n\n' + V.gameContext();
+  };
+  const cleanAi = (t) => {
+    let x = String(t || '').replace(/[*_`#>~]/g, '').replace(/\s*\n+\s*/g, ' ').replace(/\s+/g, ' ').trim();
+    if (x.length > 240) { const cut = x.slice(0, 240); const p = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? ')); x = p > 60 ? cut.slice(0, p + 1) : cut.replace(/\s+\S*$/, '') + '…'; }
+    return x;
+  };
+  /** Tanya AI. Melontar Error dengan mesej BM jika gagal. */
+  V.askAI = async function (question) {
+    const key = V.aiKey();
+    if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', AI[aiProv()].name));
+    const b = cfg().bot.ai, pv = AI[aiProv()];
+    const messages = [{ role: 'system', content: aiSystem() }].concat(V.chatMem.slice(-8), [{ role: 'user', content: String(question).slice(0, 400) }]);
+    const body = { provider: aiProv(), key, model: String(b.model || '').trim() || pv.model, messages, max_tokens: 120, temperature: 0.9 };
+    let r;
+    if (native() && window.gsNative.ai && window.gsNative.ai.chat) r = await window.gsNative.ai.chat(body);
+    else {
+      try {
+        const res = await fetch(pv.base + '/chat/completions', { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: body.model, messages, max_tokens: 120, temperature: 0.9 }) });
+        const j = await res.json().catch(() => ({}));
+        r = res.ok ? { ok: true, text: j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content } : { ok: false, status: res.status, code: String((j.error && (j.error.status || j.error.code)) || ''), message: String((j.error && j.error.message) || '') };
+      } catch (e) { r = { ok: false, status: 0, code: 'network' }; }
+    }
+    if (!r || !r.ok) throw new Error(aiErr(pv.name, r || {}));
+    const text = cleanAi(r.text);
+    if (!text) throw new Error(GS.t('{0} tidak memberi jawapan.', pv.name));
+    V.chatMem.push({ role: 'user', content: String(question).slice(0, 400) }, { role: 'assistant', content: text });
+    V.chatMem = V.chatMem.slice(-12);
+    return text;
+  };
+  const aiErr = (n, r) => {
+    if (r.status === 401 || r.status === 403) return GS.t('Kunci API {0} tidak sah atau tiada kebenaran (semak kunci dan kawasan).', n);
+    if (r.status === 429) return GS.t('{0}: had percuma dicapai atau terlalu banyak permintaan. Cuba sebentar lagi.', n);
+    if (r.status === 404 || r.status === 400) return GS.t('{0}: nama model tidak diterima ({1}). Semak nama model.', n, String(r.message || '').slice(0, 80));
+    if (r.code === 'timeout') return GS.t('{0} tidak menjawab (tamat masa).', n);
+    return GS.t('Tidak dapat menghubungi {0}. Semak sambungan internet.', n);
   };
 
   /* ---------- suara: penyedia (sistem / Azure / ElevenLabs), cache dan main ---------- */
@@ -400,6 +512,19 @@
     if (source === 'mic' && V.speaking && !ev.test) return { ignored: 'bot bercakap' }; // elak bot mendengar suaranya sendiri
     if (ev.conf != null && ev.conf < st.minConf) { V.note({ source, text, conf: ev.conf, result: 'keyakinan rendah' }); return { ignored: 'keyakinan' }; }
     const now = Date.now();
+    // latih nama: ayat pendek seterusnya didengar ditambah sebagai ejaan sebutan nama bot
+    if (V.learning && Date.now() < V.learnUntil && source === 'mic' && !ev.interim && !ev.test) {
+      const nt = norm(text);
+      if (nt && nt.split(' ').length <= 3) {
+        V.learning = false;
+        const b = cfg().bot, have = [norm(b.name)].concat(splitList(b.aliases));
+        if (!have.includes(nt)) { b.aliases = (String(b.aliases || '').trim() ? String(b.aliases).trim().replace(/,\s*$/, '') + ', ' : '') + nt; GS.save(); }
+        V.note({ source, text, result: 'nama dilatih: ' + nt });
+        GS.toast(GS.t('Nama dipelajari: "{0}". Sekarang sebut nama bot untuk menguji.', nt), 'ok');
+        GS.emit('voice:status');
+        return { learned: nt };
+      }
+    }
     // hasil sementara (pelayar): hanya untuk efek; bot menunggu hasil akhir supaya soalan lengkap
     if (ev.interim && source === 'mic' && st.bot.enabled && (V.parseWake(text).woke || V.awaitUntil > now)) return { ignored: 'sementara' };
     V.last = { text, source, at: now, conf: ev.conf == null ? null : ev.conf };
@@ -413,10 +538,21 @@
         if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack && st.bot.voiceOn) V.speak(st.bot.ack, {}); GS.emit('voice:status'); return { bot: 'menunggu' }; }
         V.awaitUntil = 0;
         const a = V.answer(q);
-        V.note({ source, text, result: a.text ? 'bot: ' + a.text : 'bot: tiada jawapan' });
-        if (a.text) V.say(a.text);
+        if (a.entry) { V.note({ source, text, result: 'bot: ' + a.text }); if (a.text) V.say(a.text); GS.emit('voice:status'); return { bot: a.text ? 'jawab' : 'tiada', answer: a.text }; }
+        // tiada soalan/jawapan khas: AI (jika kunci diisi) menjawab spontan, jika tidak keperibadian luar talian, kemudian jawapan lalai
+        if (V.aiConfigured()) {
+          if (V.aiBusy) return { ignored: 'bot berfikir' };
+          V.aiBusy = true; V.note({ source, text, result: 'bot berfikir (AI)…' }); GS.emit('voice:status');
+          V.askAI(q).then((txt) => { V.note({ source, text, result: 'bot: ' + txt }); V.say(txt); })
+            .catch((e) => { warn(String((e && e.message) || e)); const f = V.persona(q) || a.text; if (f) V.say(f); })
+            .finally(() => { V.aiBusy = false; GS.emit('voice:status'); });
+          return { bot: 'ai' };
+        }
+        const pt = V.persona(q) || a.text;
+        V.note({ source, text, result: pt ? 'bot: ' + pt : 'bot: tiada jawapan' });
+        if (pt) V.say(pt);
         GS.emit('voice:status');
-        return { bot: a.text ? 'jawab' : 'tiada', answer: a.text };
+        return { bot: pt ? 'jawab' : 'tiada', answer: pt };
       }
     }
     // 2) efek

@@ -97,7 +97,7 @@
     const testOut = h('div', { class: 'muted note', id: 'voiceTestOut' });
     const runTest = (source) => {
       const r = v.handleText({ source, text: testIn.value, test: true });
-      testOut.textContent = r.fx ? GS.t('Dikesan: efek {0} ("{1}")', FX_LABEL[r.fx] || r.fx, r.phrase) : r.bot === 'jawab' ? GS.t('Bot menjawab: {0}', r.answer) : r.bot === 'menunggu' ? GS.t('Bot dipanggil. Sebut soalan seterusnya (uji lagi).') : r.bot === 'tiada' ? GS.t('Bot tiada jawapan untuk soalan itu (tetapkan jawapan lalai atau tambah soalan).') : GS.t('Tiada padanan ({0}).', r.ignored || '');
+      testOut.textContent = r.fx ? GS.t('Dikesan: efek {0} ("{1}")', FX_LABEL[r.fx] || r.fx, r.phrase) : r.bot === 'jawab' ? GS.t('Bot menjawab: {0}', r.answer) : r.bot === 'ai' ? GS.t('Bot berfikir (AI)… jawapan akan disebut dan dipaparkan.') : r.bot === 'menunggu' ? GS.t('Bot dipanggil. Sebut soalan seterusnya (uji lagi).') : r.bot === 'tiada' ? GS.t('Bot tiada jawapan untuk soalan itu (tetapkan jawapan lalai atau tambah soalan).') : GS.t('Tiada padanan ({0}).', r.ignored || '');
       U.drawLive();
     };
     const voices = (window.speechSynthesis && speechSynthesis.getVoices ? speechSynthesis.getVoices() : []).map((x) => x.name);
@@ -181,7 +181,7 @@
         field('Kunci API ElevenLabs', keyIn, nat ? 'Disimpan disulitkan oleh Windows, bukan dalam fail tetapan.' : 'Versi web: hanya dalam memori, hilang apabila tab ditutup.'),
         h('div', { class: 'grid2' },
           field('Model', h('select', { id: 'elevenModel', onChange: (e) => { t.model = e.target.value; save(); } }, [['eleven_multilingual_v2', 'Multilingual v2 (kualiti terbaik, 1 kredit/aksara)'], ['eleven_flash_v2_5', 'Flash v2.5 (pantas, separuh kredit)']].map(([val, l]) => h('option', { value: val, selected: t.model === val }, l)))),
-          h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnElevenQuota', onClick: async () => { keyIn.dispatchEvent(new Event('change')); quotaOut.textContent = GS.t('Menyemak…'); try { const q = await v.elevenQuota(); quotaOut.textContent = GS.t('Digunakan {0} daripada {1} aksara bulan ini.', q.used, q.limit); } catch (e) { quotaOut.textContent = String(e.message || e); } } }, 'Semak kuota'))),
+          h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnElevenClear', onClick: () => { v.setElevenKey(''); keyIn.value = ''; quotaOut.textContent = GS.t('Kunci dipadam.'); } }, 'Padam kunci'), h('button', { type: 'button', class: 'btn ghost', id: 'btnElevenQuota', onClick: async () => { keyIn.dispatchEvent(new Event('change')); quotaOut.textContent = GS.t('Menyemak…'); try { const q = await v.elevenQuota(); quotaOut.textContent = GS.t('Digunakan {0} daripada {1} aksara bulan ini.', q.used, q.limit); } catch (e) { quotaOut.textContent = String(e.message || e); } } }, 'Semak kuota'))),
         h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn primary', id: 'btnElevenFind', onClick: () => findVoices(true) }, 'Sediakan suara Melayu (Aisyah & Zain)')),
         voiceMsg, voiceList,
         quotaOut);
@@ -232,6 +232,28 @@
     drawAnn();
     const sayIn = h('input', { type: 'text', id: 'voiceSayIn', placeholder: 'cth: Selamat datang ke siaran langsung saya!', 'aria-label': GS.t('Teks untuk disebut'), onKeydown: (e) => { if (e.key === 'Enter') GS.$('#btnVoiceSay').click(); } });
     const keyBlur = () => { const k = GS.$('#elevenKey'); if (k) v.setElevenKey(k.value); const z = GS.$('#azureKey'); if (z) v.setAzureKey(z.value); };
+    /* otak AI: jawapan spontan tanpa skrip (kunci percuma sendiri); tanpa kunci: keperibadian luar talian */
+    const aiBox = h('div', { class: 'eleven-box', id: 'aiBox' });
+    const aiOut = h('div', { class: 'muted note', id: 'aiOut' });
+    const drawAi = () => {
+      aiBox.innerHTML = '';
+      const A = v.AI, pv = c.bot.ai.provider;
+      const keyIn = h('input', { type: 'password', id: 'aiKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'API key', value: v.aiKey(), onChange: (e) => { v.setAiKey(e.target.value); } });
+      aiBox.append(
+        h('h4', null, 'Otak AI bot (jawapan spontan, tanpa skrip)'),
+        h('p', { class: 'muted note' }, 'Dengan kunci AI percuma, bot menjawab apa-apa soalan secara spontan dan kreatif (bukan daripada senarai), dan menggunakan data game semasa (hero, K/D/A, rekod). Daftar percuma di aistudio.google.com (Google Gemini) atau console.groq.com (Groq), buat API key dan tampal di bawah. Tanpa kunci, bot guna jawapan spontan luar talian yang lebih terhad.'),
+        h('div', { class: 'grid2' },
+          field('Penyedia AI', h('select', { id: 'aiProvider', onChange: (e) => { c.bot.ai.provider = e.target.value; save(); drawAi(); } }, Object.keys(A).map((k) => h('option', { value: k, selected: pv === k }, A[k].name + ' (percuma)')))),
+          field('Kunci API AI', keyIn, nat ? 'Disimpan disulitkan oleh Windows, bukan dalam fail tetapan.' : 'Versi web: hanya dalam memori.')),
+        h('div', { class: 'grid2' },
+          field('Nama model (lanjutan, kosong = lalai)', h('input', { type: 'text', id: 'aiModel', value: c.bot.ai.model, placeholder: A[pv].model, onInput: (e) => { c.bot.ai.model = e.target.value.trim(); save(); } })),
+          h('div', { class: 'btn-row' },
+            h('button', { type: 'button', class: 'btn ghost', id: 'btnAiTest', onClick: async () => { keyIn.dispatchEvent(new Event('change')); aiOut.textContent = GS.t('Menyemak…'); try { const t = await v.askAI('Hai, kau siapa dan boleh makan tak?'); aiOut.textContent = GS.t('AI berfungsi. Contoh jawapan: {0}', t); v.chatMem = []; } catch (e) { aiOut.textContent = String(e.message || e); } } }, 'Uji AI'),
+            h('button', { type: 'button', class: 'btn ghost', id: 'btnAiClear', onClick: () => { v.setAiKey(''); keyIn.value = ''; aiOut.textContent = GS.t('Kunci dipadam.'); } }, 'Padam kunci'))),
+        aiOut,
+        field('Maklumat game tambahan untuk bot (pilihan)', h('textarea', { id: 'aiExtra', rows: 3, maxlength: 600, placeholder: 'cth: Pasukan kita: Ali (jungle), Abu (gold)... Musuh: Team X. Nama streamer: Amirul.', onInput: (e) => { c.bot.ai.extra = e.target.value; save(); } }, c.bot.ai.extra || ''), 'Bot hanya tahu nama hero/rekod yang dibaca app. Nama pemain dan pasukan perlu ditulis di sini jika mahu bot menyebutnya; bot tidak akan mereka nama.'));
+    };
+    drawAi();
     const body = h('div', { class: 'voice-modal' },
       h('div', { class: 'voice-top' }, h('div', { id: 'voiceModalStatus', class: 'voice-status big' }),
         h('button', { type: 'button', class: 'btn', id: 'voiceModalToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, 'Hidupkan bot')),
@@ -257,7 +279,9 @@
         check('Bot bercakap (suara)', () => c.bot.voiceOn, (x) => { c.bot.voiceOn = x; })),
       h('div', { class: 'grid2' },
         field('Nama bot (kata panggilan)', h('input', { type: 'text', id: 'botName', value: c.bot.name, maxlength: 24, onInput: (e) => { c.bot.name = e.target.value.trim(); save(); } }), 'Cth Jarvis. Sebut nama ini, kemudian soalan: "Jarvis, siapa noob?"'),
-        field('Nama lain / ejaan sebutan', h('input', { type: 'text', value: c.bot.aliases, placeholder: 'cth jarvis, jervis', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }))),
+        field('Nama lain / ejaan sebutan', h('input', { type: 'text', id: 'botAliases', value: c.bot.aliases, placeholder: 'cth mirul, mirror, miro', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }), 'Pengecam suara (terutama Inggeris) selalu salah dengar nama Melayu. Tulis ejaan yang didengarnya, atau tekan "Latih nama" di bawah.')),
+      h('div', { class: 'btn-row' },
+        h('button', { type: 'button', class: 'btn', id: 'btnLearnName', onClick: () => { if (!v.running) { GS.toast(GS.t('Hidupkan bot dahulu, kemudian tekan Latih nama.'), 'warn'); return; } v.learnName(); GS.toast(GS.t('Sebut nama bot sekarang (satu kali). Sistem akan mengingati bunyi yang didengarnya.'), 'ok', 5000); } }, 'Latih nama (sebut nama bot)')),
       h('h4', null, 'Suara bot'),
       h('div', { class: 'grid2' }, field('Jantina suara', gender), field('Penyedia suara', provider)),
       quick,
@@ -269,6 +293,7 @@
         field('Kelajuan suara', h('input', { type: 'range', min: -5, max: 5, value: c.bot.rate, onInput: (e) => { c.bot.rate = Number(e.target.value); save(); } }))),
       h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn', id: 'btnVoiceSpeak', onClick: () => { keyBlur(); v.say(GS.t('Hai, saya {0}. Ini ujian suara saya.', c.bot.name || 'bot'), true); } }, 'Uji suara bot')),
       check('Masukkan suara bot ke dalam siaran (penonton dengar; app Windows)', () => c.bot.inStream, (x) => { c.bot.inStream = x; }, !nat),
+      aiBox,
       h('h4', null, 'Soalan dan jawapan'),
       h('p', { class: 'muted note' }, 'Pisahkan beberapa cara bertanya dengan |. Jawapan boleh menggunakan data game: {kill} {mati} {assist} {menang} {kalah} {streak} {toppick} {topban} {nama}.'),
       qaBox,

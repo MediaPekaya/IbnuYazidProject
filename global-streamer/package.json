@@ -27,6 +27,7 @@
     "test:openlink": "node scripts/test-openlink.js",
     "test:voicehost": "node scripts/test-voice-host.js",
     "test:ttsnet": "node scripts/test-tts-net.js",
+    "test:ainet": "node scripts/test-ai-net.js",
     "release:stage": "node scripts/release-stage.js"
   },
   "dependencies": {

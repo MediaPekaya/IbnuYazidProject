@@ -99,7 +99,7 @@
     P.sync();
     // kunci platform tambahan lama ("custom") dipindahkan ke x1
     if (P.keyAlias && P.keyAlias.x1) { try { const old = (await window.gsNative.vault.get('custom')) || ''; if (old) { await window.gsNative.vault.set('x1', old); await window.gsNative.vault.set('custom', ''); } } catch (e) { /* abaikan */ } }
-    for (const id of P.order.concat(['chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure'])) {
+    for (const id of P.order.concat(['chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure', 'ai-gemini', 'ai-groq'])) {
       try { mem[id] = (await window.gsNative.vault.get(id)) || ''; } catch (e) { mem[id] = ''; }
     }
   };
