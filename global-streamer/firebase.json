@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "global-streamer-pc",
     "public": "renderer",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "cleanUrls": true,
