@@ -19,7 +19,7 @@ let n = 0; const ok = (c, m, d) => { assert(c, m + (d ? ' :: ' + d : '')); conso
   });
   await new Promise((r) => srv.listen(0, '127.0.0.1', r));
   process.env.GS_TTS_BASE = 'http://127.0.0.1:' + srv.address().port;
-  const { fetchTTS, build } = require('../main/tts-net');
+  const { fetchTTS, build, elevenApi } = require('../main/tts-net');
 
   // Azure
   let r = await fetchTTS('azure', { key: 'KUNCI1', region: 'southeastasia', voice: 'ms-MY-YasminNeural', text: 'Kita menang <hebat> & "berjaya"!', rate: 3 });
@@ -45,6 +45,22 @@ let n = 0; const ok = (c, m, d) => { assert(c, m + (d ? ' :: ' + d : '')); conso
   ok(!r.ok && r.code === 'quota_exceeded', 'kuota habis dikenali');
   r = await fetchTTS('azure', { key: 'EMPTY', voice: 'ms-MY-OsmanNeural', text: 'x' });
   ok(!r.ok && r.code === 'empty', 'audio kosong dilaporkan');
+  // API suara ElevenLabs: senarai suara, perpustakaan (tapis Melayu), tambah suara
+  r = await elevenApi('voices', { key: 'KUNCI3' });
+  ok(r.ok === false || r.ok === true, 'elevenApi voices memulangkan keputusan berstruktur');
+  let sv = seen[seen.length - 1];
+  ok(sv.url === '/v1/voices' && sv.method === 'GET' && sv.h['xi-api-key'] === 'KUNCI3', 'elevenApi voices: GET /v1/voices dengan kunci');
+  await elevenApi('shared', { key: 'KUNCI3', language: 'ms', gender: 'male', page_size: 500 });
+  sv = seen[seen.length - 1];
+  ok(sv.url.startsWith('/v1/shared-voices?') && /language=ms/.test(sv.url) && /gender=male/.test(sv.url) && /page_size=30/.test(sv.url), 'elevenApi shared: tapis bahasa + jantina, had halaman 30', sv.url);
+  await elevenApi('add', { key: 'KUNCI3', public_user_id: 'ownerABCDEF123', voice_id: 'voiceABCDEF123', new_name: 'GS Lelaki <x>' });
+  sv = seen[seen.length - 1];
+  ok(sv.method === 'POST' && sv.url === '/v1/voices/add/ownerABCDEF123/voiceABCDEF123' && JSON.parse(sv.body).new_name === 'GS Lelaki x', 'elevenApi add: POST dengan nama dibersihkan');
+  r = await elevenApi('voices', { key: 'BAD' });
+  ok(!r.ok && r.status === 401 && r.code === 'invalid_api_key', 'elevenApi: kunci salah dikenali');
+  const b4 = seen.length;
+  for (const [op, q] of [['voices', { key: '' }], ['add', { key: 'k', public_user_id: '../x', voice_id: 'voiceABCDEF123' }], ['padam', { key: 'k' }], ['voices', { key: 'k\nX: y' }]]) { r = await elevenApi(op, q); ok(!r.ok && r.code === 'input', 'elevenApi: input tidak sah ditolak (' + op + ')'); }
+  ok(seen.length === b4, 'elevenApi: tiada permintaan rangkaian untuk input tidak sah');
   // input tidak sah ditolak sebelum rangkaian
   const before = seen.length;
   for (const [k, p] of [['azure', { key: 'k', voice: 'x"; drop', text: 'a' }], ['azure', { key: 'k', region: 'a/b', voice: 'ms-MY-OsmanNeural', text: 'a' }], ['azure', { key: 'k\nX: y', voice: 'ms-MY-OsmanNeural', text: 'a' }], ['eleven', { key: 'k', voice: '../etc', text: 'a' }], ['azure', { key: 'k', voice: 'ms-MY-OsmanNeural', text: '   ' }], ['lain', { key: 'k', text: 'a' }]]) {

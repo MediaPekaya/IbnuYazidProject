@@ -155,6 +155,64 @@
     return res.arrayBuffer();
   }
 
+  /** Panggilan API suara ElevenLabs (senarai suara, perpustakaan, tambah). App Windows: melalui proses utama; web: terus. */
+  V.elevenApi = async function (op, params) {
+    const key = V.elevenKey();
+    if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', PROV.eleven));
+    const p = Object.assign({ key }, params || {});
+    if (native() && window.gsNative.tts && window.gsNative.tts.eleven) {
+      const r = await window.gsNative.tts.eleven(op, p);
+      if (!r || !r.ok) throw new Error(errMsg('eleven', r && r.status, r && r.code, r && r.message));
+      return r.json;
+    }
+    let url = ELEVEN, init = { headers: { 'xi-api-key': key, Accept: 'application/json' } };
+    if (op === 'voices') url += '/voices';
+    else if (op === 'shared') { const q = new URLSearchParams({ page_size: String(p.page_size || 20) }); if (p.language) q.set('language', p.language); if (p.gender) q.set('gender', p.gender); url += '/shared-voices?' + q; }
+    else if (op === 'add') { url += '/voices/add/' + p.public_user_id + '/' + p.voice_id; init.method = 'POST'; init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify({ new_name: p.new_name || 'Suara Melayu' }); }
+    let r;
+    try { r = await fetch(url, init); } catch (e) { throw new Error(errMsg('eleven', 0, 'network')); }
+    if (!r.ok) { let code = '', msg = ''; try { const j = await r.json(); const d = j.detail || j; code = String(d.status || d.code || ''); msg = String(d.message || ''); } catch (e) { /* abaikan */ } throw new Error(errMsg('eleven', r.status, code, msg)); }
+    return r.json();
+  };
+
+  const isMs = (x) => /(^|[^a-z])(ms|may|malay|melayu|malaysia|malaysian)([^a-z]|$)/i.test(String(x || ''));
+  const normVoice = (v, inAccount) => ({
+    id: v.voice_id, name: v.name || v.voice_id, owner: v.public_owner_id || '', inAccount: !!inAccount,
+    gender: String((v.labels && v.labels.gender) || v.gender || '').toLowerCase(), accent: (v.labels && v.labels.accent) || v.accent || '', language: (v.labels && v.labels.language) || v.language || '',
+    preview: v.preview_url || '', category: v.category || '', free: v.free_users_allowed !== false,
+  });
+  const scoreV = (c) => (isMs(c.language) ? 4 : 0) + (isMs(c.accent) || isMs(c.name) ? 2 : 0) + (c.inAccount ? 2 : 0) + (c.free ? 1 : 0) + (c.category === 'premade' ? 0.5 : 0);
+  /** Cari suara ElevenLabs untuk Bahasa Melayu: suara dalam akaun + perpustakaan awam (bahasa "ms") + suara premade sebagai sandaran. */
+  V.findMalayVoices = async function () {
+    const res = { male: [], female: [], notes: [] };
+    const seen = new Set();
+    const push = (c) => { if (!c.id || seen.has(c.id) || (c.gender !== 'male' && c.gender !== 'female')) return; seen.add(c.id); c.malay = isMs(c.language) || isMs(c.accent); res[c.gender].push(c); };
+    let acct = [];
+    try { acct = ((await V.elevenApi('voices')).voices || []).map((v) => normVoice(v, true)); } catch (e) { if (/Kunci API/.test(e.message)) throw e; res.notes.push(e.message); }
+    acct.filter((c) => isMs(c.language) || isMs(c.accent) || isMs(c.name)).forEach(push);
+    for (const g of ['male', 'female']) {
+      try { const sh = await V.elevenApi('shared', { language: 'ms', gender: g, page_size: 20 }); (sh.voices || []).map((v) => normVoice(v, false)).forEach((c) => { c.gender = c.gender || g; push(c); }); } catch (e) { res.notes.push(e.message); }
+    }
+    // sandaran: suara premade/akaun mengikut jantina (boleh menyebut Melayu melalui model multilingual, loghat mungkin tidak 100% Malaysia)
+    acct.forEach(push);
+    ['male', 'female'].forEach((g) => res[g].sort((a, b) => scoreV(b) - scoreV(a)));
+    return res;
+  };
+  /** Gunakan suara: suara perpustakaan ditambah ke akaun dahulu (perlu untuk disintesis). */
+  V.useElevenVoice = async function (gender, c) {
+    let id = c.id;
+    if (!c.inAccount && c.owner) {
+      const r = await V.elevenApi('add', { public_user_id: c.owner, voice_id: c.id, new_name: 'GS ' + (gender === 'male' ? 'Lelaki' : 'Perempuan') + ' ' + c.name });
+      id = (r && r.voice_id) || c.id;
+      c.inAccount = true; c.id = id;
+    }
+    const t = cfg().bot.tts;
+    if (gender === 'male') t.maleVoice = id; else t.femaleVoice = id;
+    t.provider = 'eleven';
+    GS.save(); V.prewarm();
+    return id;
+  };
+
   /** Baki kuota ElevenLabs (Azure tiada API kuota ringkas: lihat portal Azure). */
   V.elevenQuota = async function () {
     const key = V.elevenKey();
@@ -341,7 +399,7 @@
       if (w.woke) q = w.question;
       else if (V.awaitUntil > now) q = text;
       if (q !== null) {
-        if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); GS.emit('voice:status'); return { bot: 'menunggu' }; }
+        if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack) V.say(st.bot.ack, true); GS.emit('voice:status'); return { bot: 'menunggu' }; }
         V.awaitUntil = 0;
         const a = V.answer(q);
         V.note({ source, text, result: a.text ? 'bot: ' + a.text : 'bot: tiada jawapan' });
@@ -451,10 +509,26 @@
   }
 
   /* ---------- kawalan ---------- */
+  /** Sambungkan mikrofon lalai ke saluran Mikrofon dalam mixer secara automatik (tiada langkah tambahan untuk pengguna). */
+  V.ensureMic = async function () {
+    if (!cfg().mic.on) return true;
+    const A = GS.audio; A.ensure();
+    const has = () => A.channels.some((c) => c.kind === 'input' && c.stream && c.node && (c.id === 'ch_mic' || /mik|mic/i.test(c.label || '')));
+    if (has() || chFor('mic')) return true;
+    const ch = A.channels.find((c) => c.id === 'ch_mic') || A.channels.find((c) => c.kind === 'input');
+    if (!ch) return false;
+    await A.connectDevice(ch.id, ch.deviceId || '', true);
+    return has() || !!chFor('mic');
+  };
+
   V.start = async function () {
     if (V.running) return true;
     V.error = ''; V.info = {};
     cfg().enabled = true;
+    // "Hidupkan bot": bot terus boleh dipanggil dan bercakap
+    cfg().bot.enabled = true; cfg().bot.voiceOn = true; cfg().mic.on = true;
+    try { if (!(await V.ensureMic())) V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); } catch (e) { V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); }
+    if (V.error) { cfg().enabled = false; GS.save(); GS.emit('voice:status'); return false; }
     let ok = false;
     V.engine = native() ? 'windows' : 'web';
     try {
@@ -465,6 +539,7 @@
     if (!ok) { cfg().enabled = false; V.stopEngines(); }
     GS.save();
     GS.emit('voice:status');
+    if (ok) V.say(GS.t('Hai, saya {0}. Saya sedia, panggil nama saya.', (cfg().bot.name || 'bot').trim() || 'bot'), true); // pengesahan suara berfungsi
     return ok;
   };
   V.stopEngines = function () {

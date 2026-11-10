@@ -122,7 +122,7 @@
       },
       bot: {
         enabled: false, name: 'Jarvis', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
-        fallback: 'Maaf, saya tak faham soalan itu.',
+        fallback: 'Maaf, saya tak faham soalan itu.', ack: 'Ya?',
         tts: { provider: 'system', gender: 'female', model: 'eleven_multilingual_v2', maleVoice: 'pNInz6obpgDQGcFmaJgB', femaleVoice: '21m00Tcm4TlvDq8ikWAM',
           azure: { region: 'southeastasia', maleMs: 'ms-MY-OsmanNeural', femaleMs: 'ms-MY-YasminNeural', maleEn: 'en-US-GuyNeural', femaleEn: 'en-US-JennyNeural' } },
         qa: [

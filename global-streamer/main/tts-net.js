@@ -65,4 +65,40 @@ async function fetchTTS(kind, p) {
   } finally { clearTimeout(to); }
 }
 
-module.exports = { fetchTTS, build };
+/** API suara ElevenLabs: 'voices' (suara akaun), 'shared' (perpustakaan awam, boleh tapis bahasa/jantina), 'add' (tambah suara perpustakaan ke akaun). */
+async function elevenApi(op, p) {
+  p = p || {};
+  const key = String(p.key || '').trim();
+  if (!key || key.length > 200 || /[\r\n]/.test(key)) return { ok: false, status: 0, code: 'input', message: 'kunci tidak sah' };
+  const base = process.env.GS_TTS_BASE || 'https://api.elevenlabs.io';
+  const init = { headers: { 'xi-api-key': key, Accept: 'application/json' } };
+  let url;
+  if (op === 'voices') url = base + '/v1/voices';
+  else if (op === 'shared') {
+    const q = new URLSearchParams();
+    q.set('page_size', String(Math.max(1, Math.min(30, parseInt(p.page_size, 10) || 20))));
+    if (/^[a-z]{2}$/.test(String(p.language || ''))) q.set('language', p.language);
+    if (p.gender === 'male' || p.gender === 'female') q.set('gender', p.gender);
+    if (/^[a-z_ -]{2,24}$/i.test(String(p.accent || ''))) q.set('accent', p.accent);
+    url = base + '/v1/shared-voices?' + q.toString();
+  } else if (op === 'add') {
+    const own = String(p.public_user_id || ''), vid = String(p.voice_id || '');
+    if (!/^[A-Za-z0-9]{10,80}$/.test(own) || !/^[A-Za-z0-9]{10,40}$/.test(vid)) return { ok: false, status: 0, code: 'input', message: 'ID suara tidak sah' };
+    url = base + '/v1/voices/add/' + own + '/' + vid;
+    init.method = 'POST'; init.headers['Content-Type'] = 'application/json';
+    init.body = JSON.stringify({ new_name: String(p.new_name || 'Suara Melayu').replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 40) || 'Suara Melayu' });
+  } else return { ok: false, status: 0, code: 'input', message: 'operasi tidak dikenali' };
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const res = await fetch(url, Object.assign({ signal: ctl.signal }, init));
+    const txt = await res.text();
+    let json = null; try { json = JSON.parse(txt); } catch (e) { /* bukan JSON */ }
+    if (!res.ok) { const d = json && (json.detail || json.error || json); return { ok: false, status: res.status, code: String((d && (d.status || d.code)) || ''), message: String((d && d.message) || txt).slice(0, 200) }; }
+    return { ok: true, json: json || {} };
+  } catch (e) {
+    return { ok: false, status: 0, code: e && e.name === 'AbortError' ? 'timeout' : 'network', message: String((e && e.message) || e) };
+  } finally { clearTimeout(to); }
+}
+
+module.exports = { fetchTTS, build, elevenApi };

@@ -474,3 +474,19 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .sys-voice-info .note { font-size: 12px; line-height: 1.45; padding: 8px 10px; border-radius: 8px; margin: 0; }
 .sys-voice-info .note.ok { color: var(--green); background: rgba(59, 227, 154, 0.08); border: 1px solid rgba(59, 227, 154, 0.3); }
 .sys-voice-info .note.bad { color: #ffd9a0; background: rgba(255, 190, 70, 0.09); border: 1px solid rgba(255, 190, 70, 0.35); }
+
+.add-pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.add-pf-card { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--pf) 45%, transparent); background: rgba(20, 44, 88, 0.3); color: var(--text); cursor: pointer; font-family: inherit; }
+.add-pf-card:hover { background: color-mix(in srgb, var(--pf) 16%, rgba(20, 44, 88, 0.3)); }
+.add-pf-card .pf-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pf); }
+.add-pf-card small { color: var(--dim); font-size: 11px; line-height: 1.35; }
+
+.eleven-quick { border-color: rgba(255, 196, 61, 0.45); background: rgba(255, 196, 61, 0.06); }
+.eleven-quick[hidden] { display: none; }
+.eleven-voices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ev-col h5 { margin: 0 0 6px; font-size: 12px; color: var(--dim); }
+.ev-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); margin-bottom: 6px; }
+.ev-row.on { border-color: var(--accent, #3ec6ff); background: rgba(62, 198, 255, 0.1); }
+.ev-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ev-name small { color: var(--dim); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) { .eleven-voices { grid-template-columns: 1fr; } }

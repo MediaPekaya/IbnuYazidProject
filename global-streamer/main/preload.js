@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('gsNative', {
   },
   tts: {
     fetch: (kind, params) => ipcRenderer.invoke('tts:fetch', kind, params),
+    eleven: (op, params) => ipcRenderer.invoke('tts:eleven', op, params),
   },
   rec: {
     open: () => ipcRenderer.invoke('rec:open'),

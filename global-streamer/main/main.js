@@ -8,7 +8,7 @@ const { StreamEngine } = require('./stream-engine');
 const { openLink } = require('./open-link');
 const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
-const { fetchTTS } = require('./tts-net');
+const { fetchTTS, elevenApi } = require('./tts-net');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -63,6 +63,8 @@ ipcMain.handle('tts:fetch', async (_e, kind, p) => {
   const r = await fetchTTS(kind, p && typeof p === 'object' ? p : {});
   return r.ok ? { ok: true, audio: new Uint8Array(r.audio) } : r;
 });
+
+ipcMain.handle('tts:eleven', (_e, op, p) => elevenApi(String(op), p && typeof p === 'object' ? p : {}));
 
 /* ---------- suara (pengecam luar talian + suara bot) ---------- */
 const voice = new VoiceHost((ev) => { if (win && !win.isDestroyed()) win.webContents.send('voice:event', ev); });

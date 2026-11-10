@@ -136,6 +136,32 @@
     if (box && box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
   };
 
+  /** Dialog "Tambah aplikasi untuk LIVE": senarai platform sebenar yang memberi Server URL + Stream Key. (prompt() tidak berfungsi dalam Electron.) */
+  C.openAddPlatform = function () {
+    const used = new Set(Object.values(GS.state.platforms).map((x) => x && x.preset).filter(Boolean));
+    const grid = h('div', { class: 'add-pf-grid' });
+    let m;
+    const pick = (pr, name) => {
+      if (pr.id !== 'custom' && used.has(pr.id)) { const ex = Object.keys(GS.state.platforms).find((k) => GS.state.platforms[k].preset === pr.id); m.close(); if (ex) C.focusPlatform(ex); return; }
+      const id = P().addExtra(name || pr.name, pr.id);
+      m.close();
+      if (id) C.focusPlatform(id); else GS.toast(GS.t('Had aplikasi tambahan dicapai.'), 'warn');
+    };
+    P().presets.forEach((pr) => {
+      if (pr.id === 'custom') return;
+      grid.append(h('button', { type: 'button', class: 'add-pf-card', 'data-preset': pr.id, style: { '--pf': pr.color }, onClick: () => pick(pr) },
+        h('i', { class: 'pf-dot' }), h('b', null, pr.name),
+        h('small', null, pr.server ? GS.t('URL lalai disediakan: hanya Stream Key diperlukan') : GS.t('Salin Server URL dan Stream Key daripada dashboard platform'))));
+    });
+    const nameIn = h('input', { type: 'text', id: 'addPfName', maxlength: 24, placeholder: GS.t('Nama aplikasi (cth Kick, Twitch, Shopee Live):') });
+    const body = h('div', { class: 'add-pf' },
+      h('p', { class: 'muted note' }, 'Pilih platform yang menyediakan siaran langsung melalui RTMP. Setiap satu ada Server URL dan Stream Key sendiri yang anda dapat daripada dashboard platform itu (panduan ada pada kad selepas dipilih).'),
+      grid,
+      h('h4', null, 'Platform lain (RTMP)'),
+      h('div', { class: 'key-row' }, nameIn, h('button', { type: 'button', class: 'btn', id: 'btnAddCustom', onClick: () => pick(P().preset('custom'), nameIn.value.trim() || 'RTMP lain') }, 'Tambah')));
+    m = GS.modal({ title: 'Tambah aplikasi untuk LIVE', body, wide: true });
+  };
+
   C.drawTabs = function () {
     const tabs = GS.$('#chatTabs');
     if (!tabs) return;
@@ -144,7 +170,7 @@
       const label = id === 'all' ? 'Semua' : SHORT[id] || pfName(id);
       tabs.append(h('button', { class: 'subtab' + (C.filter === id ? ' on' : ''), 'data-id': id, title: id === 'all' ? '' : GS.t('{0}: Server URL dan Stream Key', label), onClick: () => { C.filter = id; C.drawTabs(); C.drawSetup(); renderList(); } }, label));
     });
-    tabs.append(h('button', { class: 'subtab add', id: 'btnAddPlatform', title: GS.t('Tambah aplikasi lain untuk LIVE (Kick, Twitch, Shopee Live...)'), 'aria-label': GS.t('Tambah aplikasi lain untuk LIVE'), onClick: () => { const n = prompt(GS.t('Nama aplikasi (cth Kick, Twitch, Shopee Live):'), ''); if (n === null) return; const id = P().addExtra(n); if (id) { C.filter = id; C.drawTabs(); C.drawSetup(true); renderList(); } else GS.toast(GS.t('Had aplikasi tambahan dicapai.'), 'warn'); } }, '+'));
+    tabs.append(h('button', { class: 'subtab add', id: 'btnAddPlatform', title: GS.t('Tambah aplikasi lain untuk LIVE (Kick, Twitch, Shopee Live...)'), 'aria-label': GS.t('Tambah aplikasi lain untuk LIVE'), onClick: () => C.openAddPlatform() }, '+'));
   };
 
   /** Bahagian Server URL / Stream Key di bawah tab: platform yang dipilih; pada tab "Semua": ringkasan semua platform. */

@@ -27,7 +27,7 @@
     return h('div', { class: 'strip voice-strip' + (v.running ? ' on' : ''), id: 'voiceStrip' },
       h('div', { class: 'strip-head' }, h('span', { class: 'strip-name', title: GS.t('Kawalan suara dan bot') }, 'Suara & Bot'), h('i', { class: 'voice-dot ' + (v.running ? 'on' : '') })),
       h('div', { class: 'strip-note voice-status ' + s.cls, id: 'voiceStripStatus' }, s.text),
-      h('button', { type: 'button', class: 'btn tiny' + (v.running ? '' : ' primary'), id: 'btnVoiceToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, v.running ? 'Matikan' : 'Hidupkan'),
+      h('button', { type: 'button', class: 'btn tiny' + (v.running ? '' : ' primary'), id: 'btnVoiceToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, v.running ? 'Matikan bot' : 'Hidupkan bot'),
       h('button', { type: 'button', class: 'btn tiny ghost', id: 'btnVoiceOpen', onClick: () => U.open() }, 'Atur…'));
   };
 
@@ -61,7 +61,7 @@
       st.textContent = [s.text, v.running ? eng : '', v.running ? inf : ''].filter(Boolean).join('  ·  ');
     }
     const btn = GS.$('#voiceModalToggle', card);
-    if (btn) { btn.textContent = GS.t(v.running ? 'Matikan' : 'Hidupkan'); btn.classList.toggle('primary', !v.running); }
+    if (btn) { btn.textContent = GS.t(v.running ? 'Matikan bot' : 'Hidupkan bot'); btn.classList.toggle('primary', !v.running); }
     const log = GS.$('#voiceLog', card);
     if (log) {
       log.innerHTML = '';
@@ -131,6 +131,38 @@
             field('Perempuan (English)', h('input', { type: 'text', value: t.azure.femaleEn, onInput: (e) => { t.azure.femaleEn = e.target.value.trim(); save(); } })))));
     };
     drawAzure();
+    const voiceList = h('div', { class: 'eleven-voices', id: 'elevenVoices' });
+    const voiceMsg = h('div', { class: 'muted note', id: 'elevenFindMsg' });
+    const playPreview = (url) => { try { if (U.prev) U.prev.pause(); U.prev = new Audio(url); U.prev.play().catch(() => GS.toast(GS.t('Pratonton tidak dapat dimainkan.'), 'warn')); } catch (e) { /* abaikan */ } };
+    const drawVoiceList = (res) => {
+      voiceList.innerHTML = '';
+      [['female', 'Perempuan'], ['male', 'Lelaki']].forEach(([g, lab]) => {
+        const cur = g === 'male' ? t.maleVoice : t.femaleVoice;
+        const col = h('div', { class: 'ev-col', 'data-gender': g }, h('h5', null, lab));
+        (res[g] || []).slice(0, 6).forEach((c) => col.append(h('div', { class: 'ev-row' + (c.id === cur ? ' on' : ''), 'data-voice': c.id },
+          h('div', { class: 'ev-name' }, h('b', null, c.name), h('small', null, [c.malay ? GS.t('Melayu') : GS.t('Pelbagai bahasa'), c.accent, c.inAccount ? GS.t('dalam akaun') : ''].filter(Boolean).join(' · '))),
+          c.preview ? h('button', { type: 'button', class: 'btn tiny ghost', 'aria-label': GS.t('Dengar'), onClick: () => playPreview(c.preview) }, '▶') : null,
+          h('button', { type: 'button', class: 'btn tiny' + (c.id === cur ? '' : ' primary'), 'data-use': c.id, onClick: async () => { voiceMsg.textContent = GS.t('Menetapkan suara…'); try { await v.useElevenVoice(g, c); voiceMsg.textContent = GS.t('Suara {0} ditetapkan: {1}.', lab, c.name); drawVoiceList(res); } catch (e) { voiceMsg.textContent = String(e.message || e); } } }, c.id === cur ? GS.t('Digunakan') : GS.t('Guna')))));
+        if (!(res[g] || []).length) col.append(h('p', { class: 'muted note' }, GS.t('Tiada suara ditemui.')));
+        voiceList.append(col);
+      });
+    };
+    /** Cari suara Melayu lelaki + perempuan; jika auto, terus tetapkan yang terbaik (cuba seterusnya jika suara perpustakaan tidak dibenarkan oleh pelan akaun). */
+    const findVoices = async (auto) => {
+      voiceMsg.textContent = GS.t('Mencari suara Melayu…'); voiceList.innerHTML = '';
+      const kEl = GS.$('#elevenKey'); if (kEl && kEl.value) v.setElevenKey(kEl.value);
+      try {
+        const res = await v.findMalayVoices();
+        const chosen = [];
+        if (auto) {
+          for (const g of ['male', 'female']) {
+            for (const c of (res[g] || []).slice(0, 4)) { try { await v.useElevenVoice(g, c); chosen.push(c.name); break; } catch (e) { res.notes.push(e.message); } }
+          }
+        }
+        drawVoiceList(res);
+        voiceMsg.textContent = (auto && chosen.length ? GS.t('Siap: suara lelaki dan perempuan ditetapkan ({0}). Tekan "Uji suara bot".', chosen.join(', ')) : GS.t('Pilih suara lelaki dan perempuan di bawah.')) + (res.notes.length ? '  ' + res.notes.slice(0, 1).join('') : '');
+      } catch (e) { voiceMsg.textContent = String(e.message || e); }
+    };
     const drawEleven = () => {
       elevenBox.innerHTML = '';
       elevenBox.hidden = t.provider !== 'eleven';
@@ -142,6 +174,8 @@
         h('div', { class: 'grid2' },
           field('Model', h('select', { id: 'elevenModel', onChange: (e) => { t.model = e.target.value; save(); } }, [['eleven_multilingual_v2', 'Multilingual v2 (kualiti terbaik, 1 kredit/aksara)'], ['eleven_flash_v2_5', 'Flash v2.5 (pantas, separuh kredit)']].map(([val, l]) => h('option', { value: val, selected: t.model === val }, l)))),
           h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnElevenQuota', onClick: async () => { keyIn.dispatchEvent(new Event('change')); quotaOut.textContent = GS.t('Menyemak…'); try { const q = await v.elevenQuota(); quotaOut.textContent = GS.t('Digunakan {0} daripada {1} aksara bulan ini.', q.used, q.limit); } catch (e) { quotaOut.textContent = String(e.message || e); } } }, 'Semak kuota'))),
+        h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn primary', id: 'btnElevenFind', onClick: () => findVoices(true) }, 'Cari suara Melayu (lelaki & perempuan)')),
+        voiceMsg, voiceList,
         quotaOut,
         h('details', { class: 'dev-adv' }, h('summary', null, GS.t('ID suara (lanjutan)')),
           h('div', { class: 'grid2' },
@@ -149,6 +183,20 @@
             field('ID suara perempuan', h('input', { type: 'text', id: 'elevenFemale', value: t.femaleVoice, onInput: (e) => { t.femaleVoice = e.target.value.trim(); save(); } })))));
     };
     drawEleven();
+    /* sambung pantas: tampal kunci ElevenLabs sahaja, sistem terus tukar penyedia dan cari suara Melayu */
+    const quick = h('div', { class: 'eleven-box eleven-quick', id: 'elevenQuick' });
+    const drawQuick = () => {
+      quick.innerHTML = ''; quick.hidden = t.provider === 'eleven'; if (quick.hidden) return;
+      const qIn = h('input', { type: 'password', id: 'elevenQuickKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'Kunci API ElevenLabs (sk_…)' });
+      quick.append(h('b', null, 'Suara lebih semula jadi: sambung ElevenLabs'),
+        h('p', { class: 'muted note' }, 'Tampal kunci API ElevenLabs anda (elevenlabs.io > Profile > API Keys). Sistem akan mencari suara Melayu lelaki dan perempuan dan menetapkannya secara automatik.'),
+        h('div', { class: 'key-row' }, qIn, h('button', { type: 'button', class: 'btn primary', id: 'btnElevenConnect', onClick: () => {
+          if (!qIn.value.trim()) { GS.toast(GS.t('Tampal kunci API ElevenLabs dahulu.'), 'warn'); return; }
+          v.setElevenKey(qIn.value.trim()); t.provider = 'eleven'; save(); provider.value = 'eleven'; drawEleven(); drawAzure(); drawSysInfo(); drawQuick();
+          const k2 = GS.$('#elevenKey'); if (k2) k2.value = v.elevenKey();
+          findVoices(true);
+        } }, 'Sambung dan cari suara')));
+    };
     const sysInfo = h('div', { class: 'sys-voice-info', id: 'sysVoiceInfo' });
     const drawSysInfo = () => {
       sysInfo.innerHTML = '';
@@ -161,9 +209,10 @@
     };
     drawSysInfo();
     try { if ('speechSynthesis' in window) speechSynthesis.addEventListener('voiceschanged', drawSysInfo); } catch (e) { /* abaikan */ }
-    const provider = h('select', { id: 'ttsProvider', onChange: (e) => { t.provider = e.target.value; save(); drawEleven(); drawAzure(); drawSysInfo(); v.prewarm(); } },
+    const provider = h('select', { id: 'ttsProvider', onChange: (e) => { t.provider = e.target.value; save(); drawEleven(); drawAzure(); drawSysInfo(); drawQuick(); v.prewarm(); } },
       [['system', 'Suara sistem (percuma, tanpa internet)'], ['azure', 'Microsoft Azure: suara neural Melayu (percuma 500,000 aksara/bulan, perlu kunci)'], ['eleven', 'ElevenLabs: suara AI semula jadi (percuma 10,000 aksara/bulan, perlu kunci)']].map(([val, l]) => h('option', { value: val, selected: t.provider === val }, l)));
 
+    drawQuick();
     /* pengumum: bahasa dan teks setiap efek */
     const ANN_ORDER = ['kill', 'first blood', 'double kill', 'triple kill', 'maniac', 'savage', 'killing spree', 'legendary', 'shutdown', 'death', 'victory', 'defeat', 'fullitem'];
     const ANN_LABEL = { kill: 'Kill', 'first blood': 'First Blood', 'double kill': 'Double Kill', 'triple kill': 'Triple Kill', maniac: 'Maniac', savage: 'Savage', 'killing spree': 'Killing Spree', legendary: 'Legendary', shutdown: 'Shutdown', death: 'Mati', victory: 'Victory', defeat: 'Defeat', fullitem: 'Item Penuh' };
@@ -180,7 +229,7 @@
     const keyBlur = () => { const k = GS.$('#elevenKey'); if (k) v.setElevenKey(k.value); const z = GS.$('#azureKey'); if (z) v.setAzureKey(z.value); };
     const body = h('div', { class: 'voice-modal' },
       h('div', { class: 'voice-top' }, h('div', { id: 'voiceModalStatus', class: 'voice-status big' }),
-        h('button', { type: 'button', class: 'btn', id: 'voiceModalToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, 'Hidupkan')),
+        h('button', { type: 'button', class: 'btn', id: 'voiceModalToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, 'Hidupkan bot')),
       h('p', { class: 'muted note' }, nat
         ? 'App Windows: pengecam suara Windows berjalan di PC ini tanpa internet. Mikrofon dan bunyi game (capture card) dipilih daripada saluran Audio Mixer.'
         : 'Versi web: pengecam suara pelayar (Chrome) menggunakan mikrofon lalai dan memerlukan internet. Bunyi game hanya tersedia dalam app Windows.'),
@@ -206,6 +255,7 @@
         field('Nama lain / ejaan sebutan', h('input', { type: 'text', value: c.bot.aliases, placeholder: 'cth jarvis, jervis', onInput: (e) => { c.bot.aliases = e.target.value; save(); } }))),
       h('h4', null, 'Suara bot'),
       h('div', { class: 'grid2' }, field('Jantina suara', gender), field('Penyedia suara', provider)),
+      quick,
       sysInfo,
       azureBox,
       elevenBox,
