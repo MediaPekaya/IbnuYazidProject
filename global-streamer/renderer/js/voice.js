@@ -654,13 +654,24 @@
     return () => { try { ch.node.disconnect(proc); } catch (e) { /* abaikan */ } try { proc.disconnect(); mute.disconnect(); } catch (e) { /* abaikan */ } };
   }
 
+  /** Ralat PowerShell panjang -> mesej ringkas yang boleh difahami; teks penuh disimpan dalam V.errorDetail. */
+  const nativeErr = (m) => {
+    m = String(m || '');
+    V.errorDetail = m;
+    if (/SetInputTo(AudioStream|DefaultAudioDevice)/i.test(m)) return GS.t('Pengecam suara tidak dapat membuka mikrofon. Semak mikrofon Windows (Tetapan > Privasi > Mikrofon > benarkan aplikasi desktop).');
+    if (/no-recognizer|Tiada pengecam/i.test(m)) return GS.t('Tiada pengecam suara Windows dipasang (Tetapan > Masa & bahasa > Pertuturan).');
+    return m.length > 140 ? m.slice(0, 137) + '…' : m;
+  };
   V.onNative = function (ev) {
     if (!ev || !ev.type) return;
     const src = ev.source === 'game' ? 'game' : 'mic';
-    if (ev.type === 'ready') { V.info[src] = { culture: ev.culture, name: ev.name }; V.error = ''; }
+    if (ev.type === 'ready') {
+      V.info[src] = { culture: ev.culture, name: ev.name, input: ev.input || 'stream' }; V.error = '';
+      if (ev.input === 'device' && V.taps[src]) { V.taps[src](); delete V.taps[src]; } // pengecam mendengar terus daripada mikrofon lalai: tidak perlu suap audio
+    }
     else if (ev.type === 'text') V.handleText({ source: src, text: ev.text, conf: ev.conf, final: true });
-    else if (ev.type === 'error') { V.error = ev.message || ev.code || 'ralat'; }
-    else if (ev.type === 'exit') { if (V.running && ev.code && !V.error) V.error = ev.message || GS.t('Pengecam suara berhenti (kod {0})', ev.code); delete V.info[src]; }
+    else if (ev.type === 'error') { V.error = nativeErr(ev.message || ev.code || 'ralat'); }
+    else if (ev.type === 'exit') { if (V.running && ev.code && !V.error) V.error = nativeErr(ev.message) || GS.t('Pengecam suara berhenti (kod {0})', ev.code); delete V.info[src]; }
     GS.emit('voice:status');
   };
 

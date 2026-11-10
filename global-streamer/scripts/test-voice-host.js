@@ -11,6 +11,8 @@ const until = (f, ms = 4000) => new Promise((res, rej) => { const t0 = Date.now(
 (async () => {
   // skrip PowerShell: tidak mengandungi teks pengguna dan memakai pembolehubah persekitaran
   ok(/GS_TEXT/.test(SYNTH_PS) && /GS_VOICE_CULTURE/.test(RECOGNIZER_PS) && !/\$\(/.test(SYNTH_PS.split('GS_TEXT')[0].slice(-5)), 'skrip PowerShell memakai pembolehubah persekitaran (tiada suntikan arahan)');
+  ok(/SetInputToAudioStream/.test(RECOGNIZER_PS) && /SetInputToDefaultAudioDevice/.test(RECOGNIZER_PS) && /GS_SOURCE/.test(RECOGNIZER_PS) && /input = \$mode/.test(RECOGNIZER_PS), 'pengecam: jika aliran audio gagal, mikrofon lalai Windows digunakan (hanya sumber mikrofon) dan mod dilaporkan');
+  ok(!/\x60/.test(RECOGNIZER_PS) && !/\$\{/.test(RECOGNIZER_PS), 'skrip pengecam selamat dimasukkan dalam String.raw (tiada tanda belakang)');
   ok(Buffer.from(RECOGNIZER_PS, 'utf16le').toString('base64').length < 20000, 'skrip dikodkan muat dalam had baris arahan Windows');
 
   const ev = [];

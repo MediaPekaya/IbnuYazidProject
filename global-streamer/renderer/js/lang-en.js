@@ -699,6 +699,9 @@
     'ejaan sebutan lain (pilihan)': 'other spelling (optional)',
     'Nama yang anda tetapkan ialah nama panggilan bot. Jika pengecam salah dengar nama anda, tekan "Latih nama" di bawah atau tulis ejaan yang didengarnya.': 'The name you set is the bot call name. If the recogniser mishears it, press "Train name" below or write the spelling it hears.',
     '(Pilihan: ada key ElevenLabs sendiri? Masukkan untuk guna semua suara anda.)': '(Optional: have your own ElevenLabs key? Enter it to use all your voices.)',
+    'Pengecam suara tidak dapat membuka mikrofon. Semak mikrofon Windows (Tetapan > Privasi > Mikrofon > benarkan aplikasi desktop).': 'The speech recogniser could not open the microphone. Check Windows microphone settings (Settings > Privacy > Microphone > allow desktop apps).',
+    'Tiada pengecam suara Windows dipasang (Tetapan > Masa & bahasa > Pertuturan).': 'No Windows speech recogniser is installed (Settings > Time & language > Speech).',
+    'Pengecam: Windows (mikrofon lalai)': 'Recogniser: Windows (default microphone)',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

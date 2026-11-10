@@ -12,7 +12,7 @@
   const short = (t, n) => { t = String(t || ''); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
   function statusText() {
     const v = V();
-    if (v.error) return { cls: 'bad', text: v.error };
+    if (v.error) return { cls: 'bad', text: v.error, title: v.errorDetail || '' };
     if (v.running) {
       const last = v.last ? GS.t('Didengar: "{0}"', short(v.last.text, 40)) : GS.t('Mendengar…');
       return { cls: 'ok', text: last };
@@ -26,7 +26,7 @@
     const s = statusText();
     return h('div', { class: 'strip voice-strip' + (v.running ? ' on' : ''), id: 'voiceStrip' },
       h('div', { class: 'strip-head' }, h('span', { class: 'strip-name', title: GS.t('Kawalan suara dan bot') }, 'Suara & Bot'), h('i', { class: 'voice-dot ' + (v.running ? 'on' : '') })),
-      h('div', { class: 'strip-note voice-status ' + s.cls, id: 'voiceStripStatus' }, s.text),
+      h('div', { class: 'strip-note voice-status ' + s.cls, id: 'voiceStripStatus', title: s.title || '' }, s.text),
       h('button', { type: 'button', class: 'btn tiny' + (v.running ? '' : ' primary'), id: 'btnVoiceToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, v.running ? 'Matikan bot' : 'Hidupkan bot'),
       h('button', { type: 'button', class: 'btn tiny ghost', id: 'btnVoiceOpen', onClick: () => U.open() }, 'Atur…'));
   };
@@ -55,7 +55,7 @@
     const v = V();
     const s = statusText();
     if (st) {
-      const eng = v.engine === 'windows' ? GS.t('Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
+      const eng = v.engine === 'windows' ? GS.t(v.info.mic && v.info.mic.input === 'device' ? 'Pengecam: Windows (mikrofon lalai)' : 'Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
       const inf = Object.keys(v.info).map((k) => (k === 'mic' ? GS.t('Suara saya') : GS.t('Bunyi game')) + ': ' + (v.info[k].name || v.info[k].culture || '')).join(' · ');
       st.className = 'voice-status big ' + s.cls;
       st.textContent = [s.text, v.running ? eng : '', v.running ? inf : ''].filter(Boolean).join('  ·  ');

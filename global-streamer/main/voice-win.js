@@ -26,12 +26,26 @@ try {
   if ($want) { $info = $infos | Where-Object { $_.Culture.Name -eq $want } | Select-Object -First 1 }
   if (-not $info) { $info = $infos | Where-Object { $_.Culture.Name -like 'en-*' } | Select-Object -First 1 }
   if (-not $info) { $info = $infos | Select-Object -First 1 }
-  $rec = New-Object System.Speech.Recognition.SpeechRecognitionEngine($info)
-  $rec.LoadGrammar((New-Object System.Speech.Recognition.DictationGrammar))
-  $rec.EndSilenceTimeout = [TimeSpan]::FromMilliseconds(450)
+  function New-Rec {
+    $r = New-Object System.Speech.Recognition.SpeechRecognitionEngine($info)
+    $r.LoadGrammar((New-Object System.Speech.Recognition.DictationGrammar))
+    $r.EndSilenceTimeout = [TimeSpan]::FromMilliseconds(450)
+    return $r
+  }
+  $rec = New-Rec
   $fmt = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)
-  $rec.SetInputToAudioStream([Console]::OpenStandardInput(), $fmt)
-  Send @{ type = 'ready'; culture = $info.Culture.Name; name = $info.Description }
+  $mode = 'stream'
+  try {
+    $rec.SetInputToAudioStream([Console]::OpenStandardInput(), $fmt)
+  } catch {
+    $first = $_.Exception.Message
+    if ($_.Exception.InnerException) { $first = $first + ' | ' + $_.Exception.InnerException.Message }
+    if ($env:GS_SOURCE -eq 'mic') {
+      # aliran audio daripada app tidak diterima: dengar terus daripada mikrofon lalai Windows (kaedah paling stabil)
+      try { $rec = New-Rec; $rec.SetInputToDefaultAudioDevice(); $mode = 'device' } catch { throw ($first + ' | ' + $_.Exception.Message) }
+    } else { throw $first }
+  }
+  Send @{ type = 'ready'; culture = $info.Culture.Name; name = $info.Description; input = $mode }
   $quick = 0
   while ($true) {
     $t0 = Get-Date
@@ -116,7 +130,7 @@ class VoiceHost {
     const c = this.command('recognizer');
     let child;
     try {
-      child = spawn(c.exe, c.args, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, env: Object.assign({}, process.env, { GS_VOICE_CULTURE: culture }) });
+      child = spawn(c.exe, c.args, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, env: Object.assign({}, process.env, { GS_VOICE_CULTURE: culture, GS_SOURCE: source }) });
     } catch (e) { return { ok: false, error: String(e.message || e) }; }
     const rec = { child, buf: '', err: '', closed: false };
     this.procs.set(source, rec);
