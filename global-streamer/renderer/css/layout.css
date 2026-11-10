@@ -73,7 +73,7 @@ body.ready #app { opacity: 1; transform: none; }
 @media (max-width: 1500px) { #fpsChip, #resChip { display: none; } .game-pick span { display: none; } .game-pick select { max-width: 170px; } .user-chip .who { max-width: 110px; } }
 @media (max-width: 1360px) { .brand-tag { display: none; } .brand-name { font-size: 13px; letter-spacing: 0.1em; } #topbar { gap: 10px; padding: 0 10px; } .user-chip .who small { display: none; } .live-btn { padding: 9px 14px; } }
 /* skrin laptop kecil: status LIVE dan platform diutamakan */
-@media (max-width: 1420px) { .game-pick, .brand-name, #encChip { display: none; } .user-chip .who { display: none; } .mode-switch button { padding: 7px 12px; } }
+@media (max-width: 1420px) { .brand-name, #encChip { display: none; } .user-chip .who { display: none; } .mode-switch button { padding: 7px 12px; } }
 
 /* ----- orientasi menegak 9:16: dock di kiri, panggung tinggi di tengah, mixer di bawah ----- */
 #dockLeft { display: contents; }
@@ -122,7 +122,7 @@ body.gs-popout #right { flex: 1; min-height: 0; grid-area: auto; }
 body.gs-popout #btnPopout { display: none; }
 /* bar atas: suis format menambah lebar; kurangkan hiasan supaya butang LIVE dan status sentiasa muat */
 @media (max-width: 2000px) { .brand-tag, .game-pick span { display: none; } }
-@media (max-width: 1900px) { .game-pick { display: none; } .fmt-switch button { padding: 7px 9px; font-size: 11px; } #topbar { gap: 12px; } }
+@media (max-width: 1900px) { .game-pick select { max-width: 150px; } .fmt-switch button { padding: 7px 9px; font-size: 11px; } #topbar { gap: 12px; } }
 @media (max-width: 1220px) { #topbar { gap: 7px; padding: 0 8px; } .actions { gap: 5px; } .actions .btn { padding-left: 10px; padding-right: 10px; } .mode-switch button { padding: 6px 8px !important; font-size: 10px; } .fmt-switch button { padding: 6px 6px; font-size: 10px; } }
 @media (max-width: 1560px) { .brand-name { font-size: 13px; letter-spacing: 0.1em; } }
 #topbar .status { min-width: 120px; }
@@ -138,3 +138,8 @@ body.gs-popout #btnPopout { display: none; }
 .dock.dragging { opacity: 0.85; outline: 2px solid var(--blue); outline-offset: -2px; }
 body.reordering, body.reordering * { cursor: grabbing !important; user-select: none; }
 body.gs-popout .gutter { display: none; }
+
+/* pemilih game sentiasa kelihatan di bar atas (sebelum MULA LIVE): ruang dijimatkan dengan menyembunyikan nama pada skrin sederhana */
+@media (max-width: 1750px) { .brand-name { display: none; } }
+@media (max-width: 1500px) { .game-pick select { max-width: 130px; } }
+@media (max-width: 1220px) { .game-pick select { max-width: 100px; } }
