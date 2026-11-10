@@ -10,18 +10,35 @@
     const e = U.ev;
     return GS.t(TXT[e.state] || e.state, e.state === 'downloading' ? e.progress : e.state === 'error' ? e.message : e.version);
   };
+  /** Butang kemas kini sentiasa kelihatan di bar atas (app Windows): versi semasa, status, dan klik untuk semak/pasang. */
+  U.install = function () {
+    if (U.ev.state !== 'downloaded') return;
+    if (GS.live && GS.live.state && GS.live.state !== 'idle' && !confirm(GS.t('Siaran sedang berjalan. Memasang kemas kini akan menamatkan siaran. Teruskan?'))) return;
+    GS.saveNow();
+    window.gsNative.app.installUpdate();
+  };
   function banner() {
+    if (!native()) return;
     const e = U.ev;
-    let el = GS.$('#updBanner');
-    const show = e.state === 'downloaded' || e.state === 'available' || e.state === 'downloading';
-    if (!show) { if (el) el.remove(); return; }
+    let el = GS.$('#updBtn');
     if (!el) {
-      el = GS.h('button', { id: 'updBanner', class: 'chip upd', onClick: () => { if (U.ev.state === 'downloaded') window.gsNative.app.installUpdate(); } });
-      const host = GS.$('#platformChips') || GS.$('.topbar');
+      el = GS.h('button', { id: 'updBtn', type: 'button', class: 'chip upd', onClick: () => { if (U.ev.state === 'downloaded') U.install(); else window.gsNative.app.checkUpdate(); } });
+      const host = GS.$('#platformChips');
       if (host && host.parentElement) host.parentElement.insertBefore(el, host);
     }
-    el.textContent = e.state === 'downloaded' ? GS.t('Kemas kini {0} sedia: klik untuk pasang', e.version) : U.text();
+    const v = U.info ? 'v' + U.info.version : '';
+    let label = v, title = GS.t('Klik untuk semak kemas kini sekarang');
+    if (e.state === 'checking') label = GS.t('Menyemak…');
+    else if (e.state === 'available') label = GS.t('Versi baharu {0} tersedia', e.version);
+    else if (e.state === 'downloading') label = GS.t('Memuat turun… {0}%', e.progress);
+    else if (e.state === 'downloaded') { label = GS.t('Kemas kini {0} sedia: klik untuk pasang', e.version); title = GS.t('Pasang dan mulakan semula app'); }
+    else if (e.state === 'error') { label = (v ? v + ' · ' : '') + GS.t('Semakan gagal'); title = GS.t('Ralat semakan: {0}', e.message); }
+    else if (e.state === 'dev') title = GS.t('Mod pembangunan (semakan dimatikan)');
+    el.textContent = label;
+    el.title = title;
     el.classList.toggle('ready', e.state === 'downloaded');
+    el.classList.toggle('busy', e.state === 'checking' || e.state === 'available' || e.state === 'downloading');
+    el.classList.toggle('bad', e.state === 'error');
   }
   U.section = function () {
     const h = GS.h;
@@ -35,7 +52,7 @@
       h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !U.info || U.info.update.enabled !== false, onChange: (e) => window.gsNative.app.enableUpdate(e.target.checked) }), 'Semak kemas kini secara automatik'),
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn ghost', onClick: () => window.gsNative.app.checkUpdate() }, 'Semak kemas kini sekarang'),
-        h('button', { class: 'btn primary', onClick: () => window.gsNative.app.installUpdate() }, 'Mulakan semula dan pasang')));
+        h('button', { class: 'btn primary', onClick: () => U.install() }, 'Mulakan semula dan pasang')));
   };
   U.init = function () {
     if (!native()) return;

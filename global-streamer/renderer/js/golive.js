@@ -357,10 +357,7 @@
       h('p', { class: 'muted note' }, 'Teks pada skrin siaran (cth "MASA MAIN", efek) menggunakan bahasa overlay. Menukar bahasa antara muka memuat semula halaman.'),
       h('h3', null, 'Output video'),
       h('div', { class: 'grid2' },
-        h('label', { class: 'field' }, h('span', null, 'Orientasi siaran'), h('select', { onChange: (e) => {
-          const ok = confirm(GS.t('Menukar orientasi akan menggantikan scene sedia ada dengan susun atur lalai. Teruskan?')) && GS.scenes.setOrientation(e.target.value);
-          if (ok) { GS.saveNow(); location.reload(); } else e.target.value = GS.orient();
-        } }, [['portrait', 'Menegak 9:16 (TikTok LIVE)'], ['landscape', 'Mendatar 16:9 (YouTube / Facebook)']].map(([v, l]) => h('option', { value: v, selected: GS.orient() === v }, l)))),
+        h('label', { class: 'field' }, h('span', null, 'Orientasi siaran'), h('select', { onChange: (e) => { if (!GS.formats.set(e.target.value)) e.target.value = GS.orient(); } }, [['portrait', 'Menegak 9:16 (TikTok LIVE)'], ['landscape', 'Mendatar 16:9 (YouTube / Facebook)']].map(([v, l]) => h('option', { value: v, selected: GS.orient() === v }, l)))),
         h('label', { class: 'field' }, h('span', null, 'Resolusi'), h('select', { onChange: (e) => { GS.sizes.apply(Number(e.target.value)); bitrateIn.value = s.vbitrate; } }, GS.sizes.list().map((z) => h('option', { value: z.w, selected: s.width === z.w }, GS.sizes.label(z))))),
         h('label', { class: 'field' }, h('span', null, 'Bingkai sesaat (FPS)'), sel('fps', [[30, '30 fps'], [60, '60 fps']])),
         h('label', { class: 'field' }, h('span', null, 'Bitrate video (kbps)'), (bitrateIn = h('input', { type: 'number', min: 500, max: 60000, step: 500, value: s.vbitrate, onChange: (e) => { s.vbitrate = GS.clamp(Number(e.target.value) || 6000, 500, 60000); GS.save(); } }))),

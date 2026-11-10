@@ -22,8 +22,8 @@
       st.previewId = other.id;
     }
     $('#screens').className = 'screens ' + mode;
-    $$('.mode-switch button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
-    $('.mode-switch').dataset.mode = mode;
+    $$('#modeSwitch button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
+    $('#modeSwitch').dataset.mode = mode;
     A.programComp.editable = mode === 'normal';
     A.previewComp.editable = mode === 'studio';
     A.programComp.selectedId = A.previewComp.selectedId = GS.scenes.selectedId();
@@ -32,7 +32,7 @@
   };
 
   function bindTopbar() {
-    $$('.mode-switch button').forEach((b) => b.addEventListener('click', () => A.setMode(b.dataset.mode)));
+    $$('#modeSwitch button').forEach((b) => b.addEventListener('click', () => A.setMode(b.dataset.mode)));
     const hasConfig = () => GS.state.templateId && GS.platforms.enabledIds().length;
     $('#btnSetup').addEventListener('click', () => GS.live.openWizard(0));
     $('#btnLive').addEventListener('click', () => {
@@ -154,6 +154,8 @@
     const rc = GS.$('#resChip');
     if (rc) rc.addEventListener('click', () => GS.sizes.openMenu(rc));
     GS.gamedock.init();
+    try { GS.formats.init(); } catch (e) { console.error(e); }
+    try { GS.popout.init(); } catch (e) { console.error(e); }
     // panel tambahan: kegagalan di sini tidak boleh menghalang app bermula (cth. index.html lama dalam cache pelayar)
     try { const mb = GS.$('#metaBody'); if (mb) GS.gamedock.metaPage(mb); } catch (e) { console.error(e); }
     try { GS.scenes.seedMetaBoard(); } catch (e) { console.error(e); }

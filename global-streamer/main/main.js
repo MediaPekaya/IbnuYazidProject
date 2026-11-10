@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const { StreamEngine } = require('./stream-engine');
 const { openLink } = require('./open-link');
+const { VoiceHost } = require('./voice-win');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -39,13 +40,26 @@ ipcMain.handle('vault:set', (_e, id, value) => {
 let pendingSource = '';
 const SRC_ID = /^(screen|window):\d+:\d+$/;
 ipcMain.handle('sources:list', async () => {
-  const list = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: false });
-  return list.slice(0, 40).map((s) => ({ id: s.id, name: String(s.name || '').slice(0, 120), kind: s.id.startsWith('screen:') ? 'screen' : 'window', thumb: s.thumbnail && !s.thumbnail.isEmpty() ? s.thumbnail.toDataURL() : '' }));
+  const all = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: false });
+  const own = win && !win.isDestroyed() ? win.getTitle() : 'Global Streamer';
+  // tetingkap tanpa nama (komponen sistem) dan tetingkap app ini sendiri tidak berguna sebagai sumber
+  const keep = all.filter((s) => s.id.startsWith('screen:') || (String(s.name || '').trim() && s.name !== own));
+  return keep.slice(0, 60).map((s) => ({ id: s.id, name: String(s.name || '').slice(0, 120), kind: s.id.startsWith('screen:') ? 'screen' : 'window', thumb: s.thumbnail && !s.thumbnail.isEmpty() ? s.thumbnail.toDataURL() : '' }));
 });
 ipcMain.handle('sources:select', (_e, id) => {
   if (id && !SRC_ID.test(String(id))) return false;
   pendingSource = id ? String(id) : '';
   return true;
+});
+
+/* ---------- suara (pengecam luar talian + suara bot) ---------- */
+const voice = new VoiceHost((ev) => { if (win && !win.isDestroyed()) win.webContents.send('voice:event', ev); });
+ipcMain.handle('voice:available', () => voice.available());
+ipcMain.handle('voice:start', (_e, source, cfg) => voice.start(String(source), cfg && typeof cfg === 'object' ? cfg : {}));
+ipcMain.handle('voice:stop', (_e, source) => { if (source) voice.stop(String(source)); else voice.stopAll(); return true; });
+ipcMain.on('voice:pcm', (_e, source, data) => { if (data && data.byteLength && data.byteLength <= 65536) voice.pcm(String(source), data); });
+ipcMain.handle('voice:say', async (_e, text, opts) => {
+  try { const wav = await voice.say(text, opts && typeof opts === 'object' ? opts : {}); return { ok: true, wav: new Uint8Array(wav) }; } catch (e) { return { ok: false, error: String((e && e.message) || e).slice(0, 200) }; }
 });
 
 /* ---------- siaran ---------- */
@@ -66,7 +80,19 @@ function createWindow() {
   win.once('ready-to-show', () => win.show());
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   // pautan luaran dibuka dalam pelayar, bukan dalam app
-  win.webContents.setWindowOpenHandler(({ url }) => { openLink(url, shell); return { action: 'deny' }; });
+  // tetingkap panel (chat dikeluarkan ke skrin kedua): hanya about:blank bernama gs-panel; semua pautan lain dibuka dalam Chrome
+  win.webContents.setWindowOpenHandler(({ url, frameName }) => {
+    if ((url === 'about:blank' || url === '') && frameName === 'gs-panel') {
+      return { action: 'allow', overrideBrowserWindowOptions: { title: 'Global Streamer', backgroundColor: '#04070f', autoHideMenuBar: true, icon: path.join(__dirname, '..', 'renderer', 'assets', 'logo-512.png'), minWidth: 320, minHeight: 320, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } } };
+    }
+    openLink(url, shell);
+    return { action: 'deny' };
+  });
+  win.webContents.on('did-create-window', (child) => {
+    child.setMenuBarVisibility(false);
+    child.webContents.on('will-navigate', (e) => e.preventDefault());
+    child.webContents.setWindowOpenHandler(({ url }) => { openLink(url, shell); return { action: 'deny' }; });
+  });
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file://')) e.preventDefault(); });
 }
 
@@ -84,8 +110,10 @@ app.whenReady().then(() => {
   });
   createWindow();
   setupUpdater();
-  setTimeout(checkUpdate, 15000);
-  setInterval(checkUpdate, 6 * 3600 * 1000);
+  // kemas kini "masa nyata": semak 8 saat selepas dibuka, setiap 5 minit, dan apabila tetingkap difokus semula
+  setTimeout(checkUpdate, 8000);
+  setInterval(checkUpdate, 5 * 60 * 1000);
+  if (win) win.on('focus', () => { if (Date.now() - lastCheck > 60 * 1000) checkUpdate(); });
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
 });
 
@@ -115,14 +143,18 @@ function setupUpdater() {
   updater.on('update-downloaded', (i) => sendUpd({ state: 'downloaded', version: i.version, progress: 100 }));
   updater.on('error', (e) => sendUpd({ state: 'error', message: String((e && e.message) || e).slice(0, 200) }));
 }
-function checkUpdate() {
-  if (!updater || !readUpd().enabled) return;
+let lastCheck = 0;
+function checkUpdate(force) {
+  if (!updater || (!force && !readUpd().enabled)) return;
+  // jangan semak semula semasa memuat turun / selepas siap dimuat turun
+  if (['downloading', 'downloaded'].includes(updState.state)) return;
+  lastCheck = Date.now();
   updater.checkForUpdates().catch(() => {});
 }
 ipcMain.handle('app:info', () => ({ version: app.getVersion(), packaged: app.isPackaged, platform: process.platform, update: Object.assign({}, updState, { enabled: readUpd().enabled }) }));
-ipcMain.handle('update:check', () => { if (!updater) return false; updater.checkForUpdates().catch(() => {}); return true; });
-ipcMain.handle('update:install', () => { if (updater && updState.state === 'downloaded') { updater.quitAndInstall(); return true; } return false; });
+ipcMain.handle('update:check', () => { if (!updater) return false; checkUpdate(true); return true; });
+ipcMain.handle('update:install', () => { if (updater && updState.state === 'downloaded') { updater.quitAndInstall(true, true); return true; } return false; });
 ipcMain.handle('update:enable', (_e, on) => { const v = Object.assign(readUpd(), { enabled: !!on }); fs.writeFileSync(updFile(), JSON.stringify(v)); return v.enabled; });
 
-app.on('before-quit', () => engine.stop());
+app.on('before-quit', () => { engine.stop(); voice.stopAll(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

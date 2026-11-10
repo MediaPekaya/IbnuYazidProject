@@ -38,11 +38,13 @@
     if (kind === 'screen') {
       // app Windows: pemilih skrin/tetingkap sendiri (pelayar web guna pemilih bawaannya)
       if (window.gsNative && window.gsNative.sources && !(opts && opts.skipPicker)) {
-        const id = await M.pickScreen();
+        const id = await M.pickScreen({ windowOnly: !!(opts && opts.windowOnly) });
         if (!id) { const e = new Error('dibatalkan'); e.name = 'NotAllowedError'; throw e; }
         await window.gsNative.sources.select(id);
       }
-      stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 60 } }, audio: false });
+      const vc = { frameRate: { ideal: 60 } };
+      if (opts && opts.windowOnly) vc.displaySurface = 'window'; // pelayar web: cadangkan tab "Window"
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: vc, audio: false });
     } else {
       try {
         stream = await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId, kind));
@@ -119,14 +121,15 @@
 
   /* pilih peranti + buka. kind: 'capture' | 'camera' | 'screen' */
   /** Pemilih skrin/tetingkap (app Windows): kisi bergambar kecil; kembalikan id sumber atau '' jika dibatalkan. */
-  M.pickScreen = async function () {
+  M.pickScreen = async function (opts) {
+    const windowOnly = !!(opts && opts.windowOnly);
     let list;
     try { list = await window.gsNative.sources.list(); } catch (e) { GS.toast(GS.t('Gagal kongsi skrin: {0}', GS.t(e.message)), 'warn'); return ''; }
     if (!list.length) { GS.toast(GS.t('Tiada skrin atau tetingkap dijumpai.'), 'warn'); return ''; }
     return new Promise((resolve) => {
       let done = false;
       const finish = (id, m) => { if (done) return; done = true; if (m) m.close(); resolve(id); };
-      let tab = 'screen';
+      let tab = windowOnly ? 'window' : 'screen';
       const grid = GS.h('div', { class: 'src-grid' });
       const draw = () => {
         grid.innerHTML = '';
@@ -134,18 +137,31 @@
           s.thumb ? GS.h('img', { src: s.thumb, alt: '' }) : GS.h('div', { class: 'src-empty' }, GS.icon('monitor', 28)), GS.h('span', null, s.name))));
         if (!grid.children.length) grid.append(GS.h('div', { class: 'empty' }, GS.t('Tiada paparan.')));
       };
-      const tabs = GS.h('div', { class: 'subtabs' }, [['screen', 'Skrin'], ['window', 'Tetingkap']].map(([k, l]) =>
+      const tabs = windowOnly ? GS.h('p', { class: 'muted' }, 'Pilih app atau game yang mahu dipaparkan (cth Steam atau game anda). Hanya tetingkap itu yang disiarkan; paparan lain tidak kelihatan. Biarkan tetingkap itu terbuka (jangan diminimumkan).') : GS.h('div', { class: 'subtabs' }, [['screen', 'Skrin'], ['window', 'Tetingkap']].map(([k, l]) =>
         GS.h('button', { class: 'subtab' + (k === tab ? ' on' : ''), 'data-tab': k, onClick: (e) => { tab = k; GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b === e.currentTarget)); draw(); } }, l)));
       draw();
-      const modal = GS.modal({ title: 'Pilih skrin atau tetingkap', body: GS.h('div', null, tabs, grid), wide: true, onClose: () => finish('', null) });
+      const modal = GS.modal({ title: windowOnly ? 'Pilih tetingkap game / app PC' : 'Pilih skrin atau tetingkap', body: GS.h('div', null, tabs, grid), wide: true, onClose: () => finish('', null) });
     });
+  };
+
+  /* Capture card (HDMI) vs webcam: dikenal pasti daripada nama peranti. Webcam tidak disenaraikan di bawah Capture Card. */
+  const CAPTURE_RE = /(capture|hdmi|elgato|cam\s?link|avermedia|live\s?gamer|blackmagic|decklink|intensity|ultrastudio|magewell|\bms2\d{3}\b|\bms9\d{3}\b|usb\s?3(\.0)?\s?video|usb\s?video|gc\d{3}|hd60|4k60|ezcap|easycap|grabber|ripsaw|startech|j5create|atem|composite|s-?video|component|av\s?input|pcie|hd\s?pvr|game\s?(link|capture)|video\s?card)/i;
+  const WEBCAM_RE = /(web\s?cam|integrated|built-?in|facetime|face\s?cam|infrared|\bir\b|\bc9\d{2}\b|\bc2\d{2}\b|\bbrio\b|stream\s?cam|lifecam|kiyo|obsbot|insta360|hd\s?camera|\bcamera\b)/i;
+  M.isWebcam = (label) => !!label && (/(facecam|face\s?cam|web\s?cam|stream\s?cam|kiyo)/i.test(label) || (!CAPTURE_RE.test(label) && WEBCAM_RE.test(label)));
+  M.isCaptureCard = (label) => !!label && CAPTURE_RE.test(label) && !/(facecam|face\s?cam|web\s?cam|stream\s?cam|kiyo)/i.test(label);
+  /** Bahagikan peranti: capture card dikenali, lain-lain (bukan webcam), webcam. */
+  M.classifyDevices = function (devs) {
+    const cards = [], other = [], cams = [];
+    devs.forEach((d) => (M.isCaptureCard(d.label) ? cards : M.isWebcam(d.label) ? cams : other).push(d));
+    return { cards, other, cams };
   };
 
   M.pick = async function (source) {
     const kind = source.props.kind;
     if (kind === 'screen') {
       try {
-        await M.open(source.id, 'screen');
+        const e = await M.open(source.id, 'screen', null, { windowOnly: source.props.mode === 'window' });
+        source.props.deviceLabel = (e && e.label) || '';
         return true;
       } catch (e) {
         if (e.name !== 'NotAllowedError') GS.toast(GS.t('Gagal kongsi skrin: {0}', GS.t(e.message)), 'warn');
@@ -159,36 +175,48 @@
       GS.toast(GS.t('Tiada akses ke kamera/capture card: {0}', M.deviceError(e)), 'warn');
       return false;
     }
-    if (!devs.length) {
+    if (!devs.length && kind !== 'capture') {
       GS.toast('Tiada peranti video dijumpai. Pasang capture card dan cuba lagi.', 'warn');
       return false;
     }
     return new Promise((resolve) => {
       let done = false;
       const finish = (v) => { if (!done) { done = true; resolve(v); } };
-      const list = GS.h('div', { class: 'device-list' }, devs.map((d, i) =>
-        GS.h('button', {
-          class: 'device',
-          onClick: async () => {
-            try {
-              await M.open(source.id, kind, d.deviceId);
-              source.props.deviceId = d.deviceId;
-              source.props.deviceLabel = d.label;
-              GS.save();
-              m.close();
-              finish(true);
-            } catch (e) {
-              GS.toast(GS.t('Gagal buka peranti: {0}', M.deviceError(e)), 'warn');
-            }
-          },
-        }, GS.h('span', { html: GS.icon(kind === 'capture' ? 'monitor' : 'camera', 16) }), GS.h('span', null, d.label || GS.t('Peranti video {0}', i + 1)))));
-      const m = GS.modal({
-        title: kind === 'capture' ? 'Pilih Capture Card' : 'Pilih Kamera',
-        body: GS.h('div', null,
-          GS.h('p', { class: 'muted' }, kind === 'capture' ? 'Capture card biasanya tersenarai seperti "USB Video", "HDMI", "Elgato", "AVerMedia" atau nama jenama anda.' : 'Pilih kamera/webcam anda.'),
-          list),
-        onClose: () => finish(false),
-      });
+      const choose = async (d) => {
+        try {
+          await M.open(source.id, kind, d.deviceId);
+          source.props.deviceId = d.deviceId;
+          source.props.deviceLabel = d.label;
+          GS.save();
+          m.close();
+          finish(true);
+        } catch (e) {
+          GS.toast(GS.t('Gagal buka peranti: {0}', M.deviceError(e)), 'warn');
+        }
+      };
+      const btn = (d, i) => GS.h('button', { class: 'device', 'data-dev': d.deviceId, onClick: () => choose(d) },
+        GS.h('span', { html: GS.icon(kind === 'capture' ? 'monitor' : 'camera', 16) }), GS.h('span', null, d.label || GS.t('Peranti video {0}', i + 1)));
+      const body = GS.h('div');
+      const draw = () => {
+        body.innerHTML = '';
+        const cls = M.classifyDevices(devs);
+        if (kind === 'capture') {
+          // Capture card sahaja (kabel HDMI daripada konsol/PC/telefon). Webcam TIDAK disenaraikan di sini: guna sumber "Kamera".
+          body.append(GS.h('p', { class: 'muted' }, 'Hanya peranti capture card (input HDMI) disenaraikan di sini. Webcam dan kamera dipilih melalui sumber "Kamera / Webcam".'));
+          if (cls.cards.length) body.append(GS.h('div', { class: 'device-list', 'data-list': 'cards' }, cls.cards.map(btn)));
+          else body.append(GS.h('div', { class: 'empty', 'data-empty': '1' }, GS.t('Tiada capture card dikesan. Sambungkan kabel HDMI daripada konsol/PC ke capture card, pastikan ia dipasang ke USB, kemudian tekan Segar semula.')));
+          if (cls.other.length) {
+            body.append(GS.h('details', { class: 'dev-adv' }, GS.h('summary', null, GS.t('Peranti video lain (jika capture card anda tiada dalam senarai)')),
+              GS.h('div', { class: 'device-list', 'data-list': 'other' }, cls.other.map(btn))));
+          }
+          body.append(GS.h('div', { class: 'btn-row' }, GS.h('button', { class: 'btn ghost', onClick: async () => { try { devs = await M.listVideoDevices(); } catch (e) { GS.toast(M.deviceError(e), 'warn'); } draw(); } }, 'Segar semula')));
+        } else {
+          body.append(GS.h('p', { class: 'muted' }, 'Pilih kamera/webcam anda.'));
+          body.append(GS.h('div', { class: 'device-list' }, cls.cams.concat(cls.other, cls.cards).map(btn)));
+        }
+      };
+      draw();
+      const m = GS.modal({ title: kind === 'capture' ? 'Pilih Capture Card' : 'Pilih Kamera', body, onClose: () => finish(false) });
     });
   };
 

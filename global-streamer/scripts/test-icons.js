@@ -20,7 +20,7 @@ let fails = 0; const ok = (n, c, d) => { console.log((c ? 'LULUS ' : 'GAGAL ') +
   const ico = await (await p.request.get(BASE + '/favicon.ico')).body();
   const n = ico.readUInt16LE(4); const szs = []; for (let k = 0; k < n; k++) szs.push(ico[6 + k * 16] || 256);
   ok('/favicon.ico mengandungi 16, 32, 48', [16, 32, 48].every((s) => szs.includes(s)), szs.join());
-  ok('tiada 404/ralat', bad.filter((x) => !/updates\/latest/.test(x)).length === 0 && errs.length === 0, bad.concat(errs).join(' | '));
+  ok('tiada 404/ralat', bad.filter((x) => !/updates\/latest|api\.github\.com/.test(x)).length === 0 && errs.length === 0, bad.concat(errs).join(' | '));
   await p.goto(BASE + '/', { waitUntil: 'load' }); await p.waitForTimeout(800);
   await p.screenshot({ path: '/tmp/logo-app.png', clip: { x: 0, y: 0, width: 800, height: 80 } });
   await p.goto(BASE + '/site/index.html', { waitUntil: 'load' }); await p.waitForTimeout(500);

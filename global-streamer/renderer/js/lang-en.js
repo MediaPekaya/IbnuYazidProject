@@ -363,6 +363,41 @@
     'Kebenaran kamera ditolak. Benarkan kamera untuk laman ini dalam tetapan pelayar.': 'Camera permission was denied. Allow the camera for this site in the browser settings.',
     'Peranti tidak dijumpai. Pastikan ia disambung dan cuba pilih semula.': 'Device not found. Make sure it is connected and try choosing it again.',
 
+
+    /* ---- kemas kini masa nyata ---- */
+    'Siaran sedang berjalan. Memasang kemas kini akan menamatkan siaran. Teruskan?': 'A stream is running. Installing the update will end it. Continue?',
+    'Klik untuk semak kemas kini sekarang': 'Click to check for updates now',
+    'Semakan gagal': 'Check failed',
+    'Pasang dan mulakan semula app': 'Install and restart the app',
+
+
+    /* ---- format, template, capture card, Game PC ---- */
+    'Tamatkan siaran dahulu sebelum menukar format.': 'End the stream before switching the format.',
+    'Guna template "{0}"? Susun atur scene aktif akan diganti (peranti video dikekalkan).': 'Use template "{0}"? The active scene layout will be replaced (video devices are kept).',
+    'Template "{0}" digunakan.': 'Template "{0}" applied.',
+    'Game PC (pilih tetingkap: Steam, game)': 'Game PC (choose a window: Steam, game)',
+    'Skrin penuh': 'Full screen',
+    'Tiada capture card dikesan. Sambungkan kabel HDMI daripada konsol/PC ke capture card, pastikan ia dipasang ke USB, kemudian tekan Segar semula.': 'No capture card detected. Connect the HDMI cable from the console/PC to the capture card, make sure it is plugged into USB, then press Refresh.',
+    'Peranti video lain (jika capture card anda tiada dalam senarai)': 'Other video devices (if your capture card is not listed)',
+
+    'YouTube · FB': 'YouTube · FB', 'Format siaran': 'Stream format', 'TikTok LIVE (menegak 9:16)': 'TikTok LIVE (vertical 9:16)',
+    'YouTube / Facebook (mendatar 16:9)': 'YouTube / Facebook (horizontal 16:9)', 'Format template': 'Template format',
+    'Template': 'Template', 'TikTok': 'TikTok', 'Tiada template untuk format ini.': 'No templates for this format.',
+    'Segar semula': 'Refresh', 'Pilih tetingkap': 'Choose window', 'Pilih tetingkap game / app PC': 'Choose a game / PC app window',
+    'Hanya peranti capture card (input HDMI) disenaraikan di sini. Webcam dan kamera dipilih melalui sumber "Kamera / Webcam".': 'Only capture card devices (HDMI input) are listed here. Webcams and cameras are chosen with the "Camera / Webcam" source.',
+    'Pilih app atau game yang mahu dipaparkan (cth Steam atau game anda). Hanya tetingkap itu yang disiarkan; paparan lain tidak kelihatan. Biarkan tetingkap itu terbuka (jangan diminimumkan).': 'Choose the app or game to show (e.g. Steam or your game). Only that window is streamed; nothing else on your screen is visible. Keep the window open (do not minimise it).',
+
+
+    /* ---- panel dikeluarkan ---- */
+    'Pelayar menyekat tetingkap baharu. Benarkan pop-up untuk laman ini.': 'The browser blocked the new window. Allow pop-ups for this site.',
+    'Chat dan kawalan game': 'Chat and game controls',
+    'Chat · Game · Meta': 'Chat · Game · Meta',
+    'Masukkan semula ke app': 'Put back into the app',
+    'Keluarkan panel ke tetingkap lain': 'Pop the panel out to another window',
+    'Keluarkan panel ke tetingkap lain (skrin kedua)': 'Pop the panel out to another window (second screen)',
+    'Panel di tetingkap lain · Kembalikan': 'Panel in another window · Bring back',
+    'Panel chat dikeluarkan ke tetingkap lain. Klik untuk memulangkan.': 'The chat panel is in another window. Click to bring it back.',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

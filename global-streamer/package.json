@@ -25,6 +25,7 @@
     "test:chat": "node scripts/test-chat.js",
     "test:icons": "node scripts/test-icons.js",
     "test:openlink": "node scripts/test-openlink.js",
+    "test:voicehost": "node scripts/test-voice-host.js",
     "release:stage": "node scripts/release-stage.js"
   },
   "dependencies": {
@@ -62,7 +63,8 @@
           ]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "artifactName": "Global-Streamer-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -72,7 +74,8 @@
       "shortcutName": "Global Streamer",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico"
+      "installerHeaderIcon": "build/icon.ico",
+      "artifactName": "Global-Streamer-Setup-${version}.exe"
     },
     "extraResources": [
       {
@@ -82,8 +85,10 @@
     ],
     "publish": [
       {
-        "provider": "generic",
-        "url": "https://global-streamer.web.app/updates/"
+        "provider": "github",
+        "owner": "MediaPekaya",
+        "repo": "IbnuYazidProject",
+        "releaseType": "release"
       }
     ]
   }

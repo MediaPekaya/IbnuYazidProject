@@ -4,8 +4,8 @@
   const GS = (window.GS = { version: '0.1.0', games: {}, ui: {} });
 
   /* ---------- DOM helpers ---------- */
-  GS.$ = (s, r = document) => r.querySelector(s);
-  GS.$$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  GS.$ = (s, r) => (r ? r.querySelector(s) : document.querySelector(s) || (GS.popDoc && GS.popDoc.querySelector(s)) || null);
+  GS.$$ = (s, r) => (r ? Array.from(r.querySelectorAll(s)) : Array.from(document.querySelectorAll(s)).concat(GS.popDoc ? Array.from(GS.popDoc.querySelectorAll(s)) : []));
   const TR_ATTR = new Set(['title', 'aria-label', 'placeholder', 'alt']);
   GS.h = function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
@@ -191,11 +191,12 @@
 
   /* ---------- modal helper ---------- */
   GS.modal = function ({ title, body, footer, wide = false, onClose }) {
-    const root = GS.$('#modalRoot');
+    const doc = GS.activeDoc && GS.activeDoc.defaultView && !GS.activeDoc.defaultView.closed ? GS.activeDoc : document; // modal dibuka dalam tetingkap yang sedang digunakan
+    const root = doc.getElementById('modalRoot') || GS.$('#modalRoot');
     const close = () => {
       back.classList.remove('in');
       setTimeout(() => back.remove(), 280);
-      document.removeEventListener('keydown', onKey);
+      doc.removeEventListener('keydown', onKey);
       if (onClose) onClose();
     };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
@@ -207,7 +208,7 @@
       footer ? GS.h('div', { class: 'modal-foot' }, footer) : null);
     const back = GS.h('div', { class: 'modal-back', onClick: (e) => { if (e.target === back) close(); } }, card);
     root.append(back);
-    document.addEventListener('keydown', onKey);
+    doc.addEventListener('keydown', onKey);
     requestAnimationFrame(() => back.classList.add('in'));
     return { close, card, back };
   };

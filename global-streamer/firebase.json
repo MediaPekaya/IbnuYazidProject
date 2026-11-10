@@ -2,8 +2,12 @@
   "hosting": {
     "site": "global-streamer",
     "public": "renderer",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "updates/**"],
     "cleanUrls": true,
+    "redirects": [
+      { "source": "/updates/:file", "destination": "https://github.com/MediaPekaya/IbnuYazidProject/releases/latest/download/:file", "type": 302 },
+      { "source": "/download/windows", "destination": "https://github.com/MediaPekaya/IbnuYazidProject/releases/latest/download/Global-Streamer-Setup.exe", "type": 302 }
+    ],
     "rewrites": [
       { "source": "/landing", "destination": "/site/index.html" },
       { "source": "/download", "destination": "/site/download.html" },
@@ -20,7 +24,7 @@
           { "key": "X-Frame-Options", "value": "DENY" },
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://static.wikia.nocookie.net; media-src 'self' blob: mediastream:; connect-src 'self' https://graph.facebook.com ws://127.0.0.1:* ws://localhost:* wss://* https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+            "value": "default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://static.wikia.nocookie.net; media-src 'self' blob: mediastream:; connect-src 'self' https://api.github.com https://graph.facebook.com ws://127.0.0.1:* ws://localhost:* wss://* https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
           }
         ]
       },

@@ -417,5 +417,8 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 
 /* ---------- kemas kini ---------- */
 .chip.upd { cursor: pointer; color: var(--gold); border-color: rgba(255, 211, 107, 0.55); font-family: inherit; }
+.chip.upd:not(.ready):not(.busy):not(.bad) { color: var(--muted); border-color: var(--line); }
+.chip.upd.busy { color: var(--cyan, #5cc8ff); border-color: rgba(92, 200, 255, 0.5); }
+.chip.upd.bad { color: #ff9aa8; border-color: rgba(255, 90, 120, 0.5); }
 .chip.upd.ready { color: #07122a; background: var(--gold); font-weight: 800; }
 .upd-sec { display: flex; flex-direction: column; gap: 6px; }

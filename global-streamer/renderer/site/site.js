@@ -1,4 +1,4 @@
-/* Laman jualan: tukar bahasa BM/EN (data-ms / data-en), dan maklumat muat turun daripada /updates/latest.json. */
+/* Laman jualan: tukar bahasa BM/EN (data-ms / data-en), dan maklumat muat turun daripada GitHub Releases (pautan tetap /download/windows). */
 (function () {
   'use strict';
   var KEY = 'gs.site.lang';
@@ -16,14 +16,16 @@
 
   var box = document.getElementById('dl');
   if (box) {
-    fetch('/updates/latest.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('x'); return r.json(); }).then(function (j) {
-      var mb = (j.size / 1048576).toFixed(1) + ' MB';
-      box.querySelector('[data-f="version"]').textContent = j.version;
-      box.querySelector('[data-f="date"]').textContent = (j.date || '').slice(0, 10);
-      box.querySelector('[data-f="size"]').textContent = mb;
-      box.querySelector('[data-f="sha"]').textContent = j.sha256 || '';
-      var a = box.querySelector('a.btn.primary'); a.href = '/updates/' + encodeURIComponent(j.file); a.removeAttribute('aria-disabled');
+    // pautan tetap /download/windows sentiasa menunjuk ke pemasang terkini (GitHub Releases); maklumat versi daripada API awam
+    var a = box.querySelector('a.btn.primary'); a.href = '/download/windows'; a.removeAttribute('aria-disabled');
+    fetch('https://api.github.com/repos/MediaPekaya/IbnuYazidProject/releases/latest', { headers: { Accept: 'application/vnd.github+json' } }).then(function (r) { if (!r.ok) throw new Error('x'); return r.json(); }).then(function (rel) {
+      var asset = (rel.assets || []).filter(function (x) { return x.name === 'Global-Streamer-Setup.exe'; })[0];
+      if (!asset) throw new Error('x');
+      box.querySelector('[data-f="version"]').textContent = String(rel.tag_name || '').replace(/^v/, '');
+      box.querySelector('[data-f="date"]').textContent = (rel.published_at || '').slice(0, 10);
+      box.querySelector('[data-f="size"]').textContent = (asset.size / 1048576).toFixed(1) + ' MB';
+      box.querySelector('[data-f="sha"]').textContent = String(asset.digest || '').replace(/^sha256:/, '');
       box.classList.add('ready');
-    }).catch(function () { box.classList.add('soon'); });
+    }).catch(function () { box.classList.add('ready'); });
   }
 })();

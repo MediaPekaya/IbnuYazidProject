@@ -24,5 +24,13 @@ contextBridge.exposeInMainWorld('gsNative', {
     enableUpdate: (on) => ipcRenderer.invoke('update:enable', on),
     onUpdate: (cb) => ipcRenderer.on('update:event', (_e, d) => cb(d)),
   },
+  voice: {
+    available: () => ipcRenderer.invoke('voice:available'),
+    start: (source, cfg) => ipcRenderer.invoke('voice:start', source, cfg),
+    stop: (source) => ipcRenderer.invoke('voice:stop', source),
+    pcm: (source, data) => ipcRenderer.send('voice:pcm', source, data),
+    say: (text, opts) => ipcRenderer.invoke('voice:say', text, opts),
+    onEvent: (cb) => ipcRenderer.on('voice:event', (_e, d) => cb(d)),
+  },
   onStreamEvent: (cb) => ipcRenderer.on('stream:event', (_e, data) => cb(data)),
 });

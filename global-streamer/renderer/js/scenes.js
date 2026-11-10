@@ -36,40 +36,53 @@
     GS.save();
   };
 
-  /* tukar orientasi siaran (menegak 9:16 / mendatar 16:9). Scene diganti dengan susun atur lalai orientasi baharu;
-   * peranti video (capture card, kamera) dikekalkan supaya tidak perlu dipilih semula. */
+  /* Tukar format siaran: menegak 9:16 (TikTok LIVE) atau mendatar 16:9 (YouTube / Facebook).
+   * Susun atur setiap format DISIMPAN dan dipulihkan apabila kembali (tiada kehilangan scene/sumber). Format yang belum pernah
+   * digunakan mendapat susun atur lalai. Peranti video (capture card, kamera) dikekalkan; tiada muat semula halaman. */
   S.setOrientation = function (o) {
     if (o !== 'portrait' && o !== 'landscape') return false;
     if (o === GS.orient()) return true;
-    if (GS.live && GS.live.state !== 'idle') { GS.toast(GS.t('Tamatkan siaran dahulu sebelum menukar orientasi.'), 'warn'); return false; }
-    const keep = {};
-    const oldIds = [];
-    st().scenes.forEach((sc) => sc.sources.forEach((s) => {
-      if (s.type !== 'video') return;
-      oldIds.push(s.id);
-      if (s.props.kind !== 'screen' && GS.media.videos[s.id] && !keep[s.props.kind]) keep[s.props.kind] = { entry: GS.media.videos[s.id], deviceId: s.props.deviceId, label: s.props.deviceLabel };
-    }));
+    if (GS.live && GS.live.state !== 'idle') { GS.toast(GS.t('Tamatkan siaran dahulu sebelum menukar format.'), 'warn'); return false; }
     const set = st().settings;
+    const stash = st().layouts || (st().layouts = {});
+    stash[GS.orient()] = { scenes: st().scenes, programId: st().programId, previewId: st().previewId, templateId: st().templateId, width: set.width, height: set.height, fps: set.fps, vbitrate: set.vbitrate };
+    const keep = {};
+    st().scenes.forEach((sc) => sc.sources.forEach((s) => {
+      if (s.type === 'video' && s.props.kind !== 'screen' && GS.media.videos[s.id] && !keep[s.props.kind]) keep[s.props.kind] = { entry: GS.media.videos[s.id], deviceId: s.props.deviceId, label: s.props.deviceLabel };
+    }));
     set.orientation = o;
     GS.applyDesign();
-    set.width = o === 'portrait' ? 1080 : 1920;
-    set.height = o === 'portrait' ? 1920 : 1080;
-    set.fps = o === 'portrait' ? 30 : 60;
-    set.vbitrate = o === 'portrait' ? 5000 : 6000;
-    st().scenes = [];
-    st().programId = st().previewId = null;
+    const back = stash[o];
+    delete stash[o];
+    if (back && Array.isArray(back.scenes) && back.scenes.length) {
+      st().scenes = back.scenes; st().programId = back.programId; st().previewId = back.previewId; st().templateId = back.templateId;
+      set.width = back.width; set.height = back.height; set.fps = back.fps; set.vbitrate = back.vbitrate;
+      if (!byId(st().programId)) st().programId = st().scenes[0].id;
+      if (!byId(st().previewId)) st().previewId = st().programId;
+    } else {
+      set.width = o === 'portrait' ? 1080 : 1920;
+      set.height = o === 'portrait' ? 1920 : 1080;
+      set.fps = o === 'portrait' ? 30 : 60;
+      set.vbitrate = o === 'portrait' ? 5000 : 6000;
+      st().scenes = [];
+      st().programId = st().previewId = null;
+      S.ensureDefaults();
+    }
     selectedId = null;
-    S.ensureDefaults();
+    // sambung peranti: guna semula aliran yang sedang terbuka; jika tidak, buka semula peranti tersimpan (senyap)
     st().scenes.forEach((sc) => sc.sources.forEach((s) => {
-      const k = s.type === 'video' && keep[s.props.kind];
+      if (s.type !== 'video' || s.props.kind === 'screen' || GS.media.videos[s.id] || s.props.deviceId) return;
+      const k = keep[s.props.kind];
       if (k) { GS.media.videos[s.id] = k.entry; s.props.deviceId = k.deviceId; s.props.deviceLabel = k.label; }
     }));
-    oldIds.forEach((id) => GS.media.close(id));
+    GS.media.autoReconnect(st().scenes);
     if (GS.app && GS.app.programComp) { GS.app.programComp.transition = null; GS.app.applyResolution(); GS.app.fit(); }
     GS.save();
     GS.emit('scenes:changed');
+    GS.emit('format:changed', o);
     return true;
   };
+  S.switchFormat = (o) => S.setOrientation(o);
 
   /* ---------- template ---------- */
   S.applyTemplate = function (tplId, sceneId, newName) {
@@ -171,9 +184,12 @@
   }
 
   S.addVideo = async function (kind) {
-    const names = { capture: 'Game (Capture Card)', camera: 'Kamera', screen: 'Skrin / Tetingkap' };
-    const box = kind === 'camera' ? [1240, 40, 640, 360] : [0, 0, 1920, 1080];
-    const src = mk('video', names[kind], ...box, { kind, deviceId: '' });
+    const names = { capture: 'Game (Capture Card)', camera: 'Kamera', screen: 'Skrin / Tetingkap', gamepc: 'Game PC' };
+    const dw = GS.design.w, dh = GS.design.h;
+    const box = kind === 'camera' ? (dw > dh ? [1240, 40, 640, 360] : [640, 80, 400, 400]) : [0, 0, dw, dh];
+    // "Game PC": tangkap SATU tetingkap sahaja (Steam, game, pelayar) seperti Window/Game Capture dalam OBS
+    const props = kind === 'gamepc' ? { kind: 'screen', mode: 'window', deviceId: '' } : { kind, deviceId: '' };
+    const src = mk('video', names[kind], ...box, props);
     src.fit = kind === 'camera' ? 'cover' : 'contain';
     addSource(src);
     const ok = await GS.media.pick(src);
@@ -340,7 +356,8 @@
     add.addEventListener('click', () => popover(add, [
       { label: 'Capture Card (game)', icon: 'monitor', run: () => S.addVideo('capture') },
       { label: 'Kamera / Webcam', icon: 'camera', run: () => S.addVideo('camera') },
-      { label: 'Skrin / Tetingkap', icon: 'monitor', run: () => S.addVideo('screen') },
+      { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'monitor', run: () => S.addVideo('gamepc') },
+      { label: 'Skrin penuh', icon: 'monitor', run: () => S.addVideo('screen') },
       '-',
       { label: 'Imej', icon: 'image', run: S.addImage },
       { label: 'Teks', icon: 'text', run: S.addText },
@@ -385,7 +402,7 @@
       const info = rec ? (rec.label || GS.t('Peranti')) + ' · ' + (rec.video.videoWidth || '?') + '×' + (rec.video.videoHeight || '?') : 'Tiada isyarat';
       root.append(h('div', { class: 'prop-info' }, info));
       root.append(h('div', { class: 'btn-row' },
-        h('button', { class: 'btn', onClick: async () => { if (await GS.media.pick(s)) S.afterPick(s); renderProps(); } }, s.props.kind === 'screen' ? 'Kongsi skrin' : 'Pilih peranti'),
+        h('button', { class: 'btn', onClick: async () => { if (await GS.media.pick(s)) S.afterPick(s); renderProps(); } }, s.props.mode === 'window' ? 'Pilih tetingkap' : s.props.kind === 'screen' ? 'Kongsi skrin' : 'Pilih peranti'),
         rec ? h('button', { class: 'btn ghost', onClick: () => { GS.media.close(s.id); s.props.deviceId = ''; changed('props:changed'); renderProps(); } }, 'Lepaskan') : null));
     }
     if (s.type === 'text') {
