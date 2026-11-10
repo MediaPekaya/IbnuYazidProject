@@ -525,29 +525,107 @@
   }
 
 
-  /* ================== BOT: gelembung jawapan pada siaran ================== */
-  function drawBotSay(ctx, e, p, now, W) {
-    const pal = e.pal;
-    const inP = easeBack(p / 0.1), outP = easeOut((p - 0.9) / 0.1);
-    const w = Math.min(W - 80, 860), lines = (e.lines = e.lines || (() => {
-      ctx.save(); ctx.font = '700 28px ' + GS.widgets.FONT;
-      const out = []; let cur = '';
-      String(e.params.text || '').split(/\s+/).forEach((wd) => { const t = cur ? cur + ' ' + wd : wd; if (ctx.measureText(t).width > w - 150 && cur) { out.push(cur); cur = wd; } else cur = t; });
-      if (cur) out.push(cur);
-      ctx.restore();
-      return out.slice(0, 4);
-    })());
-    const h = 78 + lines.length * 36;
-    const x = W / 2 - w / 2, y = 150 - (1 - clamp(inP, 0, 1)) * 260 - outP * 260;
+  /* ================== BOT: gelembung komik (cakap) di dalam kotak kamera ================== */
+  const COMIC = '"Comic Sans MS","Comic Neue","Chalkboard SE","Segoe Print","Segoe UI",system-ui,sans-serif';
+
+  /** Kotak tempat gelembung dibenarkan: sumber Kamera yang kelihatan pada scene program. Jika tiada, jalur bawah kanvas. */
+  function botBox(W, H) {
+    const sc = GS.scenes && GS.scenes.program && GS.scenes.program();
+    const cam = sc && sc.sources.find((x) => x.type === 'video' && x.props && x.props.kind === 'camera' && x.visible);
+    if (cam) return { x: cam.x, y: cam.y, w: cam.w, h: cam.h, cam: true };
+    return { x: 40, y: Math.round(H * 0.62), w: W - 80, h: Math.round(H * 0.32), cam: false };
+  }
+
+  /** Susun atur gelembung. Gelembung melekat di BAWAH kotak, memanjang ke sisi (lebar) dahulu sehingga penuh lebar kotak;
+   *  jika teks masih terlalu tinggi, huruf dikecilkan, dan akhirnya dipotong dengan "…". Sentiasa di dalam kotak. */
+  FX.botLayout = function (ctx, params, box) {
+    const m = Math.max(8, Math.min(18, Math.round(box.w * 0.03)));
+    const tail = Math.max(10, Math.min(22, Math.round(box.h * 0.07)));
+    const availW = Math.max(40, box.w - 2 * m), availH = Math.max(30, box.h - 2 * m - tail);
+    const name = String(params.name || 'BOT').toUpperCase().slice(0, 24);
+    const text = String(params.text || '').replace(/\s+/g, ' ').trim();
+    const MIN = 12;
     ctx.save();
-    GS.widgets.panel(ctx, x, y, w, h, now, { r: 26 });
-    // avatar bot (lencana "GS" bercahaya)
-    ctx.beginPath(); ctx.arc(x + 54, y + 52, 28, 0, Math.PI * 2);
-    const g = ctx.createLinearGradient(x + 26, y + 24, x + 82, y + 80); g.addColorStop(0, pal.accent); g.addColorStop(1, pal.light);
-    ctx.fillStyle = g; ctx.fill();
-    GS.widgets.text(ctx, 'GS', x + 54, y + 62, { size: 22, weight: 900, align: 'center', color: '#06101f' });
-    GS.widgets.text(ctx, String(e.params.name || 'BOT').toUpperCase(), x + 100, y + 36, { size: 18, weight: 800, spacing: 5, color: pal.light });
-    lines.forEach((ln, i) => GS.widgets.text(ctx, ln, x + 100, y + 72 + i * 36, { size: 28, weight: 700, maxW: w - 130 }));
+    const wrap = (size, maxW) => {
+      ctx.font = '700 ' + size + 'px ' + COMIC;
+      const out = []; let cur = '';
+      const push = (t) => out.push(t);
+      text.split(' ').forEach((wd) => {
+        // perkataan yang lebih panjang daripada satu baris dipotong ikut huruf
+        while (ctx.measureText(wd).width > maxW && wd.length > 1) {
+          let k = wd.length - 1; while (k > 1 && ctx.measureText(wd.slice(0, k)).width > maxW) k--;
+          if (cur) { push(cur); cur = ''; }
+          push(wd.slice(0, k)); wd = wd.slice(k);
+        }
+        const t = cur ? cur + ' ' + wd : wd;
+        if (ctx.measureText(t).width > maxW && cur) { push(cur); cur = wd; } else cur = t;
+      });
+      if (cur) push(cur);
+      return out;
+    };
+    let size = Math.max(MIN, Math.min(40, Math.round(box.w * 0.045)));
+    let lines, pad, lh, nameH;
+    for (;;) {
+      pad = Math.round(size * 0.55); lh = Math.round(size * 1.22); nameH = Math.round(size * 0.74);
+      lines = wrap(size, availW - 2 * pad);
+      if (2 * pad + nameH + lines.length * lh <= availH || size <= MIN) break;
+      size -= 1;
+    }
+    const maxLines = Math.max(1, Math.floor((availH - 2 * pad - nameH) / lh));
+    if (lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      let last = lines[maxLines - 1];
+      ctx.font = '700 ' + size + 'px ' + COMIC;
+      while (last.length > 1 && ctx.measureText(last + '…').width > availW - 2 * pad) last = last.slice(0, -1);
+      lines[maxLines - 1] = last + '…';
+    }
+    ctx.font = '700 ' + size + 'px ' + COMIC;
+    let cw = 0; lines.forEach((l) => { cw = Math.max(cw, ctx.measureText(l).width); });
+    ctx.font = '800 ' + Math.round(size * 0.62) + 'px ' + COMIC;
+    cw = Math.max(cw, ctx.measureText(name).width + 6);
+    ctx.restore();
+    // satu baris: selebar teks; berbilang baris: penuh lebar kotak (memanjang ke sisi, bukan ke bawah)
+    const w = lines.length > 1 ? availW : Math.min(availW, Math.ceil(cw + 2 * pad));
+    const h = 2 * pad + nameH + lines.length * lh;
+    const x = Math.round(box.x + (box.w - w) / 2);
+    const y = Math.round(box.y + box.h - m - tail - h);
+    const tw = Math.round(tail * 1.15);
+    const r = Math.min(Math.round(size * 0.9), Math.floor(h / 3), Math.floor(w / 4));
+    const tailX = Math.round(Math.min(x + w - r - tw, Math.max(x + r + tw, x + w * 0.32)));
+    return { x, y, w, h, r, size, pad, lh, nameH, lines, name, tail, tw, tailX, tipX: tailX - Math.round(tail * 0.55), tipY: y + h + tail, m };
+  };
+
+  function drawBotSay(ctx, e, p, now, W, H) {
+    const box = botBox(W, H);
+    const sig = box.x + ',' + box.y + ',' + box.w + ',' + box.h;
+    if (!e.lay || e.laySig !== sig) { e.lay = FX.botLayout(ctx, e.params, box); e.laySig = sig; }
+    const L = e.lay;
+    const inP = easeBack(p / 0.1), outP = easeOut((p - 0.92) / 0.08);
+    const sc = clamp(inP, 0, 1.08);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip(); // tidak pernah keluar daripada kotak kamera
+    ctx.globalAlpha = 1 - outP;
+    ctx.translate(L.tipX, L.tipY); ctx.scale(sc, sc); ctx.translate(-L.tipX, -L.tipY); // "meletup" keluar dari ekor
+    const path = (dx, dy) => {
+      const { x, y, w, h, r } = L; const bx = x + dx, by = y + dy;
+      ctx.beginPath();
+      ctx.moveTo(bx + r, by); ctx.lineTo(bx + w - r, by); ctx.arcTo(bx + w, by, bx + w, by + r, r);
+      ctx.lineTo(bx + w, by + h - r); ctx.arcTo(bx + w, by + h, bx + w - r, by + h, r);
+      ctx.lineTo(L.tailX + L.tw / 2 + dx, by + h); ctx.lineTo(L.tipX + dx, L.tipY + dy); ctx.lineTo(L.tailX - L.tw / 2 + dx, by + h);
+      ctx.lineTo(bx + r, by + h); ctx.arcTo(bx, by + h, bx, by + h - r, r);
+      ctx.lineTo(bx, by + r); ctx.arcTo(bx, by, bx + r, by, r);
+      ctx.closePath();
+    };
+    const off = Math.max(3, Math.round(L.size * 0.14));
+    path(off, off); ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.fill();                      // bayang keras gaya komik
+    path(0, 0); ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.lineWidth = Math.max(3, Math.round(L.size * 0.14)); ctx.lineJoin = 'round'; ctx.strokeStyle = '#111'; ctx.stroke();
+    // nama bot (kecil, merah komik) dan teks
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.font = '800 ' + Math.round(L.size * 0.62) + 'px ' + COMIC; ctx.fillStyle = '#d6262f';
+    ctx.fillText(L.name, L.x + L.w / 2, L.y + L.pad + L.nameH * 0.8);
+    ctx.font = '700 ' + L.size + 'px ' + COMIC; ctx.fillStyle = '#111';
+    L.lines.forEach((ln, i) => ctx.fillText(ln, L.x + L.w / 2, L.y + L.pad + L.nameH + L.lh * (i + 0.82)));
     ctx.restore();
   }
 
