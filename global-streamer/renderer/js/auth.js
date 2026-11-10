@@ -85,7 +85,7 @@
 
     const body = h('div', { class: 'auth-card' },
       h('div', { class: 'auth-brand' },
-        h('span', { html: '<svg class="brand-logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2ea8ff"/><stop offset=".55" stop-color="#7a5cff"/><stop offset="1" stop-color="#ff3b5c"/></linearGradient></defs><path d="M24 3l18 10.5v21L24 45 6 34.5v-21z" fill="none" stroke="url(#ag)" stroke-width="3.5" stroke-linejoin="round"/><path d="M31 19a8 8 0 1 0 0 10h-7" fill="none" stroke="#eaf4ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' }),
+        h('img', { class: 'brand-logo', src: 'assets/logo-96.png', alt: '', width: 40, height: 40 }),
         h('span', { class: 'brand-name' }, 'GLOBAL STREAMER')));
 
     body.append(GS.i18n.switcher());

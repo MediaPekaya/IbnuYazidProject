@@ -55,7 +55,7 @@ ipcMain.handle('stream:stop', () => engine.stop());
 function createWindow() {
   win = new BrowserWindow({
     width: 1600, height: 960, minWidth: 1100, minHeight: 660,
-    backgroundColor: '#04070f', title: 'Global Streamer', show: false, autoHideMenuBar: true,
+    backgroundColor: '#04070f', title: 'Global Streamer', icon: path.join(__dirname, '..', 'renderer', 'assets', 'logo-512.png'), show: false, autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, nodeIntegration: false, sandbox: true,

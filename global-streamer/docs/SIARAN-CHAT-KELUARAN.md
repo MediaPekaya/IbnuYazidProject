@@ -25,3 +25,10 @@ Diuji (`npm run test:chat`, 40 semakan) terhadap pelayan tiruan yang meniru bent
 * **Keluaran**: tag `gs-v*` -> `build-windows.yml` membina pemasang, menjalankan `npm run release:stage` (menyalin pemasang + `latest.yml` ke `renderer/updates/` dan menjana `latest.json` dengan SHA-256), menerbitkan GitHub Release, dan deploy ke Hosting jika secret `FIREBASE_SERVICE_ACCOUNT` ada. Tanpa secret: jalankan `npm run dist && npm run release:stage` kemudian `firebase deploy --only hosting`.
 * Pemasang belum ditandatangani (kod): Windows SmartScreen akan memberi amaran. Sijil tandatangan kod perlu dibeli.
 * Lesen/log masuk: kod dan peraturan Firestore sedia (`requireLicense`) tetapi **dimatikan** mengikut pilihan anda (app terus boleh guna tanpa daftar). Semakan lesen sisi klien hanya menghalang penggunaan biasa (lihat docs/FIREBASE.md).
+
+## Logo dan ikon aplikasi
+Logo rasmi (GS Global Streamer LIVE) menggantikan tanda lama: pengepala app, panel log masuk, laman jualan/muat turun/privasi/terma.
+* **Tab pelayar / Google**: `/favicon.ico` (16, 32, 48) + PNG 16/32/192 melalui `<link rel="icon">`. Google Search memaparkan ikon laman daripada pautan ini; ia mengemas kini mengikut jadual Google (biasanya beberapa hari hingga minggu), bukan serta-merta.
+* **Skrin utama / pasang sebagai app**: `manifest.webmanifest` (ikon 192/512 dan versi *maskable* untuk Android) + `apple-touch-icon` 180 (iOS). Pelayar menawarkan "Pasang aplikasi" / "Tambah ke skrin utama" dengan logo ini.
+* **Desktop Windows**: `build/icon.ico` (16 hingga 256 px) digunakan oleh `.exe`, pemasang, pintasan desktop/Start Menu dan tetingkap app.
+* Jana semula semua ikon daripada satu fail PNG: `python3 scripts/make-icons.py logo.png` (perlu Pillow). Ujian: `npm run test:icons` (pelayan setempat :8123).

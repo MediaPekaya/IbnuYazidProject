@@ -25,6 +25,7 @@
         widget('Logo', 'logo', 1360, 694, 170, 116),
         widget('Tajuk', 'brand', 1550, 694, 330, 116),
         widget('Bar Teks', 'ticker', 40, 846, 1840, 96),
+        widget('Meta Tournament', 'metaboard', 830, 100, 480, 250),
       ],
     },
     {
@@ -43,6 +44,7 @@
         widget('Logo', 'logo', 1200, 640, 170, 116),
         widget('Tajuk', 'brand', 1394, 640, 486, 116),
         widget('Bar Teks', 'ticker', 40, 846, 1840, 96),
+        widget('Meta Tournament', 'metaboard', 660, 100, 490, 250),
       ],
     },
     {
@@ -58,6 +60,7 @@
         widget('Menang / Kalah', 'winloss', 408, 24, 360, 100),
         widget('Logo', 'logo', 792, 24, 120, 100),
         widget('Bar Teks', 'ticker', 360, 960, 1200, 84),
+        widget('Meta Tournament', 'metaboard', 1060, 24, 480, 250),
       ],
     },
   ];
@@ -90,6 +93,7 @@
         S('video', 'Handcam', 600, 1636, 460, 184, { kind: 'camera', deviceId: '' }, { visible: false }),
         widget('Banner Hadiah', 'promo', 20, 1832, 1040, 76, { style: 'gift' }),
         widget('Draft', 'draft', 20, 1484, 1040, 340),
+        widget('Meta Tournament', 'metaboard', 470, 30, 470, 260),
       ],
     },
     {
@@ -113,6 +117,7 @@
         widget('Menang / Kalah', 'winloss', 600, 1690, 460, 128),
         widget('Banner Hadiah', 'promo', 20, 1832, 1040, 76, { style: 'gift' }),
         widget('Draft', 'draft', 20, 1476, 1040, 340),
+        widget('Meta Tournament', 'metaboard', 470, 20, 470, 250),
       ],
     },
     {
@@ -137,6 +142,7 @@
         widget('Menang / Kalah', 'winloss', 20, 1804, 520, 100),
         widget('Label Peranti', 'label', 560, 1804, 496, 100, { bind: 'device' }),
         widget('Draft', 'draft', 20, 1480, 1040, 340),
+        widget('Meta Tournament', 'metaboard', 480, 150, 456, 250),
       ],
     },
   ];
@@ -168,6 +174,7 @@
         S('video', 'Handcam', 600, 1570, 460, 184, { kind: 'camera', deviceId: '' }, { visible: false }),
         widget('Banner Hadiah', 'promo', 20, 1772, 1040, 76, { style: 'gift' }),
         widget('Draft', 'draft', 20, 1416, 1040, 340),
+        widget('Meta Tournament', 'metaboard', 440, 800, 490, 260),
       ],
     },
     {
@@ -196,6 +203,7 @@
         widget('Giliran Mabar', 'queue', 20, 1610, 560, 184),
         widget('Bar Teks', 'ticker', 20, 1820, 1040, 84),
         widget('Draft', 'draft', 20, 1450, 1040, 340),
+        widget('Meta Tournament', 'metaboard', 460, 60, 470, 260),
       ],
     },
     {
@@ -219,6 +227,7 @@
         widget('Label Peranti', 'label', 540, 1548, 520, 52, { bind: 'device' }),
         widget('Giliran Mabar', 'queue', 20, 1690, 560, 184),
         widget('Draft', 'draft', 20, 1444, 1040, 340),
+        widget('Meta Tournament', 'metaboard', 460, 40, 470, 260),
       ],
     },
   ];
@@ -241,6 +250,7 @@
         widget('Logo', 'logo', 1456, 532, 150, 104),
         widget('Tajuk', 'brand', 1620, 532, 284, 104),
         widget('Bar Teks', 'ticker', 16, 840, 1888, 90),
+        widget('Meta Tournament', 'metaboard', 940, 16, 490, 250),
       ],
     },
     {
@@ -260,6 +270,7 @@
         widget('Logo', 'logo', 980, 620, 170, 110),
         widget('Tajuk', 'brand', 1170, 620, 710, 110),
         widget('Bar Teks', 'ticker', 40, 780, 1840, 100),
+        widget('Meta Tournament', 'metaboard', 440, 90, 490, 230),
       ],
     },
     {
@@ -276,6 +287,7 @@
         widget('Menang / Kalah', 'winloss', 380, 24, 340, 90),
         widget('Logo', 'logo', 1780, 24, 116, 90),
         widget('Bar Teks', 'ticker', 24, 980, 1872, 76),
+        widget('Meta Tournament', 'metaboard', 1260, 24, 500, 240),
       ],
     },
   ];

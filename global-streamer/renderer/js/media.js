@@ -27,7 +27,7 @@
     M.close(sourceId);
     // kongsi aliran jika peranti sama sudah dibuka (capture card biasanya hanya boleh dibuka sekali)
     if (deviceId && kind !== 'screen') {
-      const shared = Object.values(M.videos).find((v) => v.deviceId === deviceId && v.kind === kind && v.stream.active);
+      const shared = Object.values(M.videos).find((v) => v.deviceId === deviceId && v.kind !== 'screen' && v.stream.active);
       if (shared) {
         M.videos[sourceId] = shared;
         GS.emit('media:changed', sourceId);
@@ -44,7 +44,20 @@
       }
       stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 60 } }, audio: false });
     } else {
-      stream = await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId, kind));
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId, kind));
+      } catch (e) {
+        // peranti baru dilepaskan (tukar sumber) atau pemacu perlukan sedikit masa: cuba sekali lagi
+        if (e && e.name === 'NotReadableError') {
+          await new Promise((r) => setTimeout(r, 700));
+          try { stream = await navigator.mediaDevices.getUserMedia(captureConstraints(deviceId, kind)); } catch (e2) {
+            // sandaran: tetapan paling ringan (sesetengah capture card menolak 1080p60)
+            stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId ? { exact: deviceId } : undefined }, audio: false });
+          }
+        } else if (e && e.name === 'OverconstrainedError') {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId ? { exact: deviceId } : undefined }, audio: false });
+        } else throw e;
+      }
     }
     const video = makeVideoEl(stream);
     const track = stream.getVideoTracks()[0];
@@ -78,9 +91,30 @@
 
   M.listVideoDevices = async function () {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Pelayar tidak menyokong akses peranti.');
-    const probe = await navigator.mediaDevices.getUserMedia({ video: true });
-    probe.getTracks().forEach((t) => t.stop());
-    return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+    const list = async () => (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+    // Jika kebenaran sudah diberi, nama peranti sudah ada: TIDAK perlu membuka kamera (elak "Device in use").
+    let devs = await list();
+    if (devs.length && devs.every((d) => d.label)) return devs;
+    // Belum ada kebenaran/nama: minta kebenaran sekali. Jika kamera lalai sedang digunakan (OBS, Zoom, tab lain, sumber lain
+    // dalam app), ujian ini boleh gagal; itu BUKAN sebab untuk menolak pemilihan, jadi teruskan dengan senarai yang ada.
+    try {
+      const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+      probe.getTracks().forEach((t) => t.stop());
+    } catch (e) {
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
+      if (!devs.length) throw e;
+    }
+    devs = await list();
+    return devs;
+  };
+
+  /** Mesej ralat peranti yang mudah difahami. */
+  M.deviceError = function (e) {
+    const n = e && e.name;
+    if (n === 'NotReadableError' || /in use|could not start/i.test((e && e.message) || '')) return GS.t('Peranti sedang digunakan oleh app atau tab lain (OBS, Zoom, Teams, tab pelayar lain). Tutup yang lain, atau pilih peranti yang sama pada sumber lain dalam app ini (ia akan berkongsi aliran).');
+    if (n === 'NotAllowedError') return GS.t('Kebenaran kamera ditolak. Benarkan kamera untuk laman ini dalam tetapan pelayar.');
+    if (n === 'NotFoundError' || n === 'OverconstrainedError') return GS.t('Peranti tidak dijumpai. Pastikan ia disambung dan cuba pilih semula.');
+    return (e && (e.message || e.name)) || '';
   };
 
   /* pilih peranti + buka. kind: 'capture' | 'camera' | 'screen' */
@@ -122,7 +156,7 @@
     try {
       devs = await M.listVideoDevices();
     } catch (e) {
-      GS.toast(GS.t('Tiada akses ke kamera/capture card: {0}', GS.t(e.message || e.name)), 'warn');
+      GS.toast(GS.t('Tiada akses ke kamera/capture card: {0}', M.deviceError(e)), 'warn');
       return false;
     }
     if (!devs.length) {
@@ -144,7 +178,7 @@
               m.close();
               finish(true);
             } catch (e) {
-              GS.toast(GS.t('Gagal buka peranti: {0}', e.message || e.name), 'warn');
+              GS.toast(GS.t('Gagal buka peranti: {0}', M.deviceError(e)), 'warn');
             }
           },
         }, GS.h('span', { html: GS.icon(kind === 'capture' ? 'monitor' : 'camera', 16) }), GS.h('span', null, d.label || GS.t('Peranti video {0}', i + 1)))));

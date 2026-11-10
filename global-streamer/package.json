@@ -23,6 +23,7 @@
     "test:tourney": "node scripts/test-tourney.js",
     "test:reconnect": "node scripts/test-reconnect.js",
     "test:chat": "node scripts/test-chat.js",
+    "test:icons": "node scripts/test-icons.js",
     "release:stage": "node scripts/release-stage.js"
   },
   "dependencies": {
@@ -59,14 +60,18 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Global Streamer"
+      "shortcutName": "Global Streamer",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     },
     "extraResources": [
       {

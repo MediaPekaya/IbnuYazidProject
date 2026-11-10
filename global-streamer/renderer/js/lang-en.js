@@ -354,6 +354,15 @@
     'Versi web sentiasa terkini. Kemas kini automatik tersedia dalam app Windows.': 'The web version is always up to date. Automatic updates are available in the Windows app.',
     'Semak kemas kini secara automatik': 'Check for updates automatically', 'Mulakan semula dan pasang': 'Restart and install',
 
+
+    'Top Pick Hero': 'Top Pick Hero', 'Top Ban Hero': 'Top Ban Hero', 'Meta': 'Meta',
+
+
+    /* ---- ralat peranti ---- */
+    'Peranti sedang digunakan oleh app atau tab lain (OBS, Zoom, Teams, tab pelayar lain). Tutup yang lain, atau pilih peranti yang sama pada sumber lain dalam app ini (ia akan berkongsi aliran).': 'The device is in use by another app or tab (OBS, Zoom, Teams, another browser tab). Close the other one, or choose the same device on another source in this app (it will share the stream).',
+    'Kebenaran kamera ditolak. Benarkan kamera untuk laman ini dalam tetapan pelayar.': 'Camera permission was denied. Allow the camera for this site in the browser settings.',
+    'Peranti tidak dijumpai. Pastikan ia disambung dan cuba pilih semula.': 'Device not found. Make sure it is connected and try choosing it again.',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

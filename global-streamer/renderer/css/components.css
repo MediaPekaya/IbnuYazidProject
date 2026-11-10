@@ -254,7 +254,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 11px; padding: 
 .auth-gate.in .auth-card { transform: none; }
 .auth-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--grad-loop); background-size: 300% 100%; animation: shift 7s linear infinite; }
 .auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.auth-brand .brand-logo { width: 38px; height: 38px; }
+.auth-brand .brand-logo { width: 52px; height: 52px; }
 .auth-card h2 { font-size: 20px; font-weight: 800; letter-spacing: 0.04em; }
 .auth-form { display: flex; flex-direction: column; gap: 8px; }
 .btn.google { width: 100%; background: rgba(255, 255, 255, 0.95); color: #1a2438; border: 0; padding: 10px; }

@@ -210,6 +210,26 @@
     setTimeout(() => inp.remove(), 60000);
   };
 
+  /** Pastikan widget "Meta Tournament" (Top Pick Hero / Top Ban Hero) wujud dan KELIHATAN pada setiap scene.
+   *  Dilakukan sekali sahaja untuk scene sedia ada (supaya padam oleh pengguna kekal padam). */
+  S.seedMetaBoard = function () {
+    const st = GS.state;
+    if (st.metaSeeded) return;
+    const game = GS.games[st.game] || GS.games.mlbb;
+    let added = false;
+    st.scenes.forEach((sc) => {
+      if (sc.sources.some((s) => s.type === 'widget' && s.props.widget === 'metaboard')) return;
+      const tpl = game && game.templates.find((t) => t.id === sc.templateId);
+      let spec = null;
+      if (tpl) { const w = tpl.build().find((s) => s.props && s.props.widget === 'metaboard'); if (w) spec = [w.x, w.y, w.w, w.h]; }
+      if (!spec) spec = GS.orient() === 'portrait' ? [470, 30, 470, 260] : [940, 16, 490, 250];
+      sc.sources.push(mk('widget', 'Meta Tournament', spec[0], spec[1], spec[2], spec[3], { widget: 'metaboard' }));
+      added = true;
+    });
+    st.metaSeeded = 1;
+    if (added) changed(); else GS.save();
+  };
+
   S.addText = () => addSource(mk('text', 'Teks', 100, 100, 900, 90, { text: 'Teks baharu', size: 64, color: '#eaf4ff', weight: 800 }));
 
   const widgetDefs = {

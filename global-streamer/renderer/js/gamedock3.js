@@ -114,8 +114,8 @@
       body.innerHTML = '';
       const opt = { lane: lane || undefined, n: 8 };
       body.append(
-        leaderboard('Top Pick', M.top('pick', opt), (x) => ({ bar: x.p, text: x.p + ' · ' + pct(x.pickRate) }), Math.max(1, ...M.top('pick', opt).map((x) => x.p))),
-        leaderboard('Top Ban', M.top('ban', opt), (x) => ({ bar: x.b, text: x.b + ' · ' + pct(x.banRate) }), Math.max(1, ...M.top('ban', opt).map((x) => x.b))),
+        leaderboard('Top Pick Hero', M.top('pick', opt), (x) => ({ bar: x.p, text: x.p + ' · ' + pct(x.pickRate) }), Math.max(1, ...M.top('pick', opt).map((x) => x.p))),
+        leaderboard('Top Ban Hero', M.top('ban', opt), (x) => ({ bar: x.b, text: x.b + ' · ' + pct(x.banRate) }), Math.max(1, ...M.top('ban', opt).map((x) => x.b))),
         leaderboard('Kadar Menang Tertinggi (min. 15 pick)', M.top('wr', opt), (x) => ({ bar: x.wr - 0.3, text: pct(x.wr) + ' · ' + x.p }), 0.4),
         leaderboard('Pick + Ban (kehadiran)', M.top('pb', opt), (x) => ({ bar: x.presence, text: pct(x.presence) }), 1));
       body.append(h('div', { class: 'gd-sec' }, h('h4', null, 'Tournament dalam skop'),
@@ -131,7 +131,8 @@
       h('p', { class: 'muted note' }, 'Data tournament hanya berubah selepas game selesai. App menyemak fail data setiap 5 minit; fail itu dikemas kini oleh pengumpul pusat, bukan terus daripada app anda.'),
       credit());
     draw();
-    metaCb = () => { scopeSel.value = GS.meta.scope; draw(); };
+    // berdiri sendiri: boleh dipaparkan serentak dalam tab Meta (panel kanan) dan Game > Meta
+    const off = GS.on('meta:updated', () => { if (!root.isConnected) { off(); return; } scopeSel.value = GS.meta.scope; draw(); });
   }
 
   /* ============ Item ============ */
@@ -280,5 +281,6 @@
   /* gantikan tab lama, dan tambah tab data */
   D.extra = (D.extra || []).map((e) => (e[0] === 'draft' ? ['draft', 'Draft', draft] : e));
   D.override = { heroes, meta };
+  D.metaPage = meta;
   D.tail = [['tourney', 'Turnamen', (root) => GS.tourneyui.page(root)], ['auto', 'Auto', (root) => GS.eventsui.page(root)], ['items', 'Item', itemsPage], ['emblems', 'Emblem', emblemsPage]];
 })();
