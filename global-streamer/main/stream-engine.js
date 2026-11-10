@@ -373,4 +373,4 @@ class StreamEngine {
   }
 }
 
-module.exports = { StreamEngine, URL_RE, redact, ENCODERS, availableEncoders };
+module.exports = { StreamEngine, URL_RE, redact, ENCODERS, availableEncoders, ffmpegBinary };

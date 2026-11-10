@@ -96,14 +96,14 @@
     scenes: [],
     programId: null,
     previewId: null,
-    settings: { orientation: 'portrait', width: 1080, height: 1920, fps: 30, vbitrate: 5000, abitrate: 160, encoder: 'auto', transition: 'fade', transitionMs: 500 },
+    settings: { orientation: 'portrait', width: 1080, height: 1920, fps: 30, vbitrate: 5000, abitrate: 160, encoder: 'auto', transition: 'fade', transitionMs: 500, recMode: 'program', recSystemAudio: false, recMinimize: true },
     platforms: {
       tiktok: { enabled: false, server: '' },
       facebook: { enabled: false, server: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
       youtube: { enabled: false, server: 'rtmp://a.rtmp.youtube.com/live2' },
       custom: { enabled: false, server: '' },
     },
-    audio: { channels: [] },
+    audio: { channels: [], voiceClean: true, sfxInStream: false },
     winloss: { win: 0, loss: 0, streak: 0 },
     voice: {
       enabled: false, culture: 'auto', minConf: 0.5, cooldownMs: 3000,

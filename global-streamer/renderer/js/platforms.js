@@ -7,22 +7,26 @@
   P.defs = {
     tiktok: {
       name: 'TikTok LIVE', color: '#25f4ee',
-      serverHint: 'Tampal "Server URL" daripada TikTok LIVE Studio / Pusat LIVE (akaun perlu layak LIVE).',
-      keyHint: 'Stream Key daripada TikTok.',
+      needsServer: true,
+      serverHint: 'WAJIB. Tampal "Server URL" daripada TikTok LIVE Studio / Pusat LIVE (akaun perlu layak LIVE).',
+      keyHint: 'WAJIB. Stream Key daripada TikTok. TikTok memerlukan kedua-dua Server URL dan Stream Key.',
     },
     facebook: {
       name: 'Facebook Live', color: '#4c8dff',
-      serverHint: 'Biasanya rtmps://live-api-s.facebook.com:443/rtmp/',
-      keyHint: 'Stream Key daripada Facebook Live Producer.',
+      defaultServer: 'rtmps://live-api-s.facebook.com:443/rtmp/',
+      serverHint: 'Pilihan: dibiarkan kosong = guna lalai rtmps://live-api-s.facebook.com:443/rtmp/',
+      keyHint: 'Hanya Stream Key diperlukan. Daripada Facebook Live Producer.',
     },
     youtube: {
       name: 'YouTube Live', color: '#ff4b4b',
-      serverHint: 'Biasanya rtmp://a.rtmp.youtube.com/live2',
-      keyHint: 'Stream Key daripada YouTube Studio > Siaran Langsung.',
+      defaultServer: 'rtmp://a.rtmp.youtube.com/live2',
+      serverHint: 'Pilihan: dibiarkan kosong = guna lalai rtmp://a.rtmp.youtube.com/live2',
+      keyHint: 'Hanya Stream Key diperlukan. Daripada YouTube Studio > Siaran Langsung.',
     },
     custom: {
       name: 'RTMP Lain', color: '#9a7bff',
-      serverHint: 'Mana-mana server RTMP / RTMPS (cth Kick, Twitch, Shopee Live).',
+      needsServer: true,
+      serverHint: 'WAJIB. Mana-mana server RTMP / RTMPS (cth Kick, Twitch, Shopee Live).',
       keyHint: 'Stream Key.',
     },
   };
@@ -46,13 +50,20 @@
     if (P.native()) window.gsNative.vault.set(id, v).catch(() => {});
   };
 
+  /** Server yang digunakan: yang diisi pengguna, jika tidak lalai platform (YouTube/Facebook). */
+  P.serverFor = function (id) {
+    const cfg = GS.state.platforms[id];
+    return ((cfg.server || '').trim() || (P.defs[id].defaultServer || '')).trim();
+  };
+
   P.validate = function (id) {
     const cfg = GS.state.platforms[id];
     if (!cfg.enabled) return { ok: false, off: true, msg: 'Tidak digunakan' };
-    const server = (cfg.server || '').trim();
+    const server = P.serverFor(id);
     const key = P.getKey(id).trim();
+    if (!server) return { ok: false, msg: 'Server URL belum diisi (diperlukan oleh platform ini)' };
     if (!/^rtmps?:\/\/\S+$/i.test(server)) return { ok: false, msg: 'Server URL mesti bermula dengan rtmp:// atau rtmps://' };
-    if (!key) return { ok: false, msg: 'Stream key belum diisi' };
+    if (!key) return { ok: false, msg: P.defs[id].needsServer ? 'Stream key belum diisi (Server URL dan Stream Key wajib)' : 'Stream key belum diisi' };
     if (/\s/.test(key)) return { ok: false, msg: 'Stream key tidak boleh mengandungi ruang' };
     return { ok: true, msg: 'Sedia' };
   };
@@ -62,7 +73,7 @@
     P.order.filter((id) => P.validate(id).ok).map((id) => ({
       id,
       name: P.defs[id].name,
-      url: GS.state.platforms[id].server.trim().replace(/\/+$/, '') + '/' + P.getKey(id).trim(),
+      url: P.serverFor(id).replace(/\/+$/, '') + '/' + P.getKey(id).trim(),
     }));
 
   /* kad platform (digunakan dalam wizard) */
@@ -79,10 +90,14 @@
         if (onChange) onChange();
       };
       const keyInput = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'Stream key', value: P.getKey(id), 'aria-label': GS.t('Stream key {0}', GS.t(def.name)),
-        onInput: (e) => { P.setKey(id, e.target.value); upd(); } });
-      const toggle = h('label', { class: 'switch' },
-        h('input', { type: 'checkbox', checked: cfg.enabled, onChange: (e) => { cfg.enabled = e.target.checked; GS.save(); upd(); } }),
-        h('i'));
+        onInput: (e) => {
+          P.setKey(id, e.target.value);
+          // memasukkan key = mahu guna platform ini (tidak perlu menghidupkan suis lagi)
+          if (e.target.value.trim() && !cfg.enabled) { cfg.enabled = true; toggleIn.checked = true; GS.save(); }
+          upd();
+        } });
+      const toggleIn = h('input', { type: 'checkbox', checked: cfg.enabled, onChange: (e) => { cfg.enabled = e.target.checked; GS.save(); upd(); } });
+      const toggle = h('label', { class: 'switch' }, toggleIn, h('i'));
       const card = h('div', { class: 'pf-card' + (cfg.enabled ? ' on' : ''), style: { '--pf': def.color } },
         h('div', { class: 'pf-head' },
           h('span', { class: 'pf-dot' }),
@@ -90,10 +105,10 @@
           status,
           toggle),
         h('div', { class: 'pf-body' },
-          h('label', { class: 'field' }, h('span', null, 'Server URL'),
-            h('input', { type: 'text', spellcheck: 'false', placeholder: 'rtmp://…', value: cfg.server || '', onInput: (e) => { cfg.server = e.target.value; GS.save(); upd(); } }),
+          h('label', { class: 'field' }, h('span', null, def.needsServer ? 'Server URL (wajib)' : 'Server URL (pilihan)'),
+            h('input', { type: 'text', spellcheck: 'false', placeholder: def.defaultServer || 'rtmp://…', value: cfg.server || '', onInput: (e) => { cfg.server = e.target.value; GS.save(); upd(); } }),
             h('small', null, def.serverHint)),
-          h('label', { class: 'field' }, h('span', null, 'Stream Key'),
+          h('label', { class: 'field' }, h('span', null, def.needsServer ? 'Stream Key (wajib)' : 'Stream Key (wajib, sahaja ini perlu)'),
             h('div', { class: 'key-row' }, keyInput,
               h('button', { type: 'button', class: 'icon-btn', title: 'Tunjuk / sembunyi key', onClick: () => { keyInput.type = keyInput.type === 'password' ? 'text' : 'password'; }, html: icon('eye', 16) })),
             h('small', null, def.keyHint))));

@@ -37,10 +37,11 @@
     $('#btnSetup').addEventListener('click', () => GS.live.openWizard(0));
     $('#btnLive').addEventListener('click', () => {
       GS.audio.ensure();
-      if (GS.live.state === 'idle') GS.live.openWizard(hasConfig() ? 3 : 0);
+      if (GS.live.state === 'idle') GS.live.quickStart();
       else if (confirm(GS.t('Tamatkan siaran langsung sekarang?'))) GS.live.stop();
     });
     $('#btnRec').addEventListener('click', () => { GS.audio.ensure(); GS.rec.toggle(); });
+    $('#btnRecMode').addEventListener('click', () => GS.rec.openMenu());
     $('#btnSettings').addEventListener('click', GS.live.openSettings);
     const ls = GS.i18n.switcher();
     ls.id = 'langSwitch';

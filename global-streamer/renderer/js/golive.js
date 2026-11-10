@@ -22,39 +22,142 @@
     return new MediaRecorder(stream, { mimeType: pickMime(), videoBitsPerSecond: s.vbitrate * 1000, audioBitsPerSecond: s.abitrate * 1000 });
   }
 
-  /* ---------- rakaman tempatan ---------- */
-  let recorder = null, recChunks = [];
+  /* ---------- rakaman tempatan ----------
+   * Mod: 'program' = apa yang penonton nampak; 'screen' = SELURUH skrin (semua aplikasi di luar app ini juga dirakam, app ini boleh
+   * dikecilkan/ditinggalkan); 'window' = satu tetingkap tertentu. Audio: mixer (mikrofon yang dibersihkan, bunyi game, suara bot)
+   * dan, jika dipilih, bunyi komputer. Bunyi efek (beep) tidak dirakam secara lalai supaya suara kekal jelas. */
+  let recorder = null, recChunks = [], recCleanup = null, recChain = Promise.resolve(), recToDisk = false;
+  R.modes = { program: 'Paparan penonton (Program)', screen: 'Seluruh skrin (semua aplikasi)', window: 'Satu tetingkap' };
+  R.mode = () => (R.modes[GS.state.settings.recMode] ? GS.state.settings.recMode : 'program');
   R.toggle = function () { return R.active ? R.stop() : R.start(); };
-  R.start = function () {
-    if (!window.MediaRecorder) { GS.toast('Pelayar tidak menyokong rakaman.', 'warn'); return; }
-    try {
-      recChunks = [];
-      recorder = makeRecorder(outputStream());
-      recorder.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.push(e.data); };
-      recorder.onstop = () => {
-        const blob = new Blob(recChunks, { type: 'video/webm' });
-        recChunks = [];
-        const d = new Date();
-        const name = 'GlobalStreamer-' + d.getFullYear() + GS.pad(d.getMonth() + 1) + GS.pad(d.getDate()) + '-' + GS.pad(d.getHours()) + GS.pad(d.getMinutes()) + '.webm';
-        const a = h('a', { href: URL.createObjectURL(blob), download: name });
-        document.body.append(a);
-        a.click();
-        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-        GS.toast(GS.t('Rakaman disimpan: {0}', name), 'ok');
-      };
-      recorder.start(1000);
-      R.active = true;
-      R.startedAt = Date.now();
-      render();
-    } catch (e) {
-      GS.toast(GS.t('Gagal mula rakaman: {0}', e.message), 'warn');
+
+  /** Aliran video+audio untuk mod yang dipilih. Mengembalikan {stream, cleanup}. */
+  async function recordingSource(mode) {
+    GS.audio.ensure();
+    if (mode === 'program') return { stream: outputStream(), cleanup() { /* tiada */ } };
+    const A = GS.audio, st = GS.state.settings;
+    const sysAudio = !!st.recSystemAudio;
+    if (native() && window.gsNative.sources) {
+      let id = '';
+      if (mode === 'screen') {
+        const list = await window.gsNative.sources.list();
+        const screens = list.filter((x) => x.kind === 'screen');
+        id = screens.length === 1 ? screens[0].id : await GS.media.pickScreen({ screensOnly: true });
+      } else id = await GS.media.pickScreen({ windowOnly: true });
+      if (!id) { const e = new Error('dibatalkan'); e.name = 'NotAllowedError'; throw e; }
+      await window.gsNative.sources.select(id, { audio: sysAudio });
     }
+    const vc = { frameRate: { ideal: 30, max: 60 }, displaySurface: mode === 'screen' ? 'monitor' : 'window' };
+    const dm = await navigator.mediaDevices.getDisplayMedia({ video: vc, audio: sysAudio });
+    const vtrack = dm.getVideoTracks()[0];
+    const mix = A.ctx.createMediaStreamDestination();
+    A.master.connect(mix);                       // campuran mixer (mikrofon, game, suara bot)
+    let sys = null;
+    const at = dm.getAudioTracks();
+    if (at.length) { sys = A.ctx.createMediaStreamSource(new MediaStream(at)); sys.connect(mix); }   // bunyi komputer
+    vtrack.addEventListener('ended', () => { if (R.active) R.stop(); });   // pengguna menghentikan perkongsian melalui OS
+    return {
+      stream: new MediaStream([vtrack, ...mix.stream.getAudioTracks()]),
+      cleanup() { try { A.master.disconnect(mix); } catch (e) { /* abaikan */ } try { if (sys) sys.disconnect(); } catch (e) { /* abaikan */ } dm.getTracks().forEach((t) => t.stop()); },
+    };
+  }
+
+  function makeScreenRecorder(stream) {
+    const s = GS.state.settings;
+    const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
+    return new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000, audioBitsPerSecond: Math.max(192, s.abitrate || 160) * 1000 });
+  }
+
+  R.start = async function (modeArg) {
+    if (!window.MediaRecorder) { GS.toast('Pelayar tidak menyokong rakaman.', 'warn'); return false; }
+    if (R.active || R.busy) return false;
+    const mode = modeArg || R.mode();
+    R.busy = true;
+    try {
+      const src = await recordingSource(mode);
+      recCleanup = src.cleanup;
+      recChunks = []; recChain = Promise.resolve();
+      recorder = mode === 'program' ? makeRecorder(src.stream) : makeScreenRecorder(src.stream);
+      recToDisk = false;
+      if (native() && window.gsNative.rec) {
+        const o = await window.gsNative.rec.open();
+        if (!o || !o.ok) { src.cleanup(); throw new Error((o && o.error) || 'tidak dapat membuka fail rakaman'); }
+        recToDisk = true; R.file = o.file;
+      }
+      recorder.ondataavailable = (e) => {
+        if (!e.data || !e.data.size) return;
+        if (recToDisk) recChain = recChain.then(() => e.data.arrayBuffer()).then((b) => window.gsNative.rec.chunk(b)).catch(() => {});
+        else recChunks.push(e.data);
+      };
+      recorder.onstop = () => finishRecording(mode);
+      recorder.start(1000);
+      R.active = true; R.mode_ = mode; R.startedAt = Date.now();
+      render();
+      if (native() && mode !== 'program' && window.gsNative.rec) {
+        window.gsNative.rec.bar(true);                                  // bar REC sentiasa di atas (tidak dirakam)
+        if (GS.state.settings.recMinimize && window.gsNative.win) setTimeout(() => window.gsNative.win.minimize(), 700);
+      }
+      GS.toast(GS.t('Merakam: {0}', GS.t(R.modes[mode])), 'ok', 3500);
+      return true;
+    } catch (e) {
+      if (recCleanup) { try { recCleanup(); } catch (e2) { /* abaikan */ } recCleanup = null; }
+      if (!(e && e.name === 'NotAllowedError')) GS.toast(GS.t('Gagal mula rakaman: {0}', e.message), 'warn');
+      return false;
+    } finally { R.busy = false; }
   };
+
+  async function finishRecording(mode) {
+    R.active = false;
+    try { if (recCleanup) recCleanup(); } catch (e) { /* abaikan */ }
+    recCleanup = null;
+    if (native() && window.gsNative.rec) { window.gsNative.rec.bar(false); if (window.gsNative.win) window.gsNative.win.restore(); }
+    render();
+    if (recToDisk) {
+      await recChain;
+      GS.toast(GS.t('Menyimpan rakaman…'), 'info', 2500);
+      const r = await window.gsNative.rec.close();
+      if (r && r.ok) { GS.toast(GS.t('Rakaman disimpan: {0}', r.file), 'ok', 9000); window.gsNative.rec.reveal(r.file); R.lastFile = r.file; }
+      else GS.toast(GS.t('Gagal simpan rakaman: {0}', (r && r.error) || ''), 'warn');
+      return;
+    }
+    const blob = new Blob(recChunks, { type: 'video/webm' });
+    recChunks = [];
+    const d = new Date();
+    const name = 'GlobalStreamer-' + d.getFullYear() + GS.pad(d.getMonth() + 1) + GS.pad(d.getDate()) + '-' + GS.pad(d.getHours()) + GS.pad(d.getMinutes()) + '.webm';
+    const a = h('a', { href: URL.createObjectURL(blob), download: name });
+    document.body.append(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    GS.toast(GS.t('Rakaman disimpan: {0}', name), 'ok');
+  }
+
   R.stop = function () {
     if (recorder && recorder.state !== 'inactive') recorder.stop();
-    R.active = false;
-    render();
+    else if (R.active) finishRecording(R.mode_);
   };
+
+  /** Menu pilihan rakaman (di sebelah butang REC). */
+  R.openMenu = function () {
+    GS.$$('.popover').forEach((p) => p.remove());
+    const st = GS.state.settings;
+    const pop = h('div', { class: 'popover rec-pop', role: 'menu' });
+    const item = (label, sub, on, run) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { close(); run(); } },
+      h('span', null, GS.t(label), sub ? h('small', null, GS.t(sub)) : null));
+    const cur = R.mode();
+    ['program', 'screen', 'window'].forEach((m) => pop.append(item(R.modes[m], { program: 'Apa yang penonton nampak, dengan template dan efek', screen: 'Semua yang ada pada skrin: buka mana-mana aplikasi, YouTube, presentation', window: 'Hanya satu aplikasi/tetingkap yang dipilih' }[m], cur === m, () => { st.recMode = m; GS.save(); render(); })));
+    pop.append(h('hr'));
+    pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain (guna fon kepala supaya tidak berdengung dengan mikrofon)', !!st.recSystemAudio, () => { st.recSystemAudio = !st.recSystemAudio; GS.save(); }));
+    pop.append(item('Kecilkan Global Streamer semasa rakam skrin', 'Bar REC kecil sentiasa di atas: tekan "Henti & simpan" bila siap', !!st.recMinimize, () => { st.recMinimize = !st.recMinimize; GS.save(); }));
+    document.body.append(pop);
+    const anchor = GS.$('#btnRecMode'), r = anchor.getBoundingClientRect(), pr = pop.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.right - pr.width)) + 'px';
+    pop.style.top = (r.bottom + 8) + 'px';
+    requestAnimationFrame(() => pop.classList.add('in'));
+    function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 200); document.removeEventListener('pointerdown', away, true); }
+    function away(ev) { if (!pop.contains(ev.target) && ev.target !== anchor) close(); }
+    setTimeout(() => document.addEventListener('pointerdown', away, true), 0);
+  };
+  if (window.gsNative && window.gsNative.rec) window.gsNative.rec.onStopRequest(() => R.stop());
 
   /* ---------- siaran ---------- */
   L.start = async function () {
@@ -99,6 +202,21 @@
       GS.toast(GS.t('Gagal mula siaran: {0}', e.message), 'warn', 6000);
       return false;
     }
+  };
+
+  /** Butang MULA LIVE: jika platform yang dihidupkan sudah lengkap (key dimasukkan), terus live tanpa wizard.
+   *  Jika belum lengkap, wizard dibuka pada langkah platform dengan senarai yang kurang. */
+  L.quickStart = async function () {
+    GS.audio.ensure();
+    const enabled = GS.platforms.enabledIds();
+    const bad = enabled.filter((id) => !GS.platforms.validate(id).ok);
+    if (!enabled.length || bad.length) {
+      if (bad.length) GS.toast(bad.map((id) => GS.t(GS.platforms.defs[id].name) + ': ' + GS.t(GS.platforms.validate(id).msg)).join(' · '), 'warn', 6500);
+      L.openWizard(2); // langkah Platform: URL dan key
+      return false;
+    }
+    if (!GS.state.templateId) { L.openWizard(1); return false; }
+    return L.start();
   };
 
   L.stop = async function () {
@@ -195,6 +313,8 @@
     live.innerHTML = on ? icon('stop', 16) + '<span>' + GS.t(L.state === 'connecting' ? 'MENYAMBUNG…' : 'TAMAT LIVE') + '</span>' : icon('play', 16) + '<span>' + GS.t('MULA LIVE') + '</span>';
     rec.classList.toggle('rec', R.active);
     rec.innerHTML = icon(R.active ? 'stop' : 'rec', 16) + '<span>' + (R.active ? 'STOP REC' : 'REC') + '</span>';
+    rec.title = R.active ? GS.t('Henti dan simpan rakaman') : GS.t('Rakam: {0}', GS.t(R.modes[R.mode()]));
+    const rm = GS.$('#btnRecMode'); if (rm) { rm.disabled = R.active; rm.classList.toggle('rec', R.active); }
     const chips = GS.$('#platformChips');
     chips.innerHTML = '';
     Object.keys(L.status).forEach((id) => {
@@ -364,6 +484,13 @@
         h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']])),
         h('label', { class: 'field span2' }, h('span', null, 'Pengekod video (app Windows)'), sel('encoder', [['auto', 'Auto (GPU jika ada, sandaran CPU)'], ['x264', 'CPU (x264)'], ['nvenc', 'NVIDIA NVENC'], ['qsv', 'Intel Quick Sync'], ['amf', 'AMD AMF']], String))),
       h('p', { class: 'muted note' }, 'TikTok dan Facebook biasanya menghadkan 1080p. 4K hanya sesuai untuk YouTube dan memerlukan PC yang kuat.'),
+      h('h3', null, 'Audio dan rakaman'),
+      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'optVoiceClean', checked: GS.state.audio.voiceClean !== false, onChange: (e) => {
+        GS.state.audio.voiceClean = e.target.checked; GS.save();
+        GS.audio.channels.forEach((c) => { if (c.kind === 'input' && c.stream) GS.audio.connectDevice(c.id, c.deviceId, true); }); // guna semula dengan/ tanpa penapis
+      } }), 'Suara jelas: tapis bunyi latar, gema dan kelantangan mikrofon (disyorkan)'),
+      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'optSfxStream', checked: !!GS.state.audio.sfxInStream, onChange: (e) => { GS.state.audio.sfxInStream = e.target.checked; GS.save(); GS.audio.applyRouting(); } }), 'Masukkan bunyi efek (beep) ke dalam siaran dan rakaman'),
+      h('p', { class: 'muted note' }, 'Lalai: bunyi efek hanya didengar oleh anda, supaya suara dalam siaran dan rakaman kekal jelas. Suara bot/pengumum sentiasa masuk. Jika anda menggunakan pembesar suara (bukan fon kepala), mikrofon boleh menangkap bunyi dari pembesar suara dan menyebabkan suara bergema; gunakan fon kepala untuk kejelasan terbaik.'),
       GS.updater.section(),
       h('h3', null, 'Peralihan scene (Mod Studio)'),
       h('div', { class: 'grid2' },

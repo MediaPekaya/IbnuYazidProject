@@ -123,6 +123,7 @@
   /** Pemilih skrin/tetingkap (app Windows): kisi bergambar kecil; kembalikan id sumber atau '' jika dibatalkan. */
   M.pickScreen = async function (opts) {
     const windowOnly = !!(opts && opts.windowOnly);
+    const screensOnly = !!(opts && opts.screensOnly);
     let list;
     try { list = await window.gsNative.sources.list(); } catch (e) { GS.toast(GS.t('Gagal kongsi skrin: {0}', GS.t(e.message)), 'warn'); return ''; }
     if (!list.length) { GS.toast(GS.t('Tiada skrin atau tetingkap dijumpai.'), 'warn'); return ''; }
@@ -130,6 +131,7 @@
       let done = false;
       const finish = (id, m) => { if (done) return; done = true; if (m) m.close(); resolve(id); };
       let tab = windowOnly ? 'window' : 'screen';
+      if (screensOnly) list = list.filter((x) => x.kind === 'screen');
       const grid = GS.h('div', { class: 'src-grid' });
       const draw = () => {
         grid.innerHTML = '';
@@ -137,10 +139,10 @@
           s.thumb ? GS.h('img', { src: s.thumb, alt: '' }) : GS.h('div', { class: 'src-empty' }, GS.icon('monitor', 28)), GS.h('span', null, s.name))));
         if (!grid.children.length) grid.append(GS.h('div', { class: 'empty' }, GS.t('Tiada paparan.')));
       };
-      const tabs = windowOnly ? GS.h('p', { class: 'muted' }, 'Pilih app atau game yang mahu dipaparkan (cth Steam atau game anda). Hanya tetingkap itu yang disiarkan; paparan lain tidak kelihatan. Biarkan tetingkap itu terbuka (jangan diminimumkan).') : GS.h('div', { class: 'subtabs' }, [['screen', 'Skrin'], ['window', 'Tetingkap']].map(([k, l]) =>
+      const tabs = screensOnly ? GS.h('p', { class: 'muted' }, 'Pilih skrin (monitor) yang mahu dirakam. Semua aplikasi yang dibuka pada skrin itu akan dirakam.') : windowOnly ? GS.h('p', { class: 'muted' }, 'Pilih app atau game yang mahu dipaparkan (cth Steam atau game anda). Hanya tetingkap itu yang disiarkan; paparan lain tidak kelihatan. Biarkan tetingkap itu terbuka (jangan diminimumkan).') : GS.h('div', { class: 'subtabs' }, [['screen', 'Skrin'], ['window', 'Tetingkap']].map(([k, l]) =>
         GS.h('button', { class: 'subtab' + (k === tab ? ' on' : ''), 'data-tab': k, onClick: (e) => { tab = k; GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b === e.currentTarget)); draw(); } }, l)));
       draw();
-      const modal = GS.modal({ title: windowOnly ? 'Pilih tetingkap game / app PC' : 'Pilih skrin atau tetingkap', body: GS.h('div', null, tabs, grid), wide: true, onClose: () => finish('', null) });
+      const modal = GS.modal({ title: screensOnly ? 'Pilih skrin untuk dirakam' : windowOnly ? 'Pilih tetingkap game / app PC' : 'Pilih skrin atau tetingkap', body: GS.h('div', null, tabs, grid), wide: true, onClose: () => finish('', null) });
     });
   };
 

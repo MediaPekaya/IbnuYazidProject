@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('gsNative', {
   },
   sources: {
     list: () => ipcRenderer.invoke('sources:list'),
-    select: (id) => ipcRenderer.invoke('sources:select', id),
+    select: (id, opts) => ipcRenderer.invoke('sources:select', id, opts),
   },
   app: {
     info: () => ipcRenderer.invoke('app:info'),
@@ -23,6 +23,18 @@ contextBridge.exposeInMainWorld('gsNative', {
     installUpdate: () => ipcRenderer.invoke('update:install'),
     enableUpdate: (on) => ipcRenderer.invoke('update:enable', on),
     onUpdate: (cb) => ipcRenderer.on('update:event', (_e, d) => cb(d)),
+  },
+  rec: {
+    open: () => ipcRenderer.invoke('rec:open'),
+    chunk: (buf) => ipcRenderer.send('rec:chunk', buf),
+    close: () => ipcRenderer.invoke('rec:close'),
+    reveal: (f) => ipcRenderer.invoke('rec:reveal', f),
+    bar: (on) => ipcRenderer.invoke('rec:bar', on),
+    onStopRequest: (cb) => ipcRenderer.on('rec:stop-request', () => cb()),
+  },
+  win: {
+    minimize: () => ipcRenderer.invoke('app:minimize'),
+    restore: () => ipcRenderer.invoke('app:restore'),
   },
   voice: {
     available: () => ipcRenderer.invoke('voice:available'),

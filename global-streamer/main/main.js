@@ -7,6 +7,7 @@ const fs = require('fs');
 const { StreamEngine } = require('./stream-engine');
 const { openLink } = require('./open-link');
 const { VoiceHost } = require('./voice-win');
+const { execFile } = require('child_process');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -38,6 +39,7 @@ ipcMain.handle('vault:set', (_e, id, value) => {
 
 /* ---------- pemilih skrin / tetingkap ---------- */
 let pendingSource = '';
+let pendingAudio = false;
 const SRC_ID = /^(screen|window):\d+:\d+$/;
 ipcMain.handle('sources:list', async () => {
   const all = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: false });
@@ -46,9 +48,10 @@ ipcMain.handle('sources:list', async () => {
   const keep = all.filter((s) => s.id.startsWith('screen:') || (String(s.name || '').trim() && s.name !== own));
   return keep.slice(0, 60).map((s) => ({ id: s.id, name: String(s.name || '').slice(0, 120), kind: s.id.startsWith('screen:') ? 'screen' : 'window', thumb: s.thumbnail && !s.thumbnail.isEmpty() ? s.thumbnail.toDataURL() : '' }));
 });
-ipcMain.handle('sources:select', (_e, id) => {
+ipcMain.handle('sources:select', (_e, id, opts) => {
   if (id && !SRC_ID.test(String(id))) return false;
   pendingSource = id ? String(id) : '';
+  pendingAudio = !!(opts && opts.audio); // bunyi komputer (loopback Windows) bersama tangkapan skrin
   return true;
 });
 
@@ -61,6 +64,63 @@ ipcMain.on('voice:pcm', (_e, source, data) => { if (data && data.byteLength && d
 ipcMain.handle('voice:say', async (_e, text, opts) => {
   try { const wav = await voice.say(text, opts && typeof opts === 'object' ? opts : {}); return { ok: true, wav: new Uint8Array(wav) }; } catch (e) { return { ok: false, error: String((e && e.message) || e).slice(0, 200) }; }
 });
+
+/* ---------- rakaman: ditulis terus ke cakera (tidak memenuhi RAM), kemudian dibetulkan tempoh/carian ---------- */
+let recStream = null, recFile = '';
+const recDir = () => path.join(app.getPath('videos'), 'GlobalStreamer');
+ipcMain.handle('rec:open', () => {
+  try {
+    if (recStream) { try { recStream.end(); } catch (e) { /* abaikan */ } recStream = null; }
+    fs.mkdirSync(recDir(), { recursive: true });
+    const d = new Date(), p2 = (n) => String(n).padStart(2, '0');
+    recFile = path.join(recDir(), 'GlobalStreamer-' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.webm');
+    recStream = fs.createWriteStream(recFile);
+    return { ok: true, file: recFile };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+});
+ipcMain.on('rec:chunk', (_e, buf) => { if (recStream && buf && buf.byteLength && buf.byteLength <= 128 * 1024 * 1024) recStream.write(Buffer.from(buf)); });
+ipcMain.handle('rec:close', async () => {
+  if (!recStream) return { ok: false, error: 'tiada rakaman' };
+  const st = recStream, f = recFile;
+  recStream = null;
+  await new Promise((r) => st.end(r));
+  const tmp = f.replace(/\.webm$/, '.fix.webm');
+  try {
+    // betulkan tempoh dan penunjuk carian (tanpa pengekodan semula, beberapa saat)
+    await new Promise((res, rej) => execFile(require('./stream-engine').ffmpegBinary(), ['-y', '-v', 'error', '-i', f, '-c', 'copy', tmp], { timeout: 600000, windowsHide: true }, (e) => (e ? rej(e) : res())));
+    if (fs.existsSync(tmp) && fs.statSync(tmp).size > 0) fs.renameSync(tmp, f);
+  } catch (e) { try { fs.unlinkSync(tmp); } catch (e2) { /* tiada */ } }
+  try { return { ok: true, file: f, size: fs.statSync(f).size }; } catch (e) { return { ok: false, error: 'fail rakaman tiada' }; }
+});
+ipcMain.handle('rec:reveal', (_e, f) => {
+  if (typeof f !== 'string' || !path.resolve(f).startsWith(path.resolve(recDir()))) return false;
+  shell.showItemInFolder(f);
+  return true;
+});
+
+/* bar kecil sentiasa di atas semasa merakam skrin penuh (tidak muncul dalam rakaman): masa dan butang "Henti & simpan" */
+let recBar = null;
+function showRecBar(on) {
+  if (!on) { if (recBar && !recBar.isDestroyed()) recBar.close(); recBar = null; return; }
+  if (recBar && !recBar.isDestroyed()) return;
+  const { screen } = require('electron');
+  const wa = screen.getPrimaryDisplay().workArea;
+  recBar = new BrowserWindow({
+    width: 300, height: 56, x: Math.round(wa.x + wa.width / 2 - 150), y: wa.y + 12, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: true,
+    backgroundColor: '#0b1020', title: 'Global Streamer REC',
+    webPreferences: { preload: path.join(__dirname, 'recbar-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  recBar.setAlwaysOnTop(true, 'screen-saver');
+  try { recBar.setContentProtection(true); } catch (e) { /* tidak disokong */ }
+  recBar.webContents.on('will-navigate', (e) => e.preventDefault());
+  recBar.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  recBar.loadFile(path.join(__dirname, 'recbar.html'));
+  recBar.once('ready-to-show', () => recBar && !recBar.isDestroyed() && recBar.showInactive());
+}
+ipcMain.handle('rec:bar', (_e, on) => { showRecBar(!!on); return true; });
+ipcMain.on('rec:bar-stop', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:stop-request'); });
+ipcMain.handle('app:minimize', () => { if (win && !win.isDestroyed()) win.minimize(); return true; });
+ipcMain.handle('app:restore', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } return true; });
 
 /* ---------- siaran ---------- */
 ipcMain.handle('stream:start', (_e, cfg) => engine.start(cfg));
@@ -105,7 +165,10 @@ app.whenReady().then(() => {
     desktopCapturer.getSources({ types: ['screen', 'window'] }).then((s) => {
       const pick = (pendingSource && s.find((x) => x.id === pendingSource)) || s.find((x) => x.id.startsWith('screen:')) || s[0];
       pendingSource = '';
-      cb(pick ? { video: pick } : {});
+      const res = pick ? { video: pick } : {};
+      if (pick && pendingAudio) res.audio = 'loopback';
+      pendingAudio = false;
+      cb(res);
     }).catch(() => cb({}));
   });
   createWindow();
@@ -161,5 +224,5 @@ ipcMain.handle('update:check', () => { if (!updater) return false; checkUpdate(t
 ipcMain.handle('update:install', () => { if (updater && updState.state === 'downloaded') { updater.quitAndInstall(true, true); return true; } return false; });
 ipcMain.handle('update:enable', (_e, on) => { const v = Object.assign(readUpd(), { enabled: !!on }); fs.writeFileSync(updFile(), JSON.stringify(v)); return v.enabled; });
 
-app.on('before-quit', () => { engine.stop(); voice.stopAll(); });
+app.on('before-quit', () => { engine.stop(); voice.stopAll(); try { if (recStream) recStream.end(); } catch (e) { /* abaikan */ } showRecBar(false); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

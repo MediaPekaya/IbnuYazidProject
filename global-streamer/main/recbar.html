@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><title>REC</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1020; color: #eaf4ff; font: 700 14px "Segoe UI", system-ui, sans-serif; -webkit-app-region: drag; user-select: none; }
+  body { display: flex; align-items: center; gap: 10px; padding: 0 12px; box-sizing: border-box; border: 1px solid #ff3b5c; border-radius: 10px; }
+  i { width: 12px; height: 12px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 10px #ff3b5c; animation: p 1.2s ease-in-out infinite; }
+  @keyframes p { 50% { opacity: .35; } }
+  b { font-variant-numeric: tabular-nums; letter-spacing: .06em; flex: 1; }
+  button { -webkit-app-region: no-drag; background: #ff3b5c; color: #fff; border: 0; border-radius: 8px; padding: 8px 12px; font: 800 12px "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+  button:hover { filter: brightness(1.12); }
+</style></head>
+<body><i></i><b id="t">REC 00:00</b><button id="s" type="button">Henti &amp; simpan</button>
+<script>
+  const t0 = Date.now(); const p = (n) => String(n).padStart(2, '0');
+  setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); document.getElementById('t').textContent = 'REC ' + (s >= 3600 ? p(Math.floor(s / 3600)) + ':' : '') + p(Math.floor(s / 60) % 60) + ':' + p(s % 60); }, 500);
+  document.getElementById('s').addEventListener('click', () => window.recbar.stop());
+</script></body></html>

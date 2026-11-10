@@ -446,3 +446,8 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .voice-gender button { padding: 6px 14px; font-size: 12px; }
 .eleven-box { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(4, 10, 24, 0.45); }
 .eleven-box[hidden] { display: none; }
+
+.rec-mode { padding-left: 8px; padding-right: 8px; margin-left: -6px; min-width: 0; }
+.popover.rec-pop { min-width: 300px; }
+.rec-pop .pop-item.on::before { content: '✓'; color: var(--green); font-weight: 900; margin-right: 2px; }
+.rec-pop small { display: block; color: var(--dim); font-weight: 500; font-size: 11px; }

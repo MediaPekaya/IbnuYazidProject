@@ -166,7 +166,7 @@
     const ctx = GS.audio.ensure();
     const buf = await ctx.decodeAudioData(ab);
     const src = ctx.createBufferSource();
-    src.buffer = buf; src.connect(GS.audio.sfxBus); src.onended = done; src.start();
+    src.buffer = buf; src.connect(GS.audio.voiceBus || GS.audio.sfxBus); src.onended = done; src.start();
   }
 
   V.speak = async function (text, force) {

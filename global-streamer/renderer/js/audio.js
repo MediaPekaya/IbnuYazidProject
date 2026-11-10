@@ -19,14 +19,37 @@
     A.ctx = new Ctx({ latencyHint: 'interactive' });
     A.master = A.ctx.createGain();
     A.dest = A.ctx.createMediaStreamDestination(); // dirakam / dihantar ke live
-    A.master.connect(A.dest);
+    // had puncak (limiter): suara kuat tidak retak/herot dalam rakaman dan siaran
+    A.limiter = A.ctx.createDynamicsCompressor();
+    A.limiter.threshold.value = -3; A.limiter.knee.value = 0; A.limiter.ratio.value = 20; A.limiter.attack.value = 0.003; A.limiter.release.value = 0.12;
+    // pemotong lembut terakhir: isyarat tidak pernah melebihi 0.98 (tiada retak digital)
+    A.clip = A.ctx.createWaveShaper();
+    const curve = new Float32Array(2049); for (let i = 0; i < curve.length; i++) { const x = (i / 1024 - 1) * 2; curve[i] = Math.max(-0.98, Math.min(0.98, Math.tanh(x * 1.15) / Math.tanh(1.15) * 0.97)); }
+    A.clip.curve = curve; A.clip.oversample = '2x';
+    A.master.connect(A.limiter);
+    A.limiter.connect(A.clip);
+    A.clip.connect(A.dest);
+    // bunyi efek (beep): streamer sahaja yang dengar; masuk siaran/rakaman hanya jika dihidupkan (supaya suara kekal jelas)
     A.sfxBus = A.ctx.createGain();
-    A.sfxBus.connect(A.master);
-    A.sfxBus.connect(A.ctx.destination); // streamer dengar efek
+    A.sfxBus.connect(A.ctx.destination);
+    // suara bot/pengumum: sentiasa masuk siaran dan rakaman, dan streamer juga mendengarnya
+    A.voiceBus = A.ctx.createGain();
+    A.voiceBus.connect(A.master);
+    A.voiceBus.connect(A.ctx.destination);
+    A.applyRouting();
     // sambung semula saluran yang sudah ada
     A.channels.forEach(connectChannel);
     return A.ctx;
   };
+
+  /** Laluan bunyi efek ke siaran/rakaman mengikut tetapan. */
+  A.applyRouting = function () {
+    if (!A.sfxBus || !A.master) return;
+    try { A.sfxBus.disconnect(A.master); } catch (e) { /* belum disambung */ }
+    if (GS.state.audio.sfxInStream) A.sfxBus.connect(A.master);
+  };
+  /** Saluran suara (mikrofon): penapis bunyi latar, gema dan kelantangan automatik dihidupkan, serta rantaian pembersih. */
+  const isVoice = (ch) => ch.kind === 'input' && (ch.id === 'ch_mic' || /mik|mic/i.test(ch.label || '')) && GS.state.audio.voiceClean !== false;
 
   /* ---------- saluran ---------- */
   function persist() {
@@ -79,14 +102,29 @@
       A.ensure();
       if (ch.stream) ch.stream.getTracks().forEach((t) => t.stop());
       if (ch.node && ch.node.disconnect) ch.node.disconnect();
+      (ch.chain || []).forEach((n) => { try { n.disconnect(); } catch (e) { /* abaikan */ } });
+      ch.chain = [];
+      const voice = isVoice(ch);
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        audio: voice
+          ? { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }
+          : { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       ch.stream = stream;
       ch.deviceId = deviceId || stream.getAudioTracks()[0].getSettings().deviceId || '';
       connectChannel(ch);
       ch.node = A.ctx.createMediaStreamSource(stream);
-      ch.node.connect(ch.gain);
+      if (voice) {
+        // penapis frekuensi rendah (dengung/hentakan meja) -> pemampat (suara sekata) -> penguat
+        const hp = A.ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 90; hp.Q.value = 0.7;
+        const lp = A.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 14000;
+        const comp = A.ctx.createDynamicsCompressor(); comp.threshold.value = -26; comp.knee.value = 18; comp.ratio.value = 3.5; comp.attack.value = 0.004; comp.release.value = 0.2;
+        const up = A.ctx.createGain(); up.gain.value = 1.9;
+        ch.node.connect(hp); hp.connect(lp); lp.connect(comp); comp.connect(up); up.connect(ch.gain);
+        ch.chain = [hp, lp, comp, up];
+      } else {
+        ch.node.connect(ch.gain);
+      }
       persist();
       GS.emit('audio:changed');
     } catch (e) {
