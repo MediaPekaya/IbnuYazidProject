@@ -21,7 +21,8 @@
     "data:matches": "node scripts/data/collect-matches.js",
     "data:tournaments": "node scripts/data/collect-tournaments.js",
     "test:tourney": "node scripts/test-tourney.js",
-    "test:reconnect": "node scripts/test-reconnect.js"
+    "test:reconnect": "node scripts/test-reconnect.js",
+    "test:chat": "node scripts/test-chat.js"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0"

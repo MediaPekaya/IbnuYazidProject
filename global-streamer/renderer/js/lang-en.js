@@ -329,6 +329,23 @@
     'Pilih skrin atau tetingkap': 'Choose a screen or window', 'Skrin': 'Screens', 'Tetingkap': 'Windows',
     'Tiada skrin atau tetingkap dijumpai.': 'No screens or windows found.', 'Tiada paparan.': 'Nothing to show.',
 
+
+    /* ---- sambungan chat sebenar ---- */
+    'Sambungan chat': 'Chat connections', 'Tidak bersambung': 'Not connected', 'Bersambung': 'Connected', 'Cuba semula…': 'Retrying…', 'Ralat': 'Error', 'Putuskan': 'Disconnect', 'Sambung': 'Connect',
+    'ID video / URL siaran langsung': 'Live video ID / URL', 'API key (YouTube Data API v3)': 'API key (YouTube Data API v3)',
+    'Guna API rasmi YouTube. Cipta API key di Google Cloud Console dan hidupkan "YouTube Data API v3". Kuota harian percuma terhad; app mengundi mengikut selang yang ditetapkan YouTube. Mesej: teks, Super Chat dan ahli baharu.': 'Uses the official YouTube API. Create an API key in Google Cloud Console and enable "YouTube Data API v3". The free daily quota is limited; the app polls at the interval set by YouTube. Messages: text, Super Chat and new members.',
+    'ID video langsung (atau URL)': 'Live video ID (or URL)', 'Token akses Halaman': 'Page access token',
+    'Guna Graph API rasmi Facebook (komen pada video langsung). Perlu token akses Halaman yang menyiarkan, dengan kebenaran membaca komen. Token tamat tempoh: jana semula bila perlu.': 'Uses the official Facebook Graph API (comments on the live video). Needs an access token for the broadcasting Page with permission to read comments. Tokens expire: regenerate when needed.',
+    'TikTok LIVE (melalui geganti)': 'TikTok LIVE (via relay)', 'URL WebSocket geganti': 'Relay WebSocket URL',
+    'TikTok TIDAK menyediakan API rasmi untuk chat LIVE, jadi app tidak menyambung terus kepada TikTok. Jalankan alat geganti pilihan anda (atas risiko sendiri) yang menghantar JSON melalui WebSocket, cth {"type":"chat","user":"ali","text":"gg"}, {"type":"gift","user":"ali","gift":"Rose","count":2,"value":1}, {"type":"like","user":"ali","count":15}, {"type":"follow","user":"ali"}.': 'TikTok does NOT provide an official API for LIVE chat, so the app does not connect to TikTok directly. Run a relay tool of your choice (at your own risk) that sends JSON over a WebSocket, e.g. {"type":"chat","user":"ali","text":"gg"}, {"type":"gift","user":"ali","gift":"Rose","count":2,"value":1}, {"type":"like","user":"ali","count":15}, {"type":"follow","user":"ali"}.',
+    'Kunci/token disimpan dalam memori (web) atau disulitkan OS (app Windows), bukan dalam penyemak imbas. Chat dan alert (follow, gift, Super Chat, ahli) muncul dalam panel ini dan mencetus efek siaran.': 'Keys/tokens are kept in memory (web) or encrypted by the OS (Windows app), not in the browser. Chat and alerts (follow, gift, Super Chat, member) appear in this panel and trigger stream effects.',
+    'Belum ada mesej. Tekan "Sambungan chat" untuk menyambung YouTube, Facebook atau TikTok (melalui geganti).': 'No messages yet. Press "Chat connections" to connect YouTube, Facebook or TikTok (via relay).',
+    'API key YouTube belum diisi': 'YouTube API key not filled in', 'ID video / URL tidak sah': 'Invalid video ID / URL', 'Video tidak dijumpai': 'Video not found',
+    'Video ini tiada chat langsung aktif': 'This video has no active live chat', 'Kuota YouTube API habis untuk hari ini': 'YouTube API quota used up for today', 'Siaran langsung telah tamat': 'The live stream has ended',
+    'Token akses Facebook belum diisi': 'Facebook access token not filled in', 'ID video langsung Facebook tidak sah': 'Invalid Facebook live video ID',
+    'URL WebSocket geganti tidak sah (mesti bermula dengan ws:// atau wss://)': 'Invalid relay WebSocket URL (must start with ws:// or wss://)', 'Sambungan geganti terputus': 'Relay connection lost',
+    'ahli baharu': 'new member',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

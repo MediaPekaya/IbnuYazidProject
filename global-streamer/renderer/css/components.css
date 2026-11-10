@@ -407,3 +407,10 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .src-card:hover { border-color: var(--cyan); background: rgba(46, 168, 255, 0.16); }
 .src-card img, .src-empty { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: rgba(0, 0, 0, 0.4); display: grid; place-items: center; color: var(--dim); }
 .src-card span { font-size: 11.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- sambungan chat ---------- */
+.chat-conn { display: flex; flex-direction: column; gap: 12px; }
+.chat-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cm-user { font-weight: 700; }
+.chat-msg.superchat { background: rgba(255, 211, 107, 0.1); border-left: 3px solid var(--gold); }
+.chat-msg.member { background: rgba(59, 227, 154, 0.08); border-left: 3px solid #3be39a; }
