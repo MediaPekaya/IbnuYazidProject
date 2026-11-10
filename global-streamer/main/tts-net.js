@@ -79,6 +79,7 @@ async function elevenApi(op, p) {
     q.set('page_size', String(Math.max(1, Math.min(30, parseInt(p.page_size, 10) || 20))));
     if (/^[a-z]{2}$/.test(String(p.language || ''))) q.set('language', p.language);
     if (p.gender === 'male' || p.gender === 'female') q.set('gender', p.gender);
+    if (/^[\p{L}\p{N} –-]{2,60}$/u.test(String(p.search || ''))) q.set('search', p.search);
     if (/^[a-z_ -]{2,24}$/i.test(String(p.accent || ''))) q.set('accent', p.accent);
     url = base + '/v1/shared-voices?' + q.toString();
   } else if (op === 'add') {

@@ -169,7 +169,7 @@
     }
     let url = ELEVEN, init = { headers: { 'xi-api-key': key, Accept: 'application/json' } };
     if (op === 'voices') url += '/voices';
-    else if (op === 'shared') { const q = new URLSearchParams({ page_size: String(p.page_size || 20) }); if (p.language) q.set('language', p.language); if (p.gender) q.set('gender', p.gender); url += '/shared-voices?' + q; }
+    else if (op === 'shared') { const q = new URLSearchParams({ page_size: String(p.page_size || 20) }); if (p.language) q.set('language', p.language); if (p.gender) q.set('gender', p.gender); if (/^[\p{L}\p{N} –-]{2,60}$/u.test(String(p.search || ''))) q.set('search', p.search); url += '/shared-voices?' + q; }
     else if (op === 'add') { url += '/voices/add/' + p.public_user_id + '/' + p.voice_id; init.method = 'POST'; init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify({ new_name: p.new_name || 'Suara Melayu' }); }
     let r;
     try { r = await fetch(url, init); } catch (e) { throw new Error(errMsg('eleven', 0, 'network')); }
@@ -183,7 +183,9 @@
     gender: String((v.labels && v.labels.gender) || v.gender || '').toLowerCase(), accent: (v.labels && v.labels.accent) || v.accent || '', language: (v.labels && v.labels.language) || v.language || '',
     preview: v.preview_url || '', category: v.category || '', free: v.free_users_allowed !== false,
   });
-  const scoreV = (c) => (isMs(c.language) ? 4 : 0) + (isMs(c.accent) || isMs(c.name) ? 2 : 0) + (c.inAccount ? 2 : 0) + (c.free ? 1 : 0) + (c.category === 'premade' ? 0.5 : 0);
+  /** Suara pilihan (sesuai untuk game/siaran, Melayu): dicari dan diutamakan. */
+  const PREFERRED = { female: { id: 'jfD5mm5oPglFjL59x819', name: 'Aisyah – Video Game Character' }, male: { id: 'mPe1DSKUjbs1HQLfCR9S', name: 'Zain – Powerful Game Character' } };
+  const scoreV = (c) => (c.id === PREFERRED.female.id || c.id === PREFERRED.male.id ? 20 : 0) + (isMs(c.language) ? 4 : 0) + (isMs(c.accent) || isMs(c.name) ? 2 : 0) + (c.inAccount ? 2 : 0) + (c.free ? 1 : 0) + (c.category === 'premade' ? 0.5 : 0);
   /** Cari suara ElevenLabs untuk Bahasa Melayu: suara dalam akaun + perpustakaan awam (bahasa "ms") + suara premade sebagai sandaran. */
   V.findMalayVoices = async function () {
     const res = { male: [], female: [], notes: [] };
@@ -194,6 +196,12 @@
     acct.filter((c) => isMs(c.language) || isMs(c.accent) || isMs(c.name)).forEach(push);
     for (const g of ['male', 'female']) {
       try { const sh = await V.elevenApi('shared', { language: 'ms', gender: g, page_size: 20 }); (sh.voices || []).map((v) => normVoice(v, false)).forEach((c) => { c.gender = c.gender || g; push(c); }); } catch (e) { res.notes.push(e.message); }
+    }
+    // suara pilihan: cari mengikut nama jika belum ada dalam senarai
+    for (const g of ['male', 'female']) {
+      const pf = PREFERRED[g];
+      if (seen.has(pf.id)) continue;
+      try { const sh = await V.elevenApi('shared', { language: 'ms', gender: g, search: pf.name, page_size: 10 }); (sh.voices || []).map((v) => normVoice(v, false)).filter((c) => c.id === pf.id).forEach((c) => { c.gender = c.gender || g; push(c); }); } catch (e) { res.notes.push(e.message); }
     }
     // sandaran: suara premade/akaun mengikut jantina (boleh menyebut Melayu melalui model multilingual, loghat mungkin tidak 100% Malaysia)
     acct.forEach(push);
