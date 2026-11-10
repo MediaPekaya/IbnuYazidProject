@@ -102,13 +102,15 @@
   D.init = function () {
     const root = GS.$('#gameBody');
     if (!root) return;
-    const pages = { controls, heroes, meta };
+    const pages = Object.assign({ controls, heroes, meta }, D.override || {});
     const order = [['controls', 'Kawalan']];
     (D.extra || []).forEach(([id, label, fn]) => { pages[id] = fn; order.push([id, label]); });
     order.push(['heroes', 'Hero'], ['meta', 'Meta']);
+    (D.tail || []).forEach(([id, label, fn]) => { pages[id] = fn; order.push([id, label]); });
     const tabs = h('div', { class: 'subtabs wrap' });
     const body = h('div', { class: 'gd-body' });
     D.show = (id) => {
+      if (D.beforeShow) D.beforeShow();
       GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b.dataset.id === id));
       body.innerHTML = '';
       pages[id](body);

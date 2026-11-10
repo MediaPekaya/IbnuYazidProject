@@ -146,6 +146,7 @@
     GS.scenes.init();
     GS.audio.renderMixer();
     GS.chat.init();
+    GS.meta.start();
     GS.gamedock.init();
     GS.live.render();
     A.setMode(GS.state.mode);

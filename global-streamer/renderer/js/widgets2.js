@@ -395,6 +395,15 @@
     ctx.fill();
     W.text(ctx, 'ALLY', px, y + h * 0.62, { size: h * 0.055, weight: 700, color: C.blue });
     W.text(ctx, 'ENEMY', px + pw2, y + h * 0.62, { size: h * 0.055, weight: 700, color: C.red, align: 'right' });
+    if (d.suggest !== false && GS.draftSuggest) {
+      const now = Date.now();
+      if (!W._sug || now - W._sug.t > 1500) W._sug = { t: now, v: GS.draftSuggest(3) };
+      const sv = W._sug.v;
+      if (sv.pick.length || sv.ban.length) {
+        W.text(ctx, 'PICK  ' + sv.pick.map((r) => r.name).join(', '), px, y + h * 0.76, { size: h * 0.056, weight: 700, color: C.green, maxW: pw2 + 30 });
+        W.text(ctx, 'BAN  ' + sv.ban.map((r) => r.name).join(', '), px, y + h * 0.86, { size: h * 0.056, weight: 700, color: C.red, maxW: pw2 + 30 });
+      }
+    }
     if (d.note) W.text(ctx, d.note, x + w * 0.04, y + h * 0.94, { size: h * 0.062, weight: 600, color: C.gold, maxW: w * 0.92 });
   };
 
@@ -417,5 +426,35 @@
       const txt = left > 0 ? GS.pad(Math.floor(left / 60)) + ':' + GS.pad(left % 60) : 'READY';
       W.text(ctx, txt, x + w - 18, ry + rh * 0.5, { size: rh * 0.42, weight: 800, align: 'right', color: left > 0 ? C.gold : C.green });
     });
+  };
+
+  /* ---------- meta board: top pick / top ban tournament ---------- */
+  W.metaboard = function (ctx, s, t) {
+    const M = GS.meta;
+    if (!M || !M.data) return;
+    const { x, y, w, h } = s;
+    W.panel(ctx, x, y, w, h, t, { phase: 8, r: 18, opaque: true });
+    const a = M.aggregate();
+    W.text(ctx, GS.tov('META TOURNAMENT'), x + 18, y + h * 0.1, { size: Math.min(h * 0.07, 22), weight: 800, spacing: 2.5, color: C.text });
+    W.text(ctx, a.games + ' game', x + w - 18, y + h * 0.1, { size: Math.min(h * 0.055, 17), weight: 700, color: C.muted, align: 'right' });
+    const cols = [['TOP PICK', M.top('pick', { n: 5 }), (r) => r.p, (r) => Math.round(r.pickRate * 100) + '%', C.cyan], ['TOP BAN', M.top('ban', { n: 5 }), (r) => r.b, (r) => Math.round(r.banRate * 100) + '%', C.red]];
+    const cw = (w - 54) / 2;
+    cols.forEach(([title, rows, val, txt, col], ci) => {
+      const cx = x + 18 + ci * (cw + 18);
+      W.text(ctx, GS.tov(title), cx, y + h * 0.22, { size: Math.min(h * 0.06, 19), weight: 800, spacing: 2, color: col });
+      const maxv = Math.max(1, ...rows.map(val));
+      const rh = (h * 0.62) / 5;
+      rows.forEach((r, i) => {
+        const ry = y + h * 0.27 + i * rh;
+        W.text(ctx, (i + 1) + '', cx, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: C.muted });
+        W.text(ctx, r.name, cx + rh * 0.55, ry + rh * 0.55, { size: rh * 0.4, weight: 700, color: C.text, maxW: cw * 0.52 });
+        W.text(ctx, txt(r), cx + cw, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: col, align: 'right' });
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(cx, ry + rh * 0.76, cw, 3);
+        ctx.fillStyle = col;
+        ctx.fillRect(cx, ry + rh * 0.76, cw * (val(r) / maxv), 3);
+      });
+    });
+    W.text(ctx, 'Data: Liquipedia · CC-BY-SA', x + 18, y + h - 12, { size: Math.min(h * 0.04, 13), weight: 600, color: C.muted });
   };
 })();

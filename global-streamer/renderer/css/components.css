@@ -288,3 +288,31 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 11px; padding: 
 .spell-row { display: grid; grid-template-columns: 1.4fr 1.1fr 56px auto auto; gap: 4px; align-items: center; }
 .spell-row input, .spell-row select { padding: 5px 6px; font-size: 12px; }
 .gd-sec .field input[type='range'] { padding: 0; height: 6px; }
+
+/* ---------- panel data MLBB (hero, meta, draft, item, emblem) ---------- */
+button.hero { cursor: pointer; color: inherit; font-family: inherit; transition: background 0.25s, border-color 0.25s; }
+button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 255, 0.18); }
+.hero.on { border-color: var(--cyan); background: rgba(46, 168, 255, 0.28); }
+.hero.used { opacity: 0.4; }
+.hero-grid.picker { max-height: 190px; overflow: auto; padding-right: 2px; }
+.hero-detail h4 { text-transform: none; letter-spacing: 0.02em; font-size: 14px; color: var(--text); }
+.hero-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; color: #fff; background: color-mix(in srgb, var(--rc, #2ea8ff) 35%, transparent); border: 1px solid var(--rc, #2ea8ff); }
+.tag.lane { --rc: #7a8aa8; color: var(--muted); background: rgba(122, 138, 168, 0.12); }
+.kv { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; line-height: 1.45; }
+.kv span { color: var(--muted); flex: 0 0 38%; }
+.kv b { font-weight: 600; text-align: right; flex: 1; }
+.kv.col { flex-direction: column; gap: 2px; }
+.kv.col b { text-align: left; font-weight: 500; color: var(--text); }
+.kv .talent { font-size: 11.5px; }
+.lb-row { display: grid; grid-template-columns: 18px 1.2fr 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
+.lb-rank { color: var(--dim); font-weight: 800; }
+.lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.lb-bar i { display: block; height: 100%; border-radius: 3px; background: var(--rc, var(--cyan)); box-shadow: 0 0 8px var(--rc, var(--cyan)); }
+.lb-val { font-size: 11.5px; color: var(--muted); min-width: 64px; text-align: right; }
+.sug { display: flex; flex-direction: column; gap: 8px; }
+.sug-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 1px solid var(--line); font-size: 12.5px; }
+.sug-row:first-of-type { border-top: 0; }
+.small { font-size: 10.5px; line-height: 1.4; }
+.meta-body { display: flex; flex-direction: column; gap: 8px; }

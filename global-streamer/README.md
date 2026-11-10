@@ -32,7 +32,11 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | Log masuk (Google / emel), profil, peranan admin, semakan lesen | ⏸ **Dimatikan lalai** (`authEnabled: false`): app terus boleh guna tanpa daftar. Kod dan peraturan Firestore sedia jika mahu dihidupkan semula. |
 | Installer Windows (.exe) | ⏳ Dibina oleh GitHub Actions pada setiap push (lihat tab Actions). Belum dipasang pada PC Windows sebenar. |
 
-Data hero/item/emblem MLBB ialah **dataset awal** dan perlu disahkan mengikut patch semasa.
+| **Data MLBB sedia ada (tiada isi manual)**: 133 hero dengan peranan, spesialiti dan lane, 105 item (harga, stat, pasif, resipi), 7 set emblem (atribut, talent) | ✅ Dikumpul daripada Mobile Legends Wiki (CC-BY-SA). Hero terbaharu: Hirara. |
+| **Meta tournament**: top pick, top ban, kadar menang, kehadiran, sisi biru/merah, padanan dan counter (MPL ID/MY/PH S18, MSC 2026, M7 sebagai sejarah) | ✅ Dikumpul daripada Liquipedia (CC-BY-SA). App menyemak data setiap 5 minit; **data itu sendiri dikemas kini oleh pengumpul pusat (lihat bawah)** |
+| Cadangan pick / ban / ramalan menang berdasarkan meta, penapis lane, tier list daripada meta, widget "Meta Tournament" | ✅ Siap, diuji. Pengiraan statistik yang boleh dijelaskan, bukan jaminan menang. |
+
+Lihat `docs/ANALISIS-MLBB.md` untuk laporan data (jadual peranan, lane, item, emblem dan meta). Data hero/item/emblem ialah salinan wiki pada tarikh dikumpul; jalankan semula `npm run data:mlbb` selepas patch baharu.
 
 ## Cuba versi web (setempat)
 
@@ -53,11 +57,13 @@ global-streamer/
 │   ├── css/             theme.css, layout.css, components.css
 │   ├── js/              core, audio, media, widgets, effects, compositor,
 │   │                    scenes, platforms, chat, gamedock, golive, app
+│   ├── data/            mlbb-static.json, meta.json (+ mlbb-data.js, meta-data.js: salinan dibundel untuk app)
 │   └── games/mlbb/      heroes.js, items.js, game.js (template + efek)
 ├── main/                app Windows (Electron): main.js, preload.js, stream-engine.js
 ├── firebase/            firestore.rules, firestore.indexes.json
 ├── firebase.json        Hosting + Firestore
-├── scripts/             serve.js (web setempat), check-syntax.js, test-engine.js (ujian siaran RTMP sebenar)
+├── scripts/             serve.js (web setempat), check-syntax.js, test-engine.js (ujian siaran RTMP sebenar), test-data.js (ujian data & enjin meta)
+│   └── data/            pengumpul: collect-mlbb.js (Fandom), collect-meta.js (Liquipedia), build-bundle.js, report.js, tournaments.json
 └── docs/                FIREBASE.md, PELAN.md, REFERENSI-VIDEO.md, BAHASA.md
 ```
 
@@ -66,8 +72,16 @@ Tambah game baharu: salin corak `renderer/games/mlbb/` kepada folder baharu, daf
 ## Keselamatan
 
 * **Stream key tidak pernah disimpan dalam pelayan.** Web: hanya dalam memori tab. App Windows: disulitkan oleh OS (`safeStorage`).
-* Hero dan panel peribadi **tidak masuk ke siaran**. Hanya kanvas Program yang dihantar.
+* Panel hero/meta/draft peribadi **tidak masuk ke siaran**. Hanya kanvas Program yang dihantar; widget Draft dan Meta Tournament hanya dipaparkan jika anda menghidupkannya.
 * Header CSP, Permissions-Policy dan X-Frame-Options ditetapkan dalam `firebase.json`.
+
+## Data tournament: cara kemas kini sebenar
+
+* App **tidak** memanggil Liquipedia terus (mereka mengehadkan kadar dan melarang polling oleh ramai klien). Pengumpul pusat (`scripts/data/collect-meta.js`) mengambil satu halaman setiap ~30 saat, menjana `renderer/data/meta.json`, dan app menyemak fail itu setiap 5 minit.
+* Pengumpul dijalankan oleh GitHub Actions (`.github/workflows/meta-sync.yml`, setiap jam, pada cabang lalai) dan boleh dicetus manual. Untuk menyiarkan ke Hosting secara automatik, tambah secret `FIREBASE_SERVICE_ACCOUNT`; tanpanya data hanya di-commit dan perlu di-deploy.
+* Statistik hanya berubah selepas game tamat, jadi kekerapan 5 minit hanya bermakna ketika tournament sedang berlangsung. Kelewatan sebenar = kekerapan pengumpul + kelewatan Liquipedia mengemas kini jadual mereka.
+* Liquipedia memaparkan hanya 5 teratas untuk padanan/lawan setiap hero, jadi pengiraan counter/padanan separa.
+* Pengesanan hero draft automatik daripada capture card belum siap (Fasa 5). Buat masa ini hero dimasukkan melalui pemilih hero (penapis peranan/lane), dan cadangan/ramalan dikira serta-merta.
 
 ## Had yang perlu diketahui
 

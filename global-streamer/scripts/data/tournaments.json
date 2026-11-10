@@ -1,0 +1,18 @@
+[
+  { "id": "mpl-id-s18-po", "label": "MPL ID S18 Playoffs", "region": "ID", "tier": "pro", "live": true,
+    "pages": ["MPL/Indonesia/Season 18/Statistics/Playoffs"] },
+  { "id": "mpl-id-s18-rs", "label": "MPL ID S18 Regular Season", "region": "ID", "tier": "pro", "live": false,
+    "pages": ["MPL/Indonesia/Season 18/Statistics/Regular Season"] },
+  { "id": "mpl-my-s18-po", "label": "MPL MY S18 Playoffs", "region": "MY", "tier": "pro", "live": false,
+    "pages": ["MPL/Malaysia/Season 18/Statistics/Playoffs"] },
+  { "id": "mpl-my-s18-rs", "label": "MPL MY S18 Regular Season", "region": "MY", "tier": "pro", "live": false,
+    "pages": ["MPL/Malaysia/Season 18/Statistics/Regular Season"] },
+  { "id": "mpl-ph-s18-po", "label": "MPL PH S18 Playoffs", "region": "PH", "tier": "pro", "live": false,
+    "pages": ["MPL/Philippines/Season 18/Statistics/Playoffs"] },
+  { "id": "mpl-ph-s18-rs", "label": "MPL PH S18 Regular Season", "region": "PH", "tier": "pro", "live": false,
+    "pages": ["MPL/Philippines/Season 18/Statistics/Regular Season"] },
+  { "id": "msc-2026", "label": "MSC 2026", "region": "SEA", "tier": "intl", "live": false,
+    "pages": ["MSC/2026/Statistics/Wildcard", "MSC/2026/Statistics/Group Stage", "MSC/2026/Statistics/Knockout Stage"] },
+  { "id": "m7", "label": "M7 World Championship", "region": "WORLD", "tier": "history", "live": false,
+    "pages": ["M7 World Championship/Statistics/Wildcard", "M7 World Championship/Statistics/Swiss Stage", "M7 World Championship/Statistics/Knockout Stage"] }
+]

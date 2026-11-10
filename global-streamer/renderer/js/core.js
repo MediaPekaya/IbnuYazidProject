@@ -125,7 +125,7 @@
     },
     queue: { open: false, title: 'MABAR VIP', badgeOpen: 'OPEN', badgeClosed: 'CLOSED', rows: [{ name: 'Pemain 1', games: 3 }, { name: 'Pemain 2', games: 2 }], note: 'RM5 / 1 GAME · RM15 / 3 GAME' },
     deviceLabel: 'DEVICE: —',
-    draft: { show: false, ally: ['', '', '', '', ''], enemy: ['', '', '', '', ''], banAlly: '', banEnemy: '', winPct: 50, phase: 'DRAFT PICK', note: '' },
+    draft: { show: false, ally: ['', '', '', '', ''], enemy: ['', '', '', '', ''], banAlly: '', banEnemy: '', winPct: 50, phase: 'DRAFT PICK', note: '', suggest: true, lane: '' },
     spells: [
       { hero: '', spell: 'Flicker', cd: 120, until: 0 }, { hero: '', spell: 'Flicker', cd: 120, until: 0 }, { hero: '', spell: 'Retribution', cd: 35, until: 0 },
       { hero: '', spell: 'Inspire', cd: 75, until: 0 }, { hero: '', spell: 'Flicker', cd: 120, until: 0 },

@@ -1,0 +1,67 @@
+name: Sync data meta MLBB (Global Streamer)
+
+# Mengambil statistik tournament terkini daripada Liquipedia (hanya tournament yang masih LIVE, mengikut
+# global-streamer/scripts/data/tournaments.json), membundel dan menyiarkannya ke Firebase Hosting.
+# Jadual (cron) hanya berjalan pada cabang lalai repo. Boleh dicetus manual: Actions > Run workflow.
+# Penyiaran memerlukan secret FIREBASE_SERVICE_ACCOUNT (kunci akaun perkhidmatan JSON). Tanpanya, data hanya di-commit.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Ambil semula SEMUA tournament (lebih lambat)'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 * * * *'
+
+concurrency:
+  group: meta-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: global-streamer
+    env:
+      FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: global-streamer/package-lock.json
+      - name: Pasang kebergantungan (tanpa memuat turun Electron)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Kumpul statistik tournament (Liquipedia, 1 halaman setiap ~30 saat)
+        run: node scripts/data/collect-meta.js ${{ inputs.force && '--force' || '' }}
+      - name: Bundel data
+        run: node scripts/data/build-bundle.js
+      - name: Semak sintaks
+        run: npm run check
+      - name: Commit jika data berubah
+        id: commit
+        working-directory: .
+        run: |
+          git config user.name "gs-meta-sync"
+          git config user.email "actions@users.noreply.github.com"
+          git add global-streamer/renderer/data
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "data: kemas kini meta tournament (auto)"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Siar ke Firebase Hosting
+        if: steps.commit.outputs.changed == 'true' && env.FIREBASE_SA != ''
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json" npx --yes firebase-tools@13 deploy --only hosting --project global-streamer --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"

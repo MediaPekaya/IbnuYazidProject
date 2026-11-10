@@ -13,12 +13,17 @@
     "dist": "electron-builder --win --x64",
     "check": "node scripts/check-syntax.js",
     "test:engine": "node scripts/test-engine.js",
-    "check:i18n": "node scripts/check-i18n.js"
+    "check:i18n": "node scripts/check-i18n.js",
+    "data:mlbb": "node scripts/data/collect-mlbb.js",
+    "data:meta": "node scripts/data/collect-meta.js",
+    "data:bundle": "node scripts/data/build-bundle.js",
+    "test:data": "node scripts/test-data.js"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0"
   },
   "devDependencies": {
+    "cheerio": "^1.0.0",
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8"
   },

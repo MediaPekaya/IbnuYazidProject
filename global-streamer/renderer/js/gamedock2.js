@@ -89,6 +89,7 @@
         h('p', { class: 'muted note' }, 'Ramalan dan cadangan dimasukkan secara manual. Pengesanan dan cadangan automatik datang pada Fasa 5. Nama hero dipaparkan sebagai teks sahaja.')),
       sec('Pemasa spell musuh', spells()));
   }
+  D.spells = () => spells();
   function spells() {
     const wrap = h('div', { class: 'spells' });
     GS.state.spells.forEach((r, i) => {
@@ -111,8 +112,8 @@
       ['S', 'A', 'B', 'C', 'D'].map((k) => field(GS.t('Tier {0} (pisahkan dengan koma)', k), h('input', { type: 'text', value: (t[k] || []).join(', '), onInput: (e) => { t[k] = e.target.value.split(',').map((x) => x.trim()).filter(Boolean); GS.save(); } }))),
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn primary', onClick: () => { GS.audio.ensure(); GS.fx.trigger('tierlist'); } }, 'Papar Tier List'),
-        h('button', { class: 'btn ghost', onClick: () => { const n = GS.data.mlbbHeroes.map((x) => x.name); const pick = (a, b) => n.slice(a, b); t.label = 'TIER LIST (CONTOH)'; t.S = pick(0, 4); t.A = pick(4, 10); t.B = pick(10, 16); t.C = pick(16, 20); t.D = pick(20, 23); GS.save(); D.show('tier'); } }, 'Isi contoh')),
-      h('p', { class: 'muted note' }, 'Isi senarai anda sendiri daripada data meta yang anda percayai. "Isi contoh" hanya data ujian, BUKAN meta sebenar.')));
+        h('button', { class: 'btn ghost', onClick: () => { if (!GS.meta.fillTiers(t)) { GS.toast(GS.t('Belum ada data meta untuk mengisi tier.'), 'warn'); return; } GS.save(); D.show('tier'); } }, 'Isi daripada meta tournament')),
+      h('p', { class: 'muted note' }, 'Isi senarai anda sendiri, atau tekan "Isi daripada meta tournament" untuk menyusun hero mengikut kadar menang dan kehadiran dalam skop meta semasa. Susunan ialah pengiraan statistik, bukan pendapat rasmi.')));
   }
 
   D.extra = [['broadcast', 'Siaran', broadcast], ['draft', 'Draft', draft], ['tier', 'Tier', tier]];

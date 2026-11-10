@@ -7,7 +7,8 @@
 | 2.1 | Sambung semula destinasi terputus, pemilih skrin/tetingkap, log masuk Google dalam app Windows | ⏳ |
 | 3 | Chat gabungan sebenar (YouTube, Facebook, TikTok), alert follow/gift | ⏳ |
 | 4 | Susun atur menegak 9:16, widget mengikut rujukan (boss, top like, bar status, banner bermaskot, giliran mabar, draft, pemasa spell, tier list, notis item) | ✅ Siap (data manual). ⏳ Lengkapkan dan sahkan data hero/item/emblem |
-| 5 | Pengesan auto (OCR + padanan imej) daripada capture card, tournament setiap 5 minit, cadangan draft | ⏳ |
+| 4.5 | Data MLBB sebenar: hero/peranan/lane, item, emblem (Fandom) dan meta tournament (Liquipedia), pemilih hero, cadangan pick/ban/ramalan, widget Meta | ✅ Siap. ⏳ Penyiaran data automatik ke Hosting perlu secret Firebase (lihat README) |
+| 5 | Pengesan auto (OCR + padanan imej) daripada capture card (hero draft, kill, item, victory) | ⏳ |
 | 6 | Auth, lesen, laman jualan dan muat turun, kemas kini automatik | ⏳ |
 
 ## Keputusan reka bentuk

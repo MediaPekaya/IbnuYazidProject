@@ -213,7 +213,7 @@
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360],
+    brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
@@ -330,6 +330,7 @@
       { label: 'Widget: Tajuk', icon: 'widget', run: () => S.addWidget('brand') },
       { label: 'Widget: Bar Teks', icon: 'widget', run: () => S.addWidget('ticker') },
       { label: 'Widget: Bingkai', icon: 'widget', run: () => S.addWidget('frame') },
+      { label: 'Widget: Meta Tournament', icon: 'widget', run: () => S.addWidget('metaboard') },
     ]));
     GS.$('#btnSourceUp').addEventListener('click', () => selectedId && S.moveSource(selectedId, 1));
     GS.$('#btnSourceDown').addEventListener('click', () => selectedId && S.moveSource(selectedId, -1));
