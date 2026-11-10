@@ -4,6 +4,12 @@
     "public": "renderer",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "cleanUrls": true,
+    "rewrites": [
+      { "source": "/landing", "destination": "/site/index.html" },
+      { "source": "/download", "destination": "/site/download.html" },
+      { "source": "/privacy", "destination": "/site/privacy.html" },
+      { "source": "/terms", "destination": "/site/terms.html" }
+    ],
     "headers": [
       {
         "source": "**",
@@ -20,6 +26,10 @@
       },
       {
         "source": "**/*.@(js|css|html|svg)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "/updates/**",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       },
       {

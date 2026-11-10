@@ -150,6 +150,7 @@
     GS.detect.start();
     GS.events.start();
     GS.tourney.start();
+    GS.updater.init();
     const rc = GS.$('#resChip');
     if (rc) rc.addEventListener('click', () => GS.sizes.openMenu(rc));
     GS.gamedock.init();

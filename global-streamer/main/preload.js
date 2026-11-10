@@ -17,5 +17,12 @@ contextBridge.exposeInMainWorld('gsNative', {
     list: () => ipcRenderer.invoke('sources:list'),
     select: (id) => ipcRenderer.invoke('sources:select', id),
   },
+  app: {
+    info: () => ipcRenderer.invoke('app:info'),
+    checkUpdate: () => ipcRenderer.invoke('update:check'),
+    installUpdate: () => ipcRenderer.invoke('update:install'),
+    enableUpdate: (on) => ipcRenderer.invoke('update:enable', on),
+    onUpdate: (cb) => ipcRenderer.on('update:event', (_e, d) => cb(d)),
+  },
   onStreamEvent: (cb) => ipcRenderer.on('stream:event', (_e, data) => cb(data)),
 });

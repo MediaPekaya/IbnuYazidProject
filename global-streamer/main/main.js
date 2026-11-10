@@ -82,8 +82,46 @@ app.whenReady().then(() => {
     }).catch(() => cb({}));
   });
   createWindow();
+  setupUpdater();
+  setTimeout(checkUpdate, 15000);
+  setInterval(checkUpdate, 6 * 3600 * 1000);
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
 });
+
+/* ---------- kemas kini automatik (electron-updater) ----------
+ * Suapan: build.publish (generic) dalam package.json -> https://global-streamer.web.app/updates/ (latest.yml + pemasang).
+ * Semakan hanya dalam app yang dipasang (packaged); untuk ujian: GS_UPDATE_URL + GS_UPDATE_TEST=1 (tanpa muat turun). */
+const updFile = () => path.join(app.getPath('userData'), 'update.json');
+const readUpd = () => { try { return Object.assign({ enabled: true }, JSON.parse(fs.readFileSync(updFile(), 'utf8'))); } catch (e) { return { enabled: true }; } };
+let updState = { state: 'idle', version: '', progress: 0, message: '' };
+let updater = null;
+function sendUpd(patch) {
+  updState = Object.assign({}, updState, patch);
+  if (win && !win.isDestroyed()) win.webContents.send('update:event', updState);
+}
+function setupUpdater() {
+  const test = !!process.env.GS_UPDATE_TEST;
+  if (!app.isPackaged && !test) { updState.state = 'dev'; return; }
+  try { updater = require('electron-updater').autoUpdater; } catch (e) { updState.state = 'unavailable'; return; }
+  updater.autoDownload = !test;
+  updater.autoInstallOnAppQuit = true;
+  updater.logger = null;
+  if (test && process.env.GS_UPDATE_URL) { updater.forceDevUpdateConfig = true; updater.setFeedURL({ provider: 'generic', url: process.env.GS_UPDATE_URL }); }
+  updater.on('checking-for-update', () => sendUpd({ state: 'checking', message: '' }));
+  updater.on('update-available', (i) => sendUpd({ state: 'available', version: i.version, message: '' }));
+  updater.on('update-not-available', () => sendUpd({ state: 'current', message: '' }));
+  updater.on('download-progress', (p) => sendUpd({ state: 'downloading', progress: Math.round(p.percent || 0) }));
+  updater.on('update-downloaded', (i) => sendUpd({ state: 'downloaded', version: i.version, progress: 100 }));
+  updater.on('error', (e) => sendUpd({ state: 'error', message: String((e && e.message) || e).slice(0, 200) }));
+}
+function checkUpdate() {
+  if (!updater || !readUpd().enabled) return;
+  updater.checkForUpdates().catch(() => {});
+}
+ipcMain.handle('app:info', () => ({ version: app.getVersion(), packaged: app.isPackaged, platform: process.platform, update: Object.assign({}, updState, { enabled: readUpd().enabled }) }));
+ipcMain.handle('update:check', () => { if (!updater) return false; updater.checkForUpdates().catch(() => {}); return true; });
+ipcMain.handle('update:install', () => { if (updater && updState.state === 'downloaded') { updater.quitAndInstall(); return true; } return false; });
+ipcMain.handle('update:enable', (_e, on) => { const v = Object.assign(readUpd(), { enabled: !!on }); fs.writeFileSync(updFile(), JSON.stringify(v)); return v.enabled; });
 
 app.on('before-quit', () => engine.stop());
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

@@ -11,10 +11,15 @@ on:
       - '.github/workflows/build-windows.yml'
     tags: ['gs-v*']
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 25
+    env:
+      FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     defaults:
       run:
         working-directory: global-streamer
@@ -42,3 +47,21 @@ jobs:
           name: GlobalStreamer-Windows
           path: global-streamer/dist/*.exe
           if-no-files-found: error
+      - name: Sediakan keluaran (latest.json untuk halaman muat turun)
+        if: startsWith(github.ref, 'refs/tags/gs-v')
+        run: npm run release:stage
+      - name: Terbitkan GitHub Release (pemasang + latest.yml)
+        if: startsWith(github.ref, 'refs/tags/gs-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            global-streamer/dist/*.exe
+            global-streamer/dist/*.blockmap
+            global-streamer/dist/latest.yml
+      - name: Siar ke Firebase Hosting (hanya jika secret FIREBASE_SERVICE_ACCOUNT ada)
+        if: startsWith(github.ref, 'refs/tags/gs-v') && env.FIREBASE_SA != ''
+        shell: bash
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json" npx --yes firebase-tools@13 deploy --only hosting --project global-streamer --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"

@@ -414,3 +414,8 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .cm-user { font-weight: 700; }
 .chat-msg.superchat { background: rgba(255, 211, 107, 0.1); border-left: 3px solid var(--gold); }
 .chat-msg.member { background: rgba(59, 227, 154, 0.08); border-left: 3px solid #3be39a; }
+
+/* ---------- kemas kini ---------- */
+.chip.upd { cursor: pointer; color: var(--gold); border-color: rgba(255, 211, 107, 0.55); font-family: inherit; }
+.chip.upd.ready { color: #07122a; background: var(--gold); font-weight: 800; }
+.upd-sec { display: flex; flex-direction: column; gap: 6px; }

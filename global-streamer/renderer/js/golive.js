@@ -367,6 +367,7 @@
         h('label', { class: 'field' }, h('span', null, 'Bitrate audio (kbps)'), sel('abitrate', [[96, '96'], [128, '128'], [160, '160'], [192, '192'], [320, '320']])),
         h('label', { class: 'field span2' }, h('span', null, 'Pengekod video (app Windows)'), sel('encoder', [['auto', 'Auto (GPU jika ada, sandaran CPU)'], ['x264', 'CPU (x264)'], ['nvenc', 'NVIDIA NVENC'], ['qsv', 'Intel Quick Sync'], ['amf', 'AMD AMF']], String))),
       h('p', { class: 'muted note' }, 'TikTok dan Facebook biasanya menghadkan 1080p. 4K hanya sesuai untuk YouTube dan memerlukan PC yang kuat.'),
+      GS.updater.section(),
       h('h3', null, 'Peralihan scene (Mod Studio)'),
       h('div', { class: 'grid2' },
         h('label', { class: 'field' }, h('span', null, 'Jenis'), sel('transition', [['fade', 'Pudar'], ['slide', 'Luncur'], ['cut', 'Potong']], String)),

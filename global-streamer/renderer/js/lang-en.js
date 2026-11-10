@@ -346,6 +346,14 @@
     'URL WebSocket geganti tidak sah (mesti bermula dengan ws:// atau wss://)': 'Invalid relay WebSocket URL (must start with ws:// or wss://)', 'Sambungan geganti terputus': 'Relay connection lost',
     'ahli baharu': 'new member',
 
+
+    /* ---- kemas kini automatik ---- */
+    'Kemas kini': 'Updates', 'Belum disemak': 'Not checked yet', 'Mod pembangunan (semakan dimatikan)': 'Development mode (checks disabled)', 'Tidak tersedia': 'Unavailable', 'Menyemak…': 'Checking…',
+    'Anda menggunakan versi terkini': 'You are on the latest version', 'Versi baharu {0} tersedia': 'New version {0} available', 'Memuat turun… {0}%': 'Downloading… {0}%', 'Versi {0} sedia dipasang': 'Version {0} ready to install', 'Ralat semakan: {0}': 'Update check error: {0}',
+    'Kemas kini {0} sedia: klik untuk pasang': 'Update {0} ready: click to install', 'Versi {0}': 'Version {0}',
+    'Versi web sentiasa terkini. Kemas kini automatik tersedia dalam app Windows.': 'The web version is always up to date. Automatic updates are available in the Windows app.',
+    'Semak kemas kini secara automatik': 'Check for updates automatically', 'Mulakan semula dan pasang': 'Restart and install',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',

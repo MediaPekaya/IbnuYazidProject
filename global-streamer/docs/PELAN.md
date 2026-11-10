@@ -4,15 +4,15 @@
 |---|---|---|
 | 1 | Kerangka app, tema hologram, Normal/Studio, scene/sumber, mixer, template, efek, wizard Go Live, input key | ✅ Siap |
 | 2 | Siaran sebenar melalui FFmpeg (app Windows): status, statistik, pengekod GPU + sandaran, ujian RTMP sebenar | ✅ Siap dan diuji ke penerima RTMP tempatan. ⏳ Ujian dengan TikTok/Facebook/YouTube sebenar dan GPU sebenar oleh pemilik |
-| 2.1 | Sambung semula destinasi terputus, pemilih skrin/tetingkap, log masuk Google dalam app Windows | ⏳ |
-| 3 | Chat gabungan sebenar (YouTube, Facebook, TikTok), alert follow/gift | ⏳ |
+| 2.1 | Sambung semula destinasi terputus, pemilih skrin/tetingkap | ✅ Siap, diuji (RTMP dan Electron sebenar). Log masuk Google dalam app Windows: dimatikan mengikut pilihan |
+| 3 | Chat gabungan sebenar (YouTube, Facebook, TikTok), alert follow/gift | ✅ Siap, diuji dengan pelayan tiruan. TikTok melalui geganti (tiada API rasmi). ⏳ Ujian dengan key/siaran sebenar |
 | 4 | Susun atur menegak 9:16, widget mengikut rujukan (boss, top like, bar status, banner bermaskot, giliran mabar, draft, pemasa spell, tier list, notis item) | ✅ Siap (data manual). ⏳ Lengkapkan dan sahkan data hero/item/emblem |
 | 4.5 | Data MLBB sebenar: hero/peranan/lane, item, emblem (Fandom) dan meta tournament (Liquipedia), pemilih hero, cadangan pick/ban/ramalan, widget Meta | ✅ Siap. ⏳ Penyiaran data automatik ke Hosting perlu secret Firebase (lihat README) |
 | 5a | Pengesan hero draft automatik (padanan ikon, pintu skrin draft, kalibrasi, pembelajaran) | ✅ Siap, diuji pada rakaman sebenar (lihat docs/PENGESAN-HERO.md) |
 | 5b | Pengesan kill / mati / item / victory / defeat daripada capture card | ✅ Siap, diuji pada rakaman sebenar (lihat docs/PENGESAN-KEJADIAN.md) |
 | 5c | Tournament automatik: penemuan, perlawanan semasa daripada jadual, skor, keputusan, juara, widget | ✅ Siap (lihat docs/TOURNAMENT.md) |
 | 5d | OCR nama pasukan daripada video, banner kill rasmi, FIRST BLOOD/SHUTDOWN, jadual kumpulan | ⏳ |
-| 6 | Auth, lesen, laman jualan dan muat turun, kemas kini automatik | ⏳ |
+| 6 | Auth, lesen, laman jualan dan muat turun, kemas kini automatik | ✅ Laman jualan/muat turun/privasi/terma, kemas kini automatik, saluran keluaran. Auth/lesen sedia tetapi dimatikan. ⏳ Pasang/kemas kini pada Windows sebenar, tandatangan kod, harga dan nasihat undang-undang |
 
 ## Keputusan reka bentuk
 * **Electron** untuk app Windows kerana pelayar tidak boleh menghantar RTMP.
