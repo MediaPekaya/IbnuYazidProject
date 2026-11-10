@@ -177,6 +177,9 @@
     return { name: arr[0][0], score: arr[0][1], margin: arr[0][1] - arr[1][1], top: arr.slice(0, 6).map(([name, s]) => ({ name, score: s })) };
   };
 
+  D._feature = feature;
+  D._enc = null;
+
   D.cfg = function () {
     const st = GS.state.detect || (GS.state.detect = {});
     if (!st.preset) st.preset = 'mlbb-draft';

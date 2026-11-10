@@ -148,6 +148,7 @@
     GS.chat.init();
     GS.meta.start();
     GS.detect.start();
+    GS.events.start();
     const rc = GS.$('#resChip');
     if (rc) rc.addEventListener('click', () => GS.sizes.openMenu(rc));
     GS.gamedock.init();

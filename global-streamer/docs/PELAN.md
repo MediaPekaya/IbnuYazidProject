@@ -9,7 +9,8 @@
 | 4 | Susun atur menegak 9:16, widget mengikut rujukan (boss, top like, bar status, banner bermaskot, giliran mabar, draft, pemasa spell, tier list, notis item) | ✅ Siap (data manual). ⏳ Lengkapkan dan sahkan data hero/item/emblem |
 | 4.5 | Data MLBB sebenar: hero/peranan/lane, item, emblem (Fandom) dan meta tournament (Liquipedia), pemilih hero, cadangan pick/ban/ramalan, widget Meta | ✅ Siap. ⏳ Penyiaran data automatik ke Hosting perlu secret Firebase (lihat README) |
 | 5a | Pengesan hero draft automatik (padanan ikon, pintu skrin draft, kalibrasi, pembelajaran) | ✅ Siap, diuji pada rakaman sebenar (lihat docs/PENGESAN-HERO.md) |
-| 5b | Pengesan kill / item / victory-defeat daripada capture card | ⏳ |
+| 5b | Pengesan kill / mati / item / victory / defeat daripada capture card | ✅ Siap, diuji pada rakaman sebenar (lihat docs/PENGESAN-KEJADIAN.md) |
+| 5c | Pengesan tournament automatik (OCR nama pasukan), banner kill rasmi, FIRST BLOOD/SHUTDOWN | ⏳ |
 | 6 | Auth, lesen, laman jualan dan muat turun, kemas kini automatik | ⏳ |
 
 ## Keputusan reka bentuk

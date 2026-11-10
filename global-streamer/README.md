@@ -28,7 +28,7 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | **Siaran sebenar ke TikTok / Facebook / YouTube dengan key sebenar** | ⚠️ **Belum diuji.** Hanya diuji ke penerima RTMP tempatan. |
 | Chat TikTok / Facebook / YouTube sebenar | ⏳ Fasa 3 (antara muka siap, penyambung belum) |
 | **Pengesan hero draft automatik** daripada capture card (ally, enemy, ban; kalibrasi, pembetulan sekali klik, pembelajaran) | ✅ Siap dan diuji pada rakaman draft sebenar (ban tepat, pick separa, 0 salah pada 108 bingkai bukan-draft). Lihat `docs/PENGESAN-HERO.md` untuk ketepatan dan had. Belum diuji dengan capture card sebenar. |
-| Pengesan auto kill / item / victory-defeat daripada capture card | ⏳ Fasa 5 |
+| **Pengesan kejadian automatik**: kill, mati, multi-kill, item dibeli, item penuh, victory, defeat daripada capture card | ✅ Siap dan diuji pada rakaman gameplay sebenar (7 kill/2 mati tepat, 5 item betul, Victory/Defeat dikesan, 0 palsu pada 690 bingkai negatif). Lihat `docs/PENGESAN-KEJADIAN.md`. Templat daripada satu klien/skin UI; belum diuji dengan capture card sebenar. |
 | Analisis tournament MPL/MAL setiap 5 minit, cadangan draft | ⏳ Fasa 5 |
 | Log masuk (Google / emel), profil, peranan admin, semakan lesen | ⏸ **Dimatikan lalai** (`authEnabled: false`): app terus boleh guna tanpa daftar. Kod dan peraturan Firestore sedia jika mahu dihidupkan semula. |
 | Installer Windows (.exe) | ⏳ Dibina oleh GitHub Actions pada setiap push (lihat tab Actions). Belum dipasang pada PC Windows sebenar. |

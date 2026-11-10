@@ -366,3 +366,16 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .det-calib summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); }
 .det-adj { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 6px 0; border-top: 1px solid var(--line); margin-top: 6px; }
 .det-adj b { font-size: 11.5px; }
+
+/* ---------- pengesan kejadian ---------- */
+.ev-read { display: flex; flex-wrap: wrap; gap: 5px; }
+.ev-chip { padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); background: rgba(20, 44, 88, 0.3); font-size: 11px; font-variant-numeric: tabular-nums; }
+.ev-log { display: flex; flex-direction: column; gap: 3px; }
+.ev-row { display: grid; grid-template-columns: 64px 1fr auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: 8px; background: rgba(20, 44, 88, 0.22); font-size: 11.5px; }
+.ev-row span { color: var(--dim); font-variant-numeric: tabular-nums; }
+.ev-row em { font-style: normal; color: var(--muted); }
+.ev-row.kill b, .ev-row.death b { color: #ff8da1; }
+.ev-row.item b, .ev-row.fullitem b { color: var(--gold); }
+.ev-row.victory b { color: #6be6ff; }
+.ev-row.defeat b { color: #ff3b5c; }
+.ev-row.newmatch b { color: var(--muted); }

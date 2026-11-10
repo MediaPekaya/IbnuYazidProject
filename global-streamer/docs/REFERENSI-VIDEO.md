@@ -44,5 +44,5 @@ Susun atur rujukan ialah **menegak 9:16 (TikTok LIVE)**. Global Streamer kini me
 | Handcam | ✅ sumber kamera kedua (tersembunyi lalai) |
 | Rate prediction (ramalan menang) dan cadangan ban / counter pick daripada meta | ✅ Dikira daripada statistik tournament (butang "Kira ramalan daripada meta"). ⏳ Pengisian hero automatik oleh pengesan (Fasa 5) |
 | Hero detector (draft) | ✅ Fasa 5a |
-| Item detector, kill detector | ⏳ Fasa 5b |
+| Item detector, kill detector, win/lose auto | ✅ Fasa 5b (kaedah berbeza daripada rujukan: baca HUD K/D/A dan toast item) |
 | Robot dikawal chat ("ROBO"), alert follow/gift sebenar | ⏳ Fasa 3 |

@@ -110,6 +110,10 @@ async function items() {
       const rec = $i('[data-source="recipe"]').find('a[title]').map((x, a) => $i(a).attr('title')).get();
       it.recipe = [...new Set(rec)].filter((r) => r !== it.name);
       it.passives = parsePassives(it.unique);
+      const ikey = it.name.replace(/ /g, '_') + '.png';
+      const im = $i('img').filter((x, e) => $i(e).attr('data-image-key') === ikey).first();
+      const isrc = im.attr('data-src') || im.attr('src') || '';
+      it.img = (isrc.match(/^(https:\/\/static\.wikia\.nocookie\.net\/[^?]*?\/revision\/latest)/) || [])[1] || '';
     } catch (e) { console.error('  gagal item', it.name, e.message); it.error = e.message; }
     if (k % 20 === 0) console.error(`  ${k}/${list.length}`);
   }

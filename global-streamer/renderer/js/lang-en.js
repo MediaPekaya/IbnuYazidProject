@@ -275,6 +275,30 @@
     'Tiada bingkai lagi': 'No frame yet', 'Templat dipelajari: {0}': 'Learned templates: {0}', 'Padam pembelajaran': 'Clear learning',
     'Padam semua templat yang dipelajari?': 'Delete all learned templates?', 'Betul: {0} (ajar sistem)': 'Correct: {0} (teach the system)',
 
+
+    /* ---- pengesan kejadian ---- */
+    'Pengesan kejadian (kill, item, victory, defeat)': 'Event detector (kill, item, victory, defeat)',
+    'Hidupkan pengesan kejadian automatik': 'Turn on automatic event detection',
+    'Kill dan Mati (baca nombor K/D/A pada HUD)': 'Kills and Deaths (reads the K/D/A numbers on the HUD)',
+    'Item dibeli + Item Penuh (toast pembelian)': 'Item bought + Full Build (purchase toast)',
+    'Victory / Defeat (skrin keputusan)': 'Victory / Defeat (result screen)',
+    'Kepekaan (lebih tinggi = lebih mudah dicetus, lebih mudah silap)': 'Sensitivity (higher = triggers more easily, more mistakes)',
+    'Tetingkap multi-kill (saat)': 'Multi-kill window (seconds)',
+    'Kejadian terkini': 'Recent events', 'Belum ada kejadian.': 'No events yet.',
+    'Perlawanan baharu (tetapkan semula K/D/A dan item)': 'New match (reset K/D/A and items)',
+    'Ajar skrin keputusan': 'Teach the result screen',
+    'Jika Victory/Defeat pada game anda tidak dikesan, klik butang sebaik sahaja skrin itu dipaparkan supaya sistem mengingati rupanya (disimpan pada PC ini).': 'If Victory/Defeat is not detected in your game, click the button as soon as that screen is shown so the system remembers how it looks (stored on this PC).',
+    'Ajar: ini skrin VICTORY': 'Teach: this is the VICTORY screen', 'Ajar: ini skrin DEFEAT': 'Teach: this is the DEFEAT screen',
+    'Skrin Victory diajar.': 'Victory screen learned.', 'Skrin Defeat diajar.': 'Defeat screen learned.', 'Tiada bingkai untuk diajar.': 'No frame to learn from.',
+    'Pembelajaran keputusan dipadam.': 'Result learning cleared.',
+    'Kalibrasi kawasan HUD (jika peranti/skrin anda berbeza)': 'HUD region calibration (if your device/screen differs)',
+    'Nombor K/D/A (kanan atas)': 'K/D/A numbers (top right)', 'Ikon toast pembelian item': 'Item purchase toast icon',
+    'Cetus manual untuk ujian: tab Kawalan. Pengesan memicu efek yang sama (Kill, Mati, Victory, Defeat, Beli Item, Item Penuh), dan kiraan W/L bertambah secara automatik apabila Victory/Defeat dikesan.': 'Manual triggers for testing: Controls tab. The detector fires the same effects (Kill, Death, Victory, Defeat, Item Bought, Full Build), and the W/L count increases automatically when Victory/Defeat is detected.',
+    'Mengimbas · {0} ms setiap imbasan': 'Scanning · {0} ms per scan', 'Memuat ikon item…': 'Loading item icons…',
+    'HUD: K {0} · D {1} · A {2}': 'HUD: K {0} · D {1} · A {2}', 'HUD K/D/A tidak kelihatan': 'HUD K/D/A not visible',
+    'Item: {0} {1}': 'Item: {0} {1}', 'Item dimiliki: {0}/6': 'Items owned: {0}/6',
+    'MATI': 'DEATH', 'ITEM': 'ITEM', 'ITEM PENUH': 'FULL BUILD', 'PERLAWANAN BARU': 'NEW MATCH',
+
     /* ---- overlay siaran (kanvas) ---- */
     'MASA MAIN': 'PLAY TIME', 'MENANG ×{0}': 'WIN STREAK ×{0}', 'KALAH ×{0}': 'LOSS STREAK ×{0}',
     'MUSUH TUMBANG': 'ENEMY SLAIN', 'HERO KITA TUMBANG': 'YOUR HERO FELL',
