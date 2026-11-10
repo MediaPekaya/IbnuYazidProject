@@ -73,7 +73,8 @@
    "s0": 0.5,
    "n": 5,
    "enter": "dissolve",
-   "kb": "out"
+   "kb": "out",
+   "smooth": 15
   },
   {
    "id": "S07",
@@ -265,7 +266,8 @@
    "s0": 3.8,
    "n": 5,
    "enter": "push",
-   "kb": "in"
+   "kb": "in",
+   "stab": false
   },
   {
    "id": "S31",
@@ -273,7 +275,8 @@
    "s0": 0.2,
    "n": 14,
    "enter": "dissolve",
-   "kb": "in"
+   "kb": "in",
+   "stab": false
   }
  ]
 }

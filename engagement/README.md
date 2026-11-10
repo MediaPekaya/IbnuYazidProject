@@ -7,7 +7,7 @@ Audio = lagu sahaja (audio asal klip dimute, tiada SFX).
 - `haris-alya/index.html` – komposisi HyperFrames (dijana, jangan edit tangan; edit `tools/` lalu bina semula)
 - `haris-alya/tools/shots.json` – senarai shot: klip, titik mula (`s0`), panjang dalam beat (`n`), jenis transition (`enter`)
 - `haris-alya/tools/build.mjs` – kira masa daripada beat grid, jana teks kinetik, lighting dan transition
-- `haris-alya/tools/make_proxies.py` – potong setiap shot ke 1080p **60 fps** tanpa audio (50→60 blend, 26→60 motion-compensated) → `assets/shots/`
+- `haris-alya/tools/make_proxies.py` – potong setiap shot ke 1080p **60 fps** tanpa audio, dengan **stabilisasi vidstab** gaya gimbal (pelicinan 100, zum terhad; `smooth` / `stab:false` per shot dalam `shots.json`) (50→60 blend, 26→60 motion-compensated) → `assets/shots/`
 - `haris-alya/assets/fonts` – Montserrat + Playfair Display (OFL)
 
 ## Bina semula
@@ -33,3 +33,6 @@ Muzik: "Satu Shaf Dibelakangku" (Arvian Dwi) – dibekalkan pengguna. Pastikan h
 
 ## Lighting
 Grade emas (soft-light), bokeh emas perlahan, light leak pada transition `light`, flare anamorphic, light sweep & sparkle pada momen penting, intro bertema cincin bertaut. Semua elemen cahaya dikongsi (satu flare/sweep/leak) supaya render stabil.
+
+## Teks
+Tajuk sahaja sepanjang video. Sub tajuk hanya pada intro (tarikh) dan penutup (tarikh + doa).

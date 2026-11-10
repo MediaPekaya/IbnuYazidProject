@@ -47,18 +47,18 @@ shots.forEach((s, i) => {
 const INTRO_AT = 0.25;
 const DATE = "Sabtu, 7 November 2026";
 const TEXTS = [
-  { id: "t0", at: INTRO_AT, end: Bof("S01", 0) + 0.25, pos: "intro", h: ["Haris", "&", "Alya"], k: "ENGAGEMENT DAY", date: DATE },
-  { id: "t1", at: Bof("S01", 1.2), end: Bof("S01", 7.2), pos: "low", h: ["TETAMU MULA TIBA"], sub: "dengan hantaran penuh kasih" },
-  { id: "t2", at: Bof("S05", 0.3), end: Bof("S05", 5.6), pos: "low", h: ["MAJLIS BERMULA"], sub: "penuh adab dan hormat" },
-  { id: "t4", at: Bof("S12", 0.5), end: Bof("S12", 6.6), pos: "low", h: ["DOA & RESTU"], sub: "dipanjatkan dengan penuh harapan" },
+  { id: "t0", at: INTRO_AT, end: Bof("S01", 0) + 0.25, pos: "intro", h: ["Haris", "&", "Alya"], date: DATE },
+  { id: "t1", at: Bof("S01", 1.2), end: Bof("S01", 7.2), pos: "low", h: ["TETAMU MULA TIBA"] },
+  { id: "t2", at: Bof("S05", 0.3), end: Bof("S05", 5.6), pos: "low", h: ["MAJLIS BERMULA"] },
+  { id: "t4", at: Bof("S12", 0.5), end: Bof("S12", 6.6), pos: "low", h: ["DOA & RESTU"] },
   { id: "t5", at: Bof("S14", 3), end: Bof("S14", 9.6), pos: "low", h: ["SEBENTUK CINCIN"] },
-  { id: "t6", at: Bof("S15", 1.5), end: Bof("S15", 10.5), pos: "low", h: ["SEBUAH JANJI"], sub: "terukir pada hari yang indah", flare: [960, 690, 0.95], sweep: true, sparks: [[705, 690], [1240, 668], [1010, 600]] },
-  { id: "t7", at: Bof("S16", 0.5), end: Bof("S18", 3.6), pos: "low", h: ["RESTU KELUARGA"], sub: "yang paling bermakna" },
+  { id: "t6", at: Bof("S15", 1.5), end: Bof("S15", 10.5), pos: "low", h: ["SEBUAH JANJI"], flare: [960, 690, 0.95], sweep: true, sparks: [[705, 690], [1240, 668], [1010, 600]] },
+  { id: "t7", at: Bof("S16", 0.5), end: Bof("S18", 3.6), pos: "low", h: ["RESTU KELUARGA"] },
   { id: "t8", at: Bof("S20", 0.4), end: Bof("S20", 5.7), pos: "low", h: ["BERSAMA", "INSAN TERSAYANG"] },
   { id: "t9", at: Bof("S25", 0.4), end: Bof("S25", 3.9), pos: "low2", h: ["DUA HATI"] },
   { id: "t10", at: Bof("S25", 4.1), end: Bof("S25", 8.4), pos: "low2", h: ["SATU NIAT"], flare: [960, 700, 1.0], sweep: true, sparks: [[760, 700], [1180, 690], [960, 610]] },
   { id: "t11", at: Bof("S27", 0.4), end: Bof("S27", 4.6), pos: "low", h: ["JAMUAN &", "GELAK TAWA"] },
-  { id: "t12", at: Bof("S31", 4.4), end: TOTAL - 0.2, pos: "end", h: ["Terima", "Kasih"], k: "HARIS & ALYA  ·  ENGAGEMENT DAY", date: DATE, sub: "Semoga dipermudahkan hingga ke jinjang pelamin", flare: [960, 430, 1.2], sweep: true, sparks: [[690, 380], [1250, 350], [960, 240]] },
+  { id: "t12", at: Bof("S31", 4.4), end: TOTAL - 0.2, pos: "end", h: ["Terima", "Kasih"], date: DATE, sub: "Semoga dipermudahkan hingga ke jinjang pelamin", flare: [960, 430, 1.2], sweep: true, sparks: [[690, 380], [1250, 350], [960, 240]] },
 ];
 TEXTS.forEach((t) => { t.at = r3(t.at); t.end = r3(t.end); });
 
