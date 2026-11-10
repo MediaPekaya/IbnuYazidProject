@@ -7,6 +7,12 @@
   const D = GS.gamedock;
   const roleColor = { Tank: '#2ea8ff', Fighter: '#ff8a3b', Assassin: '#ff3b5c', Mage: '#9a7bff', Marksman: '#ffd36b', Support: '#3be39a' };
   const LANE = { gold: 'Gold', mid: 'Mid', exp: 'EXP', jungle: 'Jungle', roam: 'Roam' };
+  /** Gambar kecil hero (dimuat dari CDN wiki; disorok jika gagal). */
+  const avatar = (name, px, cls) => {
+    const url = GS.heroUrl(name, px * 2);
+    if (!url) return h('i');
+    return h('img', { class: cls || 'hav', src: url, alt: '', width: px, height: px, loading: 'lazy', referrerpolicy: 'no-referrer', onError: (e) => { e.target.replaceWith(h('i')); } });
+  };
   const pct = (x) => (x * 100).toFixed(1).replace(/\.0$/, '') + '%';
   const sec = (title, ...kids) => h('div', { class: 'gd-sec' }, h('h4', null, title), ...kids);
   const field = (label, input) => h('label', { class: 'field' }, h('span', null, label), input);
@@ -42,7 +48,7 @@
       const price = [x.price.bp ? x.price.bp.toLocaleString() + ' BP' : '', x.price.dm ? x.price.dm + ' DM' : '', x.price.tk ? x.price.tk + ' Tiket' : ''].filter(Boolean).join(' · ');
       const kv = (k, v) => h('div', { class: 'kv' }, h('span', null, k), h('b', null, v || '-'));
       detail.append(
-        h('h4', null, x.name, ' ', h('span', { class: 'muted' }, x.title)),
+        h('div', { class: 'hero-head' }, avatar(x.name, 72, 'hbig'), h('h4', null, x.name, ' ', h('span', { class: 'muted' }, x.title))),
         h('div', { class: 'hero-tags' },
           x.roles.map((r) => h('span', { class: 'tag', style: { '--rc': roleColor[r] } }, r)),
           x.lanes.map((l) => h('span', { class: 'tag lane' }, LANE[l]))),
@@ -64,7 +70,7 @@
     const draw = () => {
       list.innerHTML = '';
       const rows = all.filter((x) => (!role || x.roles.includes(role)) && (!lane || x.lanes.includes(lane)) && x.name.toLowerCase().includes(q));
-      rows.forEach((x) => list.append(h('button', { class: 'hero' + (sel && sel.name === x.name ? ' on' : ''), style: { '--rc': roleColor[x.role] }, title: x.roles.join(' / ') + ' · ' + x.lanes.map((l) => LANE[l]).join(' / '), onClick: () => { showDetail(x); draw(); } }, h('i'), h('span', null, x.name))));
+      rows.forEach((x) => list.append(h('button', { class: 'hero' + (sel && sel.name === x.name ? ' on' : ''), style: { '--rc': roleColor[x.role] }, title: x.roles.join(' / ') + ' · ' + x.lanes.map((l) => LANE[l]).join(' / '), onClick: () => { showDetail(x); draw(); } }, avatar(x.name, 24), h('span', null, x.name))));
       if (!rows.length) list.append(h('div', { class: 'empty' }, 'Tiada hero dijumpai.'));
       count.textContent = rows.length + ' / ' + all.length + ' hero';
     };
@@ -88,7 +94,7 @@
       const v = valf(x);
       box.append(h('div', { class: 'lb-row' },
         h('span', { class: 'lb-rank' }, String(i + 1)),
-        h('span', { class: 'lb-name' }, x.name),
+        h('span', { class: 'lb-name' }, avatar(x.name, 22), x.name),
         h('span', { class: 'lb-bar' }, h('i', { style: { width: Math.max(4, Math.round((v.bar / maxv) * 100)) + '%', '--rc': roleColor[(x.roles || [])[0]] || '#2ea8ff' } })),
         h('b', { class: 'lb-val' }, v.text)));
     });
@@ -110,10 +116,10 @@
       body.append(
         leaderboard('Top Pick', M.top('pick', opt), (x) => ({ bar: x.p, text: x.p + ' · ' + pct(x.pickRate) }), Math.max(1, ...M.top('pick', opt).map((x) => x.p))),
         leaderboard('Top Ban', M.top('ban', opt), (x) => ({ bar: x.b, text: x.b + ' · ' + pct(x.banRate) }), Math.max(1, ...M.top('ban', opt).map((x) => x.b))),
-        leaderboard('Kadar Menang Tertinggi (min. 8 pick)', M.top('wr', opt), (x) => ({ bar: x.wr - 0.3, text: pct(x.wr) + ' · ' + x.p }), 0.5),
+        leaderboard('Kadar Menang Tertinggi (min. 15 pick)', M.top('wr', opt), (x) => ({ bar: x.wr - 0.3, text: pct(x.wr) + ' · ' + x.p }), 0.4),
         leaderboard('Pick + Ban (kehadiran)', M.top('pb', opt), (x) => ({ bar: x.presence, text: pct(x.presence) }), 1));
       body.append(h('div', { class: 'gd-sec' }, h('h4', null, 'Tournament dalam skop'),
-        a.tournaments.map((t) => h('div', { class: 'kv' }, h('span', null, t.label + (t.live ? ' · LIVE' : '')), h('b', null, t.games + ' game')))));
+        a.tournaments.map((t) => h('div', { class: 'kv' }, h('span', null, t.label + (t.live ? ' · LIVE' : '')), h('b', null, GS.t('{0} game', t.games))))));
     };
     root.append(status,
       field('Skop tournament', scopeSel),
@@ -145,8 +151,8 @@
       if (!sel) return;
       detail.append(h('h4', null, sel.name),
         kv('Kategori', GS.data.mlbbItemCats[sel.cat]), kv('Harga', sel.price ? sel.price.toLocaleString() + ' emas' : ''), kv('Naik taraf', sel.upgrade ? String(sel.upgrade) : ''),
-        kv('Stat', sel.bonus), (sel.passives || []).map((p) => kv((p.kind === 'active' ? 'Aktif · ' : 'Pasif · ') + p.name, p.text)),
-        sel.recipe && sel.recipe.length ? kv('Resipi', sel.recipe.join(', ')) : null);
+        kv('Stat', sel.bonus), ...(sel.passives || []).map((p) => kv((p.kind === 'active' ? GS.t('Aktif · ') : GS.t('Pasif · ')) + p.name, p.text)),
+        ...(sel.recipe && sel.recipe.length ? [kv('Resipi', sel.recipe.join(', '))] : []));
     };
     root.append(
       h('div', { class: 'search' }, h('span', { html: icon('search', 16) }), h('input', { type: 'search', placeholder: 'Cari item…', 'aria-label': 'Cari item', onInput: (e) => { q = e.target.value.trim().toLowerCase(); draw(); } })),
@@ -203,7 +209,7 @@
       if (next != null) { target = side + next; targetSel.value = target; }
     };
     const pick = (name) => { setVal(target, name); advance(); };
-    const slot = (key, arr, i, ph) => (inputs[key] = h('input', { type: 'text', list: 'heroList', value: arr[i] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onChange: (e) => { const c = M.canon(e.target.value); arr[i] = c || e.target.value.trim(); if (c) e.target.value = c; GS.save(); drawSuggest(); } }));
+    const slot = (key, arr, i, ph) => (inputs[key] = h('input', { type: 'text', list: 'heroList', value: arr[i] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onInput: (e) => { arr[i] = e.target.value.trim(); GS.save(); }, onChange: (e) => { const c = M.canon(e.target.value); arr[i] = c || e.target.value.trim(); if (c) e.target.value = c; GS.save(); drawSuggest(); } }));
     const banIn = (key, f, ph) => (inputs[key] = h('input', { type: 'text', value: d[f] || '', placeholder: ph, onFocus: () => { target = key; targetSel.value = key; }, onChange: (e) => { d[f] = M.parseList(e.target.value).join(', ') || e.target.value; GS.save(); drawSuggest(); } }));
 
     /* pemilih hero */
@@ -214,7 +220,7 @@
       const c = draftCtx();
       const used = new Set([].concat(c.ally, c.enemy, c.bans));
       GS.data.mlbbHeroes.filter((x) => (!role || x.roles.includes(role)) && (!lane || x.lanes.includes(lane)) && x.name.toLowerCase().includes(q))
-        .forEach((x) => grid.append(h('button', { class: 'hero' + (used.has(x.name) ? ' used' : ''), style: { '--rc': roleColor[x.role] }, title: x.roles.join(' / ') + ' · ' + x.lanes.map((l) => LANE[l]).join(' / '), onClick: () => pick(x.name) }, h('i'), h('span', null, x.name))));
+        .forEach((x) => grid.append(h('button', { class: 'hero' + (used.has(x.name) ? ' used' : ''), style: { '--rc': roleColor[x.role] }, title: x.roles.join(' / ') + ' · ' + x.lanes.map((l) => LANE[l]).join(' / '), onClick: () => pick(x.name) }, avatar(x.name, 24), h('span', null, x.name))));
     };
 
     /* cadangan */
@@ -229,7 +235,7 @@
       const open = M.openLanes(c.ally);
       sugBox.append(h('div', { class: 'muted note' }, c.ally.length ? GS.t('Lane ally kosong: {0}', open.map((l) => LANE[l]).join(', ') || '-') : GS.t('Pilih hero ally untuk melihat lane kosong.')));
       const block = (title, rows, act, label) => h('div', { class: 'gd-sec' }, h('h4', null, title),
-        rows.map((r) => h('div', { class: 'sug-row' }, h('div', null, h('b', null, r.name), h('span', { class: 'muted' }, ' ' + r.score), h('div', { class: 'muted small' }, r.why.slice(0, 4).join(' · '))),
+        rows.map((r) => h('div', { class: 'sug-row' }, avatar(r.name, 36, 'hav lg'), h('div', { class: 'sug-txt' }, h('b', null, r.name), h('span', { class: 'muted' }, ' ' + r.score), h('div', { class: 'muted small' }, r.why.slice(0, 4).join(' · '))),
           h('button', { class: 'btn tiny', onClick: () => act(r.name) }, label))));
       sugBox.append(
         block('Cadangan PICK (ally)', M.suggestPick(c), (n) => { const i = d.ally.findIndex((x) => !x); if (i >= 0) { d.ally[i] = n; GS.save(); sync(); drawSuggest(); } }, 'Pick'),

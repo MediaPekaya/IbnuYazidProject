@@ -172,7 +172,37 @@
     ctx.lineWidth = Math.max(2, r * 0.08);
     ctx.strokeStyle = filled ? '#fff' : 'rgba(160,200,255,0.35)';
     ctx.stroke();
-    if (name) W.text(ctx, initials(name), cx, cy + r * 0.2, { size: r * 0.62, weight: 800, align: 'center', color: '#07122a' });
+    if (name) {
+      W.hex(ctx, cx, cy, r * 0.94);
+      if (GS.drawHeroInPath(ctx, name, cx, cy, r)) {
+        W.hex(ctx, cx, cy, r);
+        ctx.lineWidth = Math.max(2, r * 0.08);
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        W.text(ctx, initials(name), cx, cy + r * 0.2, { size: r * 0.62, weight: 800, align: 'center', color: '#07122a' });
+      }
+    }
+  };
+
+  /** Avatar bulat: gambar hero, atau inisial jika gambar belum ada. */
+  W.heroAvatar = function (ctx, name, cx, cy, r, col) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = col || '#2ea8ff';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    if (!GS.drawHeroInPath(ctx, name, cx, cy, r)) {
+      ctx.beginPath();
+      W.text(ctx, initials(name), cx, cy + r * 0.3, { size: r * 0.9, weight: 800, align: 'center', color: '#07122a' });
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.lineWidth = Math.max(1.5, r * 0.1);
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.stroke();
   };
 
   /* ---------- bar status ---------- */
@@ -447,7 +477,8 @@
       rows.forEach((r, i) => {
         const ry = y + h * 0.27 + i * rh;
         W.text(ctx, (i + 1) + '', cx, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: C.muted });
-        W.text(ctx, r.name, cx + rh * 0.55, ry + rh * 0.55, { size: rh * 0.4, weight: 700, color: C.text, maxW: cw * 0.52 });
+        W.heroAvatar(ctx, r.name, cx + rh * 0.85, ry + rh * 0.42, rh * 0.36, col);
+        W.text(ctx, r.name, cx + rh * 1.35, ry + rh * 0.55, { size: rh * 0.4, weight: 700, color: C.text, maxW: cw * 0.5 - rh });
         W.text(ctx, txt(r), cx + cw, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: col, align: 'right' });
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
         ctx.fillRect(cx, ry + rh * 0.76, cw, 3);

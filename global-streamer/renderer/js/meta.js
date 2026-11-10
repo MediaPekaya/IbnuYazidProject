@@ -115,8 +115,8 @@
     let list = Object.values(a.heroes);
     if (opts.lane) list = list.filter((h) => h.lanes.includes(opts.lane));
     if (opts.role) list = list.filter((h) => h.roles.includes(opts.role));
-    const min = opts.min == null ? 8 : opts.min;
-    const keyf = { pick: (h) => h.p, ban: (h) => h.b, pb: (h) => h.p + h.b, wr: (h) => h.wrS }[kind] || ((h) => h.p);
+    const min = opts.min == null ? 15 : opts.min;
+    const keyf = { pick: (h) => h.p, ban: (h) => h.b, pb: (h) => h.p + h.b, wr: (h) => h.wr }[kind] || ((h) => h.p);
     if (kind === 'wr') list = list.filter((h) => h.p >= min);
     return list.sort((x, y) => keyf(y) - keyf(x) || y.p - x.p).slice(0, opts.n || 10);
   };

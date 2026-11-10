@@ -36,6 +36,8 @@ Tema: biru hologram berkilau, bergradien bercampur merah yang sentiasa bertukar.
 | **Meta tournament**: top pick, top ban, kadar menang, kehadiran, sisi biru/merah, padanan dan counter (MPL ID/MY/PH S18, MSC 2026, M7 sebagai sejarah) | ✅ Dikumpul daripada Liquipedia (CC-BY-SA). App menyemak data setiap 5 minit; **data itu sendiri dikemas kini oleh pengumpul pusat (lihat bawah)** |
 | Cadangan pick / ban / ramalan menang berdasarkan meta, penapis lane, tier list daripada meta, widget "Meta Tournament" | ✅ Siap, diuji. Pengiraan statistik yang boleh dijelaskan, bukan jaminan menang. |
 
+| **Gambar karakter hero** (panel Hero, pemilih draft, cadangan, widget Draft, Meta Tournament dan Tier List) | ✅ Dimuat pada PC pengguna daripada CDN Mobile Legends Wiki, **tidak dibundel dalam repo atau installer** (seni karya Moonton). Jika luar talian dan belum dicache, jatuh balik kepada inisial. Kanvas siaran tidak tercemar (CORS diuji). |
+
 Lihat `docs/ANALISIS-MLBB.md` untuk laporan data (jadual peranan, lane, item, emblem dan meta). Data hero/item/emblem ialah salinan wiki pada tarikh dikumpul; jalankan semula `npm run data:mlbb` selepas patch baharu.
 
 ## Cuba versi web (setempat)
@@ -82,6 +84,10 @@ Tambah game baharu: salin corak `renderer/games/mlbb/` kepada folder baharu, daf
 * Statistik hanya berubah selepas game tamat, jadi kekerapan 5 minit hanya bermakna ketika tournament sedang berlangsung. Kelewatan sebenar = kekerapan pengumpul + kelewatan Liquipedia mengemas kini jadual mereka.
 * Liquipedia memaparkan hanya 5 teratas untuk padanan/lawan setiap hero, jadi pengiraan counter/padanan separa.
 * Pengesanan hero draft automatik daripada capture card belum siap (Fasa 5). Buat masa ini hero dimasukkan melalui pemilih hero (penapis peranan/lane), dan cadangan/ramalan dikira serta-merta.
+
+## Gambar hero: nota hak cipta
+
+Gambar hero ialah hak Moonton. Ia **tidak** disimpan dalam repo dan tidak dimasukkan dalam installer; app memuatnya terus daripada CDN wiki pada PC pengguna (`js/heroimg.js`). Sebelum menjual, dapatkan nasihat undang-undang tentang penggunaan gambar hero dalam produk berbayar dan ikuti dasar kandungan Moonton. Jika mahu mematikannya, kosongkan medan `img` dalam `renderer/data/mlbb-static.json` (paparan jatuh balik kepada inisial).
 
 ## Had yang perlu diketahui
 

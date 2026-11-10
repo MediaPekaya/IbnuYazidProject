@@ -64,7 +64,8 @@ async function heroes() {
       region: clean(td.eq(7).text()),
       price,
       released: isoDate(td.eq(9).text()),
-      icon: (td.eq(1).find('img').attr('data-image-key') || '').replace(/_/g, ' ')
+      icon: (td.eq(1).find('img').attr('data-image-key') || '').replace(/_/g, ' '),
+      img: ((td.eq(1).find('img').attr('data-src') || td.eq(1).find('img').attr('src') || '').match(/^(https:\/\/static\.wikia\.nocookie\.net\/[^?]*?\/revision\/latest)/) || [])[1] || ''
     });
   });
   return out;

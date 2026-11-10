@@ -604,7 +604,8 @@
       let cx = px + 44 + rowH * 0.7, cy = ry + 14, maxX = px + pw - 36, shown = 0;
       const chipH = fs * 1.7;
       for (const name of list) {
-        const w = ctx.measureText(name).width + fs * 1.2;
+        const av = GS.hero && GS.hero(name) && GS.hero(name).img ? chipH * 0.8 : 0;
+        const w = ctx.measureText(name).width + fs * 1.2 + av;
         if (cx + w > maxX) { cx = px + 44 + rowH * 0.7; cy += chipH + 6; }
         if (cy + chipH > ry + rowH - 4) break;
         ctx.fillStyle = 'rgba(46,168,255,0.22)';
@@ -613,7 +614,8 @@
         ctx.strokeStyle = 'rgba(107,230,255,0.5)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        GS.widgets.text(ctx, name, cx + w / 2, cy + chipH * 0.68, { size: fs, weight: 700, align: 'center', color: '#eaf4ff' });
+        if (av) GS.widgets.heroAvatar(ctx, name, cx + chipH * 0.5, cy + chipH / 2, chipH * 0.42, '#2ea8ff');
+        GS.widgets.text(ctx, name, cx + av / 2 + w / 2, cy + chipH * 0.68, { size: fs, weight: 700, align: 'center', color: '#eaf4ff' });
         cx += w + 8;
         shown++;
       }

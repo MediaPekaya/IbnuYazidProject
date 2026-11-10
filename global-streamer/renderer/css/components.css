@@ -316,3 +316,13 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .sug-row:first-of-type { border-top: 0; }
 .small { font-size: 10.5px; line-height: 1.4; }
 .meta-body { display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------- gambar hero ---------- */
+.hav { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none; background: rgba(20, 44, 88, 0.6); box-shadow: 0 0 0 1.5px var(--rc, var(--line-strong)); }
+.hav.lg { width: 36px; height: 36px; }
+.hero .hav { margin-left: -5px; }
+.hbig { width: 72px; height: 72px; border-radius: 16px; object-fit: cover; flex: none; box-shadow: 0 0 0 2px var(--rc, var(--cyan)), 0 0 18px rgba(46, 168, 255, 0.35); }
+.hero-head { display: flex; align-items: center; gap: 12px; }
+.lb-name { display: flex; align-items: center; gap: 7px; }
+.sug-row .sug-txt { flex: 1; min-width: 0; }
+.sug-row { gap: 10px; }
