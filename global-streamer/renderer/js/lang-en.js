@@ -673,6 +673,7 @@
     'Mana-mana platform yang memberi RTMP / RTMPS Server URL dan Stream Key.': 'Any platform that gives an RTMP / RTMPS Server URL and Stream Key.',
     'Pilihan: dibiarkan kosong = guna lalai ': 'Optional: leave empty = use default ',
     'WAJIB. Server URL RTMP / RTMPS daripada platform ini (salin daripada dashboard platform).': 'REQUIRED. RTMP / RTMPS Server URL from this platform (copy from the platform dashboard).',
+    'Kunci API {0} tiada kebenaran "{1}". Buat kunci baharu dan hidupkan kebenaran itu (atau pilih akses penuh).': 'The {0} API key is missing the "{1}" permission. Create a new key and enable it (or choose full access).',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

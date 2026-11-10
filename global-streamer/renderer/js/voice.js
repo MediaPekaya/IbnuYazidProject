@@ -110,6 +110,8 @@
   const errMsg = (prov, status, code, msg) => {
     const n = PROV[prov] || prov;
     if (/quota|limit_exceeded/i.test(code || '') || /quota/i.test(msg || '')) return GS.t('Kuota percuma {0} bulan ini sudah habis.', n);
+    const perm = /missing[_ ]permissions?/i.test(code || '') || /missing the permission|permission/i.test(msg || '') ? String(msg || '').match(/permission[s]?\s+[`'"]?([a-z_]+)/i) : null;
+    if ((status === 401 || status === 403) && (perm || /missing[_ ]permissions?/i.test(code || ''))) return GS.t('Kunci API {0} tiada kebenaran "{1}". Buat kunci baharu dan hidupkan kebenaran itu (atau pilih akses penuh).', n, (perm && perm[1]) || 'voices');
     if (status === 401 || status === 403) return GS.t('Kunci API {0} tidak sah atau tiada kebenaran (semak kunci dan kawasan).', n);
     if (status === 429) return GS.t('{0}: terlalu banyak permintaan. Cuba sebentar lagi.', n);
     if (status === 402) return GS.t('Pelan {0} anda tidak membenarkan suara ini.', n);
