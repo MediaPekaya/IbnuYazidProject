@@ -116,13 +116,18 @@ ipcMain.handle('rec:reveal', (_e, f) => {
  * Boleh DISEMBUNYIKAN sementara (butang "Sembunyi" atau Ctrl+Alt+H): bar mengecil menjadi tab kecil di tengah atas, klik tab atau tekan pintasan untuk paparkan semula. */
 let recBar = null;
 let recBarHidden = false;
-const BAR_W = 360, BAR_H = 56, TAB_W = 74, TAB_H = 18;
+const BAR_W = 450, BAR_H = 56, PILL_W = 132, PILL_H = 34;
+/* tukar antara bar penuh dan pil merah REC: kedudukan semasa (yang diseret pengguna) dikekalkan, hanya saiz berubah di sekitar titik tengah atasnya */
 function recBarPlace(hidden) {
   if (!recBar || recBar.isDestroyed()) return;
   const { screen } = require('electron');
-  const wa = screen.getPrimaryDisplay().workArea;
-  const w = hidden ? TAB_W : BAR_W, h = hidden ? TAB_H : BAR_H;
-  recBar.setBounds({ x: Math.round(wa.x + wa.width / 2 - w / 2), y: wa.y + (hidden ? 0 : 12), width: w, height: h });
+  const b = recBar.getBounds();
+  const wa = screen.getDisplayMatching(b).workArea;
+  const w = hidden ? PILL_W : BAR_W, h = hidden ? PILL_H : BAR_H;
+  const cx = b.x + b.width / 2;
+  const x = Math.max(wa.x, Math.min(wa.x + wa.width - w, Math.round(cx - w / 2)));
+  const y = Math.max(wa.y, Math.min(wa.y + wa.height - h, b.y + (hidden ? Math.round((BAR_H - PILL_H) / 2) : -Math.round((BAR_H - PILL_H) / 2))));
+  recBar.setBounds({ x, y, width: w, height: h });
   recBarHidden = hidden;
   recBar.webContents.send('rec:bar-collapsed', hidden);
 }
@@ -136,8 +141,8 @@ function showRecBar(on) {
   const { screen } = require('electron');
   const wa = screen.getPrimaryDisplay().workArea;
   recBar = new BrowserWindow({
-    width: BAR_W, height: BAR_H, x: Math.round(wa.x + wa.width / 2 - BAR_W / 2), y: wa.y + 12, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: true,
-    backgroundColor: '#0b1020', title: 'Global Streamer REC',
+    width: BAR_W, height: BAR_H, x: Math.round(wa.x + wa.width / 2 - BAR_W / 2), y: wa.y + 12, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: false, transparent: true,
+    backgroundColor: '#00000000', title: 'Global Streamer REC',
     webPreferences: { preload: path.join(__dirname, 'recbar-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   recBarHidden = false;

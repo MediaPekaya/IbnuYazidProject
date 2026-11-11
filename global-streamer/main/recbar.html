@@ -1,49 +1,58 @@
 <!doctype html>
 <html lang="ms"><head><meta charset="utf-8"><title>REC</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #0b1020; color: #eaf4ff; font: 700 14px "Segoe UI", system-ui, sans-serif; -webkit-app-region: drag; user-select: none; overflow: hidden; }
-  body { display: flex; align-items: center; gap: 8px; padding: 0 10px; box-sizing: border-box; border: 1px solid #ff3b5c; border-radius: 10px; }
+  html, body { margin: 0; height: 100%; background: transparent; color: #eaf4ff; font: 700 14px "Segoe UI", system-ui, sans-serif; user-select: none; overflow: hidden; }
+  /* bar penuh: seret pada mana-mana ruang kosong untuk alih ke tempat lain */
+  #bar { height: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: #0b1020; border: 1px solid #ff3b5c; border-radius: 12px; -webkit-app-region: drag; }
   i { width: 12px; height: 12px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 10px #ff3b5c; animation: p 1.2s ease-in-out infinite; flex: none; }
-  body.paused i { animation: none; background: #ffd36b; box-shadow: 0 0 10px #ffd36b; }
+  .paused i { animation: none; background: #ffd36b; box-shadow: 0 0 10px #ffd36b; }
   @keyframes p { 50% { opacity: .35; } }
-  b { font-variant-numeric: tabular-nums; letter-spacing: .06em; flex: 1; white-space: nowrap; }
-  button { -webkit-app-region: no-drag; border: 0; border-radius: 8px; padding: 8px 10px; font: 800 12px "Segoe UI", system-ui, sans-serif; cursor: pointer; color: #fff; }
-  button:hover { filter: brightness(1.15); }
+  #t { font-variant-numeric: tabular-nums; letter-spacing: .06em; flex: 1; white-space: nowrap; }
+  button { -webkit-app-region: no-drag; border: 0; border-radius: 9px; padding: 8px 11px; font: 800 12px "Segoe UI", system-ui, sans-serif; cursor: pointer; color: #fff; white-space: nowrap; transition: filter .15s, transform .15s; }
+  button:hover { filter: brightness(1.18); }
+  button:active { transform: scale(.97); }
+  #p { background: #2b3a63; min-width: 74px; }
+  .paused #p { background: #1f8f55; }
+  #h { background: #1a2442; }
   #s { background: #ff3b5c; }
-  #p { background: #2b3a63; }
-  #h { background: #1a2442; padding: 8px 9px; }
-  /* mod tab kecil (disembunyikan) */
-  #tab { display: none; -webkit-app-region: no-drag; width: 100%; height: 100%; background: #0b1020; color: #ff8da1; font: 800 10px "Segoe UI", system-ui, sans-serif; border: 0; border-radius: 0 0 9px 9px; cursor: pointer; padding: 0; }
-  body.collapsed { padding: 0; border: 1px solid #ff3b5c; border-top: 0; border-radius: 0 0 9px 9px; }
-  body.collapsed > :not(#tab) { display: none; }
-  body.collapsed #tab { display: block; }
+  /* pil merah apabila disembunyikan: klik untuk buka semula bar */
+  #pill { display: none; height: 100%; box-sizing: border-box; align-items: stretch; background: #e0213f; border-radius: 99px; box-shadow: 0 2px 12px rgba(224, 33, 63, .6); overflow: hidden; }
+  #grip { width: 16px; -webkit-app-region: drag; cursor: grab; background: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255,255,255,.55) 3px 4px) 4px 50% / 8px 12px no-repeat; }
+  #open { -webkit-app-region: no-drag; flex: 1; display: flex; align-items: center; gap: 7px; background: transparent; border-radius: 0; padding: 0 14px 0 4px; font: 800 13px "Segoe UI", system-ui, sans-serif; color: #fff; }
+  #open i { width: 9px; height: 9px; background: #fff; box-shadow: none; }
+  .paused #open i { background: #ffd36b; }
+  body.collapsed #bar { display: none; }
+  body.collapsed #pill { display: flex; }
 </style></head>
-<body><i></i><b id="t">REC 00:00</b>
-<button id="p" type="button" title="Jeda / Sambung rakaman">Jeda</button>
-<button id="h" type="button" title="Sembunyikan bar ini sebentar (Ctrl+Alt+H untuk paparkan semula)">Sembunyi</button>
-<button id="s" type="button">Henti &amp; simpan</button>
-<button id="tab" type="button" title="Klik untuk paparkan bar (atau Ctrl+Alt+H)">&#9679; REC &#9662;</button>
+<body>
+<div id="bar"><i></i><span id="t">REC 00:00</span>
+  <button id="p" type="button" title="Pause / Resume rakaman">Pause</button>
+  <button id="h" type="button" title="Sembunyikan bar ini. Klik pil merah REC untuk buka semula (atau Ctrl+Alt+H)">Hide</button>
+  <button id="s" type="button" title="Tamatkan rakaman dan simpan fail">Simpan rakaman</button>
+</div>
+<div id="pill"><div id="grip" title="Seret untuk alih"></div><button id="open" type="button" title="Klik untuk buka semula bar rakaman (atau Ctrl+Alt+H)"><i></i><span id="pt">REC 00:00</span></button></div>
 <script>
   const pad = (n) => String(n).padStart(2, '0');
   let t0 = Date.now(), paused = false, pausedAt = 0, pausedTotal = 0;
   const el = (id) => document.getElementById(id);
-  function render() {
+  function clock() {
     const now = paused ? pausedAt : Date.now();
     const s = Math.max(0, Math.floor((now - t0 - pausedTotal) / 1000));
-    el('t').textContent = (paused ? 'JEDA ' : 'REC ') + (s >= 3600 ? pad(Math.floor(s / 3600)) + ':' : '') + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
+    return (s >= 3600 ? pad(Math.floor(s / 3600)) + ':' : '') + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
   }
+  function render() { const c = clock(); el('t').textContent = (paused ? 'PAUSE ' : 'REC ') + c; el('pt').textContent = (paused ? 'PAUSE ' : 'REC ') + c; }
   setInterval(render, 300);
   window.recbar.onState((st) => {
     const p = !!(st && st.paused);
     if (p && !paused) { paused = true; pausedAt = Date.now(); }
     else if (!p && paused) { paused = false; pausedTotal += Date.now() - pausedAt; }
     document.body.classList.toggle('paused', paused);
-    el('p').textContent = paused ? 'Sambung' : 'Jeda';
+    el('p').textContent = paused ? 'Resume' : 'Pause';
     render();
   });
   window.recbar.onCollapsed((c) => document.body.classList.toggle('collapsed', c));
   el('s').addEventListener('click', () => window.recbar.stop());
   el('p').addEventListener('click', () => window.recbar.pause());
   el('h').addEventListener('click', () => window.recbar.hide(true));
-  el('tab').addEventListener('click', () => window.recbar.hide(false));
+  el('open').addEventListener('click', () => window.recbar.hide(false));
 </script></body></html>

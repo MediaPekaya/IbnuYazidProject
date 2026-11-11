@@ -154,24 +154,41 @@
     else if (R.active) finishRecording(R.mode_);
   };
 
-  /** Menu pilihan rakaman (di sebelah butang REC). */
+  /** Menu pilihan rakaman (di sebelah butang REC): tema cerah, tulisan hitam, tanda ✓ pada pilihan semasa. */
   R.openMenu = function () {
     GS.$$('.popover').forEach((p) => p.remove());
     const st = GS.state.settings;
     const pop = h('div', { class: 'popover rec-pop', role: 'menu' });
-    const item = (label, sub, on, run) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { close(); run(); } },
-      h('span', null, GS.t(label), sub ? h('small', null, GS.t(sub)) : null));
+    const item = (label, sub, on, run, extra) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : '') + (extra ? ' ' + extra : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { close(); run(); } },
+      h('span', null, h('b', null, GS.t(label)), sub ? h('small', null, GS.t(sub)) : null));
+    // semasa merakam: Pause/Resume dan Simpan rakaman terus daripada menu
+    if (R.active) {
+      pop.append(item(R.paused ? 'Resume rakaman' : 'Pause rakaman', R.paused ? 'Sambung merakam dari tempat anda berhenti.' : 'Hentikan rakaman buat seketika, sambung bila-bila masa.', false, () => R.togglePause(), 'act'));
+      pop.append(item('Simpan rakaman', 'Tamatkan rakaman dan simpan fail ke komputer anda.', false, () => R.stop(), 'act'));
+      pop.append(h('hr'));
+    }
     const cur = R.mode();
-    ['program', 'screen', 'window'].forEach((m) => pop.append(item(R.modes[m], { program: 'Apa yang penonton nampak, dengan template dan efek', screen: 'Semua yang ada pada skrin: buka mana-mana aplikasi, YouTube, presentation', window: 'Hanya satu aplikasi/tetingkap yang dipilih' }[m], cur === m, () => { st.recMode = m; GS.save(); render(); })));
+    const modes = {
+      screen: ['Rakam seluruh skrin', 'Semua yang terpapar di skrin anda dirakam, termasuk aplikasi lain, pelayar dan pembentangan.'],
+      program: ['Rakam paparan penonton', 'Rakam gambar siaran seperti yang dilihat penonton, lengkap dengan template dan efek.'],
+      window: ['Rakam satu tetingkap', 'Pilih satu aplikasi sahaja untuk dirakam. Tetingkap lain tidak ikut dirakam.'],
+    };
+    ['screen', 'program', 'window'].forEach((m) => pop.append(item(modes[m][0], modes[m][1], cur === m, () => {
+      if (R.active) { GS.toast(GS.t('Simpan rakaman semasa dahulu sebelum menukar mod.'), 'warn'); return; }
+      st.recMode = m; GS.save(); render();
+      R.start(m);                                      // terus minta akses kepada apa yang mahu dirakam (skrin / tetingkap)
+    })));
     pop.append(h('hr'));
-    pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain (guna fon kepala supaya tidak berdengung dengan mikrofon)', !!st.recSystemAudio, () => { st.recSystemAudio = !st.recSystemAudio; GS.save(); }));
-    pop.append(item('Kecilkan Global Streamer semasa rakam skrin', 'Bar REC kecil sentiasa di atas: tekan "Henti & simpan" bila siap', !!st.recMinimize, () => { st.recMinimize = !st.recMinimize; GS.save(); }));
+    pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain turut masuk ke dalam rakaman. Pakai fon kepala supaya tiada dengung.', !!st.recSystemAudio, () => { st.recSystemAudio = true; GS.save(); GS.toast(GS.t('Rakaman akan membawa bunyi komputer.'), 'ok'); }));
+    pop.append(item('Tanpa bunyi komputer', 'Rakaman hanya membawa suara mikrofon dan campuran bunyi dalam app ini.', !st.recSystemAudio, () => { st.recSystemAudio = false; GS.save(); GS.toast(GS.t('Rakaman tanpa bunyi komputer.'), 'ok'); }));
+    pop.append(h('hr'));
+    pop.append(item('Kecilkan Global Streamer semasa merakam', 'Tetingkap app diturunkan supaya skrin anda bersih. Guna bar REC di atas untuk Pause, Hide dan Simpan rakaman.', !!st.recMinimize, () => { st.recMinimize = !st.recMinimize; GS.save(); }));
     document.body.append(pop);
     const anchor = GS.$('#btnRecMode'), r = anchor.getBoundingClientRect(), pr = pop.getBoundingClientRect();
     pop.style.left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.right - pr.width)) + 'px';
     pop.style.top = (r.bottom + 8) + 'px';
-    requestAnimationFrame(() => pop.classList.add('in'));
-    function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 200); document.removeEventListener('pointerdown', away, true); }
+    requestAnimationFrame(() => requestAnimationFrame(() => pop.classList.add('in')));
+    function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 320); document.removeEventListener('pointerdown', away, true); }
     function away(ev) { if (!pop.contains(ev.target) && ev.target !== anchor) close(); }
     setTimeout(() => document.addEventListener('pointerdown', away, true), 0);
   };
