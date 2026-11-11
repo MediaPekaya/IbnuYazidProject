@@ -708,6 +708,13 @@
     '(Untuk bot faham Bahasa Melayu, pilih Groq dan masukkan key Groq. Tanpa itu, pengecam Windows Inggeris digunakan dan kurang tepat.)': '(For the bot to understand Malay, choose Groq and enter a Groq key. Without it the English Windows recogniser is used and is less accurate.)',
     'AKAN DATANG': 'COMING SOON',
     'Enemy Slain': 'Enemy Slain',
+    '{0} item': '{0} items',
+    'Sumber: Mobile Legends Wiki (CC-BY-SA 3.0). Gambar dimuat daripada wiki pada PC anda (perlu internet). Harga dan stat mengikut halaman wiki pada masa data dikumpul.': 'Source: Mobile Legends Wiki (CC-BY-SA 3.0). Images are loaded from the wiki on your PC (internet required). Prices and stats follow the wiki page at the time the data was collected.',
+    'Sumber: Mobile Legends Wiki (CC-BY-SA 3.0). Gambar dimuat daripada wiki pada PC anda (perlu internet).': 'Source: Mobile Legends Wiki (CC-BY-SA 3.0). Images are loaded from the wiki on your PC (internet required).',
+    'Setiap set emblem: gambar, atribut dan talent (dengan gambar talent).': 'Each emblem set: image, attributes and talents (with talent images).',
+    'Footer Video (video bergerak di bar bawah)': 'Footer Video (moving video in the bottom bar)',
+    'Pilih fail video (WebM, MP4 atau MOV).': 'Choose a video file (WebM, MP4 or MOV).',
+    'Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.': 'Footer video placed in the bottom bar and loops automatically. Drag or resize if needed.',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

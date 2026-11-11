@@ -136,42 +136,60 @@
   }
 
   /* ============ Item ============ */
+  const ITEM_GROUPS = [['attack', 'Attack', '#ff8a3b'], ['magic', 'Magic', '#9a7bff'], ['defense', 'Defense', '#2ea8ff'], ['movement', 'Boots (Movement)', '#3be39a'], ['jungle', 'Jungling', '#7bd34a'], ['roam', 'Roaming', '#ffd36b'], ['potion', 'Potion', '#ff3b5c']];
+  const itemGroup = (i) => (/Potion$/i.test(i.name) ? 'potion' : ((i.tabs && i.tabs[0]) || i.cat || 'attack'));
+  /** Senarai penuh item untuk panel (kedai + naik taraf jungle + roam); gambar dan nama. */
+  const panelItems = () => ((GS.data.static && GS.data.static.items) || GS.data.mlbbItems).filter((i) => i.price || ['jungle', 'roam'].includes((i.tabs || [])[0]));
+  const imgOf = (url, px, cls) => (url ? h('img', { class: cls || 'iimg', src: url + '/scale-to-width-down/' + px * 2, alt: '', width: px, height: px, loading: 'lazy', referrerpolicy: 'no-referrer', onError: (e) => { e.target.replaceWith(h('i', { class: 'iimg ph' })); } }) : h('i', { class: (cls || 'iimg') + ' ph' }));
   function itemsPage(root) {
-    let cat = '', q = '', sel = null;
-    const list = h('div', { class: 'hero-grid' });
+    let grp = '', q = '', sel = null;
+    const list = h('div', { class: 'item-groups' });
     const detail = h('div', { class: 'gd-sec hero-detail' });
     const kv = (k, v) => h('div', { class: 'kv' }, h('span', null, k), h('b', null, v || '-'));
     const draw = () => {
       list.innerHTML = '';
-      GS.data.mlbbItems.filter((i) => (!cat || i.cat === cat) && i.name.toLowerCase().includes(q)).forEach((i) =>
-        list.append(h('button', { class: 'hero' + (sel === i ? ' on' : ''), style: { '--rc': { attack: '#ff8a3b', magic: '#9a7bff', defense: '#2ea8ff', movement: '#3be39a', potion: '#ff3b5c' }[i.cat] }, onClick: () => { sel = i; draw(); show(); } }, h('i'), h('span', null, i.name))));
+      let shown = 0;
+      ITEM_GROUPS.forEach(([g, label, col]) => {
+        if (grp && grp !== g) return;
+        const items = panelItems().filter((i) => itemGroup(i) === g && i.name.toLowerCase().includes(q));
+        if (!items.length) return;
+        shown += items.length;
+        list.append(h('div', { class: 'item-group', 'data-group': g, style: { '--rc': col } },
+          h('h4', null, h('i'), GS.t(label), h('small', null, GS.t('{0} item', items.length))),
+          h('div', { class: 'item-grid' }, items.map((i) => h('button', { type: 'button', class: 'item-card' + (sel === i ? ' on' : ''), 'data-item': i.name, title: i.name, onClick: () => { sel = i; draw(); show(); } }, imgOf(i.img, 44), h('span', null, i.name))))));
+      });
+      if (!shown) list.append(h('div', { class: 'empty' }, 'Tiada item dijumpai.'));
     };
     const show = () => {
       detail.innerHTML = '';
       detail.style.display = sel ? '' : 'none';
       if (!sel) return;
-      detail.append(h('h4', null, sel.name),
-        kv('Kategori', GS.data.mlbbItemCats[sel.cat]), kv('Harga', sel.price ? sel.price.toLocaleString() + ' emas' : ''), kv('Naik taraf', sel.upgrade ? String(sel.upgrade) : ''),
+      detail.append(h('div', { class: 'item-head' }, imgOf(sel.img, 56), h('h4', null, sel.name)),
+        kv('Kategori', GS.t((ITEM_GROUPS.find((x) => x[0] === itemGroup(sel)) || [])[1] || sel.type || '')), kv('Harga', sel.price ? sel.price.toLocaleString() + ' emas' : ''), kv('Naik taraf', sel.upgrade ? String(sel.upgrade) : ''),
         kv('Stat', sel.bonus), ...(sel.passives || []).map((p) => kv((p.kind === 'active' ? GS.t('Aktif · ') : GS.t('Pasif · ')) + p.name, p.text)),
         ...(sel.recipe && sel.recipe.length ? [kv('Resipi', sel.recipe.join(', '))] : []));
     };
     root.append(
       h('div', { class: 'search' }, h('span', { html: icon('search', 16) }), h('input', { type: 'search', placeholder: 'Cari item…', 'aria-label': 'Cari item', onInput: (e) => { q = e.target.value.trim().toLowerCase(); draw(); } })),
-      chipRow([['', 'Semua']].concat(Object.entries(GS.data.mlbbItemCats)), cat, (v) => { cat = v; draw(); }),
+      chipRow([['', 'Semua']].concat(ITEM_GROUPS.map((x) => [x[0], x[1]])), grp, (v) => { grp = v; draw(); }),
       list, detail,
-      h('p', { class: 'muted note' }, 'Sumber: Mobile Legends Wiki (CC-BY-SA 3.0). Harga dan stat mengikut halaman wiki pada masa data dikumpul.'));
+      h('p', { class: 'muted note' }, 'Sumber: Mobile Legends Wiki (CC-BY-SA 3.0). Gambar dimuat daripada wiki pada PC anda (perlu internet). Harga dan stat mengikut halaman wiki pada masa data dikumpul.'));
     draw(); show();
   }
 
   /* ============ Emblem ============ */
+  const EMB_ORDER = ['Basic Common', 'Tank', 'Fighter', 'Assassin', 'Mage', 'Marksman', 'Support'];
+  const embRank = (e) => { const i = EMB_ORDER.findIndex((k) => e.name.includes(k)); return i < 0 ? 99 : i; };
   function emblemsPage(root) {
-    GS.data.mlbbEmblems.forEach((e) => {
-      root.append(sec(e.name,
-        h('div', { class: 'kv' }, h('span', null, 'Atribut'), h('b', null, e.attributes.map((a) => a.stat + ' ' + a.value).join(' · '))),
-        e.standard.map((tier, i) => h('div', { class: 'kv col' }, h('span', null, GS.t('Talent biasa {0}', i + 1)), tier.map((t) => h('b', { class: 'talent' }, t.name + ': ' + t.text)))),
-        e.core.length ? h('div', { class: 'kv col' }, h('span', null, 'Talent teras'), e.core.map((t) => h('b', { class: 'talent' }, t.name + ': ' + t.text))) : null));
+    root.append(h('p', { class: 'muted note' }, 'Setiap set emblem: gambar, atribut dan talent (dengan gambar talent).'));
+    GS.data.mlbbEmblems.slice().sort((a, b) => embRank(a) - embRank(b)).forEach((e) => {
+      const tal = (t) => h('div', { class: 'talent-row' }, imgOf(t.img, 32, 'timg'), h('div', null, h('b', null, t.name), h('span', null, t.text)));
+      root.append(h('div', { class: 'gd-sec emblem-set', 'data-emblem': e.name },
+        h('div', { class: 'emb-head' }, imgOf(e.img, 56, 'eimg'), h('div', null, h('h4', null, e.name), h('div', { class: 'emb-attr' }, e.attributes.map((a) => h('span', { class: 'chip-attr' }, a.stat + ' ' + a.value))))),
+        e.standard.map((tier, i) => h('div', { class: 'kv col' }, h('span', null, GS.t('Talent biasa {0}', i + 1)), tier.map(tal))),
+        e.core.length ? h('div', { class: 'kv col' }, h('span', null, 'Talent teras'), e.core.map(tal)) : null));
     });
-    root.append(h('p', { class: 'muted note' }, 'Sumber: Mobile Legends Wiki (CC-BY-SA 3.0). Senarai talent mengikut halaman wiki Emblems.'));
+    root.append(h('p', { class: 'muted note' }, 'Sumber: Mobile Legends Wiki (CC-BY-SA 3.0). Gambar dimuat daripada wiki pada PC anda (perlu internet).'));
   }
 
   /* ============ Draft ============ */

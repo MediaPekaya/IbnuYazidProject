@@ -246,6 +246,24 @@
     inp.click();
     setTimeout(() => inp.remove(), 60000);
   };
+  /** Footer video: pengguna memilih video pendek siap (cth 5-10 saat) yang bergerak/berulang di bar bawah menggantikan bar teks. */
+  S.addFooterVideo = function () {
+    const inp = h('input', { type: 'file', accept: 'video/*,.webm,.mp4,.mov,.m4v', style: { display: 'none' } });
+    inp.addEventListener('change', async () => {
+      const f = inp.files[0];
+      if (!f) return;
+      if (!(/^video\//.test(f.type) || /\.(webm|mp4|mov|m4v)$/i.test(f.name))) { GS.toast(GS.t('Pilih fail video (WebM, MP4 atau MOV).'), 'warn'); return; }
+      const src = await S.loadClip(null, f);
+      if (!src) return;
+      src.name = 'Footer Video'; src.fit = 'cover'; src.props.footerVideo = true; src.props.loop = true;
+      S.setBarsHidden(S.editTarget(), true); // bar teks diganti video; boleh dipaparkan semula melalui kotak "Sembunyikan bar teks"
+      changed('props:changed'); renderProps();
+      GS.toast(GS.t('Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.'), 'ok', 6000);
+    });
+    document.body.append(inp);
+    inp.click();
+    setTimeout(() => inp.remove(), 60000);
+  };
   /** Muatkan fail ke dalam sumber klip (baharu jika `src` null). */
   S.loadClip = async function (src, f) {
     const isVideo = /^video\//.test(f.type) || /\.(webm|mp4|mov|m4v)$/i.test(f.name);
@@ -407,6 +425,7 @@
       { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'monitor', run: () => S.addVideo('gamepc') },
       { label: 'Skrin penuh', icon: 'monitor', run: () => S.addVideo('screen') },
       '-',
+      { label: 'Footer Video (video bergerak di bar bawah)', icon: 'image', run: S.addFooterVideo },
       { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'image', run: S.addClip },
       { label: 'Imej', icon: 'image', run: S.addImage },
       { label: 'Teks', icon: 'text', run: S.addText },

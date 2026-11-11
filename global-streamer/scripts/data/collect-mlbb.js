@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio');
 const { sleep, wikiParse, clean, num } = require('./lib');
+const { addEmblemImages } = require('./emblem-images');
 
 const BASE = 'https://mobile-legends.fandom.com';
 const OUT = path.join(__dirname, '..', '..', 'renderer', 'data', 'mlbb-static.json');
@@ -182,6 +183,7 @@ async function emblems() {
     generated: new Date().toISOString(),
     heroes: H, items: I, emblems: E
   };
+  try { console.error('gambar emblem:', JSON.stringify(await addEmblemImages(out))); } catch (e) { console.error('gambar emblem gagal (diteruskan tanpa gambar):', e.message); }
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(out));
   console.error(`siap dalam ${Math.round((Date.now() - t0) / 1000)}s -> ${OUT}`);

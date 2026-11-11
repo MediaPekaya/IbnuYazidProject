@@ -33,7 +33,7 @@
       h('div', { class: 'gd-sec' },
         h('h4', null, 'Efek skrin'),
         h('div', { class: 'fx-grid' }, game.effects.map((e) =>
-          h('button', { class: 'fx-btn', onClick: () => D.trigger(e.id), title: 'Alt + ' + e.hotkey, html: icon(e.icon, 18) + '<span>' + GS.t(e.label) + '</span><kbd>' + e.hotkey + '</kbd>' }))),
+          h('button', { class: 'fx-btn', onClick: () => D.trigger(e.id), title: 'Alt + ' + e.hotkey, html: icon(e.icon, 18) + '<span>' + GS.t(e.label) + '</span><kbd class="hk">ALT ' + e.hotkey + '</kbd>' }))),
         h('div', { class: 'grid2' },
           h('label', { class: 'field' }, h('span', null, 'Jenis kill'), killSel),
           h('label', { class: 'field' }, h('span', null, 'Item untuk "Beli Item"'), itemSel)),
