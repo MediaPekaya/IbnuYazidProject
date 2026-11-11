@@ -60,6 +60,8 @@ jobs:
       - name: Versi zip (boleh diekstrak dan dijalankan tanpa pemasang)
         shell: pwsh
         run: |
+          # versi zip tiada kemas kini automatik (pelanggan memuat turun zip baharu): buang app-update.yml supaya app mengenalinya sebagai versi zip
+          Remove-Item "dist/win-unpacked/resources/app-update.yml" -ErrorAction SilentlyContinue
           Compress-Archive -Path "dist/win-unpacked/*" -DestinationPath "dist/Global-Streamer-Portable-${{ steps.ver.outputs.v }}.zip" -CompressionLevel Optimal
           Copy-Item "dist/Global-Streamer-Portable-${{ steps.ver.outputs.v }}.zip" "dist/Global-Streamer-Portable.zip"
       - uses: actions/upload-artifact@v4

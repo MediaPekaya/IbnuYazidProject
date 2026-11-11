@@ -4,7 +4,7 @@
   const GS = window.GS;
   const U = (GS.updater = { info: null, ev: { state: 'idle' } });
   const native = () => !!(window.gsNative && window.gsNative.app);
-  const TXT = { idle: 'Belum disemak', dev: 'Mod pembangunan (semakan dimatikan)', unavailable: 'Tidak tersedia', checking: 'Menyemak…', current: 'Anda menggunakan versi terkini', available: 'Versi baharu {0} tersedia', downloading: 'Memuat turun… {0}%', downloaded: 'Versi {0} sedia dipasang', error: 'Ralat semakan: {0}' };
+  const TXT = { idle: 'Belum disemak', dev: 'Mod pembangunan (semakan dimatikan)', portable: 'Versi zip: muat turun zip baharu untuk mengemas kini', unavailable: 'Tidak tersedia', checking: 'Menyemak…', current: 'Anda menggunakan versi terkini', available: 'Versi baharu {0} tersedia', downloading: 'Memuat turun… {0}%', downloaded: 'Versi {0} sedia dipasang', error: 'Ralat semakan: {0}' };
 
   U.text = function () {
     const e = U.ev;
@@ -34,6 +34,7 @@
     else if (e.state === 'downloaded') { label = GS.t('Kemas kini {0} sedia: klik untuk pasang', e.version); title = GS.t('Pasang dan mulakan semula app'); }
     else if (e.state === 'error') { label = (v ? v + ' · ' : '') + GS.t('Semakan gagal'); title = GS.t('Ralat semakan: {0}', e.message); }
     else if (e.state === 'dev') title = GS.t('Mod pembangunan (semakan dimatikan)');
+    else if (e.state === 'portable') title = GS.t('Versi zip: muat turun zip baharu untuk mengemas kini');
     el.textContent = label;
     el.title = title;
     el.classList.toggle('ready', e.state === 'downloaded');

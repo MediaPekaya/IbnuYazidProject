@@ -208,6 +208,8 @@ function sendUpd(patch) {
 function setupUpdater() {
   const test = !!process.env.GS_UPDATE_TEST;
   if (!app.isPackaged && !test) { updState.state = 'dev'; return; }
+  // versi zip (diekstrak, bukan dipasang): tiada app-update.yml -> tiada kemas kini automatik; pengguna memuat turun zip baharu
+  if (app.isPackaged && !test && !fs.existsSync(path.join(process.resourcesPath, 'app-update.yml'))) { updState.state = 'portable'; return; }
   if (test && process.env.GS_FAKE_WIN) Object.defineProperty(process, 'platform', { value: 'win32' }); // ujian sahaja: cari latest.yml seperti pada Windows
   try { updater = require('electron-updater').autoUpdater; } catch (e) { updState.state = 'unavailable'; return; }
   updater.autoDownload = !test;

@@ -715,6 +715,7 @@
     'Footer Video (video bergerak di bar bawah)': 'Footer Video (moving video in the bottom bar)',
     'Pilih fail video (WebM, MP4 atau MOV).': 'Choose a video file (WebM, MP4 or MOV).',
     'Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.': 'Footer video placed in the bottom bar and loops automatically. Drag or resize if needed.',
+    'Versi zip: muat turun zip baharu untuk mengemas kini': 'Zip version: download the new zip to update',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();
