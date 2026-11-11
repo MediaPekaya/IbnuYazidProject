@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Global Streamer - Panduan Pelanggan</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Poppins:wght@600;800;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#050a18;--card:rgba(8,16,40,.84);--line:rgba(140,200,255,.28);--red:#ff3b5c;--yel:#ffe14d;--blue:#2e7bff;--txt:#eaf2ff;--mut:#a9bad8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Roboto,'Segoe UI',Arial,sans-serif;color:var(--txt);background:var(--navy);line-height:1.6;min-height:100vh;position:relative;overflow-x:hidden}
+/* ===== latar gaming dari atas ke bawah ===== */
+.bg{position:fixed;inset:0;z-index:-3;background:
+ radial-gradient(900px 520px at 8% 6%,rgba(29,79,216,.75),transparent 62%),
+ radial-gradient(800px 560px at 96% 40%,rgba(196,22,58,.55),transparent 64%),
+ radial-gradient(760px 520px at 55% 0%,rgba(90,60,255,.55),transparent 62%),
+ radial-gradient(900px 600px at 10% 100%,rgba(40,100,255,.45),transparent 62%),var(--navy)}
+.grid{position:fixed;inset:0;z-index:-2;background-image:linear-gradient(rgba(120,190,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(120,190,255,.09) 1px,transparent 1px);background-size:60px 60px;animation:gridmove 24s linear infinite}
+@keyframes gridmove{to{background-position:60px 60px,60px 60px}}
+.hex{position:fixed;inset:0;z-index:-2;opacity:.18;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='194' viewBox='0 0 112 194'%3E%3Cg fill='none' stroke='%237fd0ff' stroke-width='1.4'%3E%3Cpath d='M56 2l52 30v60l-52 30-52-30V32z'/%3E%3Cpath d='M56 122v70M4 92L-48 122M108 92l52 30'/%3E%3C/g%3E%3C/svg%3E");background-size:112px 194px}
+.scan{position:fixed;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.025) 0 2px,transparent 2px 5px)}
+.orb{position:fixed;z-index:-2;border-radius:50%;filter:blur(70px);opacity:.5;animation:drift 18s ease-in-out infinite alternate}
+.orb.a{width:380px;height:380px;background:#2e7bff;left:-90px;top:30vh}
+.orb.b{width:340px;height:340px;background:#ff3b5c;right:-80px;top:62vh;animation-delay:-6s}
+@keyframes drift{to{transform:translate(60px,-50px) scale(1.15)}}
+/* ===== susun atur ===== */
+.wrap{max-width:860px;margin:0 auto;padding:28px 18px 70px}
+.hero{display:flex;align-items:center;gap:28px;padding:30px;border-radius:24px;background:linear-gradient(135deg,rgba(20,50,130,.72),rgba(10,16,48,.85));border:1px solid var(--line);box-shadow:0 0 60px rgba(60,120,255,.28)}
+.hero img{width:170px;height:170px;object-fit:contain;filter:drop-shadow(0 0 26px rgba(70,150,255,.85))}
+.k{font-size:13px;letter-spacing:.34em;color:#7fd0ff;font-weight:700}
+h1{font-family:Poppins,sans-serif;font-weight:900;font-size:clamp(34px,7vw,60px);line-height:1.02;margin:6px 0 10px;background:linear-gradient(100deg,#fff,#9bd3ff 50%,#ff7b95);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:#dbe7ff;font-size:17px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{padding:5px 14px;border-radius:99px;border:1.5px solid rgba(140,200,255,.55);background:rgba(10,24,56,.7);font-size:13px;font-weight:700}
+.chip.live{background:#e0213f;border-color:#ff6b84;box-shadow:0 0 20px rgba(255,50,90,.6)}
+.chip.live i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;margin-right:7px;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.2}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.stat{padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-align:center;backdrop-filter:blur(8px)}
+.stat b{display:block;font-family:Poppins,sans-serif;font-size:22px;color:var(--yel)}
+.stat span{font-size:13px;color:var(--mut)}
+h2{font-family:Poppins,sans-serif;font-size:24px;font-weight:800;margin:40px 0 14px;display:flex;align-items:center;gap:12px}
+h2 em{font-style:normal;color:var(--red)}
+h2::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,rgba(140,200,255,.6),transparent)}
+.card{padding:18px 20px;border-radius:16px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(8px);margin-bottom:12px}
+.step{display:flex;gap:16px;align-items:flex-start}
+.no{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:#fff;font-weight:800;font-size:17px;box-shadow:0 0 18px rgba(255,59,92,.6)}
+.step p,.step li{font-size:16px}
+.step ul{margin-top:6px;padding-left:20px}
+.r{color:var(--red);font-weight:700}
+.y{background:#10182e;color:var(--yel);font-weight:800;font-style:italic;padding:1px 9px;border-radius:6px;border:1px solid rgba(255,225,77,.45);white-space:nowrap}
+.g{color:#5ee59a;font-weight:700}
+.note{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,200,90,.12);border:1px solid rgba(255,200,90,.4);color:#ffe9b8;font-size:14.5px}
+/* video */
+.vframe{border-radius:22px;padding:8px;background:linear-gradient(135deg,rgba(46,123,255,.9),rgba(255,59,92,.9));box-shadow:0 0 50px rgba(70,130,255,.45)}
+.vframe .in{border-radius:16px;overflow:hidden;background:#000;border:2px solid rgba(255,255,255,.9);aspect-ratio:16/9}
+.vframe iframe{width:100%;height:100%;border:0;display:block}
+.bil{font-weight:700;margin-bottom:12px;line-height:1.7}
+/* kotak pautan */
+.dl{border-radius:14px;overflow:hidden;border:1px solid #d4a91c;margin:12px 0}
+.dl .h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:#f0c53a;color:#4a3800;font:700 13px 'Roboto Mono',Consolas,monospace}
+.dl .b{padding:14px;background:#fff7cc;color:#1558d6;font:500 14px/1.6 'Roboto Mono',Consolas,monospace;word-break:break-all}
+.dl .b a{color:#1558d6}
+.copy{border:1px solid #b8901a;background:#fff7cc;color:#4a3800;border-radius:7px;font:700 12.5px Roboto,sans-serif;padding:4px 12px;cursor:pointer}
+.copy:hover{background:#ffeea0}
+.btn{display:inline-block;text-decoration:none;color:#fff;font-weight:800;font-size:16px;letter-spacing:.03em;padding:14px 30px;border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.4);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.blue{background:linear-gradient(135deg,#2e7bff,#1d4fd8)}
+.btn.green{background:linear-gradient(135deg,#1fb866,#128c45)}
+.btn.red{background:linear-gradient(135deg,#ff3b5c,#c4163a)}
+.cta{text-align:center;margin:16px 0}
+.warn{margin:16px 0;padding:22px;border-radius:20px;background:linear-gradient(135deg,#e0213f,#b3122e);text-align:center;color:#fff;border:2px solid #ff8da1;animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 14px rgba(255,59,92,.45)}50%{box-shadow:0 0 42px rgba(255,59,92,.95)}}
+.warn .ar{font-family:Amiri,'Traditional Arabic',serif;font-size:26px;line-height:2;margin:8px 0}
+.warn h3{letter-spacing:.06em;margin:12px 0 6px}
+.warn hr{border:0;border-top:1px solid rgba(255,255,255,.7);margin:12px 30%}
+.foot{text-align:center;margin-top:44px;color:var(--mut);font-size:14px}
+@media(max-width:640px){.hero{flex-direction:column;text-align:center;padding:22px}.hero img{width:130px;height:130px}.chips{justify-content:center}.stats{grid-template-columns:1fr}h2{font-size:20px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="hex"></div><div class="grid"></div><div class="scan"></div><div class="orb a"></div><div class="orb b"></div>
+
+<main class="wrap">
+  <section class="hero">
+    <img src="logo.png" alt="Logo Global Streamer">
+    <div>
+      <div class="k">LIVE STREAMING STUDIO</div>
+      <h1>GLOBAL<br>STREAMER</h1>
+      <p class="sub">Panduan muat turun dan pasang. Ikut langkah di bawah, kurang <b class="r">5 minit</b>.</p>
+      <div class="chips"><span class="chip live"><i></i>LIVE</span><span class="chip">TikTok</span><span class="chip">Facebook</span><span class="chip">YouTube</span><span class="chip">MLBB</span></div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><b>5 Minit</b><span>Siap dipasang</span></div>
+    <div class="stat"><b>10 Langkah</b><span>Mudah diikuti</span></div>
+    <div class="stat"><b>Auto Update</b><span><span class="r">X</span> Muat turun semula</span></div>
+  </div>
+
+  <h2>🎬 Video Tutorial</h2>
+  <p class="bil">SILA TONTON VIDEO TUTORIAL DI BAWAH :<br>PLEASE WATCH THE VIDEO TUTORIAL BELOW :</p>
+  <div class="vframe"><div class="in"><iframe src="https://drive.google.com/file/d/1p-QCUN5UTF03hZJl84P7QPEfCFbwC8_h/preview" allow="autoplay; fullscreen" allowfullscreen title="Video tutorial Global Streamer"></iframe></div></div>
+  <p class="cta"><a class="btn red" href="https://drive.google.com/file/d/1p-QCUN5UTF03hZJl84P7QPEfCFbwC8_h/view?usp=drive_link" target="_blank" rel="noopener">▶ TONTON VIDEO DI GOOGLE DRIVE</a></p>
+
+  <h2>Bahagian <em>1</em>: Muat turun</h2>
+  <div class="card step"><div class="no">1</div><p>Buka <span class="r">email</span> ini dan cari pautan muat turun di bawah.</p></div>
+  <div class="card step"><div class="no">2</div><div>
+    <p><span class="r">Salin pautan di bawah.</span> Klik butang <span class="y">Salin</span>, atau klik kanan pada pautan kemudian pilih <span class="y">Copy link address</span>.</p>
+    <div class="dl"><div class="h"><span>PAUTAN MUAT TURUN</span><button class="copy" id="cp" type="button">⧉ Salin</button></div>
+      <div class="b"><a id="lnk" href="https://github.com/GeniusDigitalDeveloper/global-streamer-releases-exe-apps/releases/latest/download/Global-Streamer-Setup.exe">https://github.com/GeniusDigitalDeveloper/global-streamer-releases-exe-apps/releases/latest/download/Global-Streamer-Setup.exe</a></div></div>
+    <p class="cta" style="margin:10px 0 0"><a class="btn blue" href="https://github.com/GeniusDigitalDeveloper/global-streamer-releases-exe-apps/releases/latest/download/Global-Streamer-Setup.exe">MUAT TURUN TERUS</a></p>
+  </div></div>
+
+  <div class="warn">
+    <b>Daripada Ibn Umar RA, beliau berkata:</b>
+    <div class="ar" dir="rtl">«وَكُنَّا نَشْتَرِى الطَّعَامَ مِنَ الرُّكْبَانِ جِزَافًا فَنَهَانَا رَسُولُ اللَّهِ أَنْ نَبِيعَهُ حَتَّى نَنْقُلَهُ مِنْ مَكَانِهِ»</div>
+    <p>Maksudnya: “Kami biasa membeli bahan makanan dari orang yang berkendaraan tanpa diketahui ukurannya. Kemudian Rasulullah SAW melarang kami menjual barang tersebut sehingga barang tersebut dipindahkan dari tempatnya.”</p>
+    <p style="margin-top:8px"><b>HADIS RIWAYAT MUSLIM (1527)</b></p>
+    <hr>
+    <h3>⚠ AMARAN &amp; AMANAH</h3>
+    <p><i>Dilarang keras berkongsi pautan ini kepada sesiapa pun. Pautan ini hanya halal untuk kegunaan anda sendiri. Peganglah amanah ini sebaiknya, ingatlah ALLAH Maha Mengetahui dan MALAIKAT sentiasa mencatat.</i></p>
+  </div>
+
+  <div class="card step"><div class="no">3</div><p>Buka <span class="r">Google Chrome</span> di komputer Windows anda.</p></div>
+  <div class="card step"><div class="no">4</div><p>Klik pada <span class="r">bar alamat</span> di bahagian atas Chrome, kemudian <span class="r">tampal (paste)</span> pautan tadi dengan menekan <span class="r">Ctrl + V</span>.</p></div>
+  <div class="card step"><div class="no">5</div><div>
+    <p>Tekan <span class="y">Enter</span>.</p>
+    <p class="g">(Fail <span class="r">Global-Streamer-Setup.exe</span> akan dimuat turun secara automatik.)</p>
+    <div class="note">Jika Chrome menunjukkan amaran <i>"is not commonly downloaded"</i>, klik ikon <span class="r">⋮</span> di sebelah fail itu, kemudian klik <span class="y">Keep</span> (Simpan). Fail ini selamat. Amaran itu keluar kerana app kami masih baru.</div>
+  </div></div>
+
+  <h2>⚙️ Bahagian <em>2</em>: Pasang</h2>
+  <div class="card step"><div class="no">6</div><p>Buka fail yang dimuat turun. Klik ikon <span class="r">Muat turun</span> di penjuru kanan atas Chrome, kemudian klik <span class="r">Global-Streamer-Setup.exe</span>. Atau buka folder <span class="r">Downloads</span> dan <span class="r">double-click</span> fail itu.</p></div>
+  <div class="card step"><div class="no">7</div><div><p>Jika Windows menunjukkan skrin biru <i>"Windows protected your PC"</i>:</p><ul><li>Klik <span class="y">More info</span> (Maklumat lanjut).</li><li>Klik butang <span class="y">Run anyway</span> (Jalankan juga).</li></ul></div></div>
+  <div class="card step"><div class="no">8</div><div><p>Skrin pemasangan akan dibuka. Ikut langkah ini:</p><ul>
+    <li>Jika ditanya <i>"Install for anyone using this computer"</i> atau <i>"Only for me"</i>, pilih <span class="y">Only for me</span>, kemudian klik <span class="y">Next</span>.</li>
+    <li>Klik <span class="y">Next</span> pada pilihan folder. Tidak perlu tukar apa-apa.</li>
+    <li>Klik <span class="y">Install</span> dan tunggu sehingga selesai (biasanya kurang <span class="r">1 minit</span>).</li>
+    <li>Pastikan ada tanda ✔ pada <span class="y">Run Global Streamer</span>, kemudian klik <span class="y">Finish</span>.</li></ul></div></div>
+
+  <h2>🎮 Bahagian <em>3</em>: Guna app</h2>
+  <div class="card step"><div class="no">9</div><p>Global Streamer akan terbuka sendiri. Lain kali, buka app dengan <span class="r">double-click ikon Global Streamer di Desktop</span>, atau cari <i>Global Streamer</i> di menu Start.</p></div>
+  <div class="card step"><div class="no">10</div><p>Mula guna: pilih game, masukkan URL dan Stream Key platform anda (TikTok, Facebook atau YouTube), kemudian tekan <span class="r">MULA LIVE</span>.</p></div>
+
+  <h2>🔄 Bahagian <em>4</em>: Kemas kini</h2>
+  <div class="card"><p>Bila ada versi baru, anda <span class="r">tidak perlu muat turun semula</span>. Klik sahaja <span class="r">butang kemas kini di bahagian atas (header) app</span>, dan app akan kemas kini sendiri.</p></div>
+
+  <h2>💬 Ada masalah?</h2>
+  <div class="card"><p><span class="r">Fail tidak muncul selepas muat turun:</span> semak folder <span class="r">Downloads</span>.</p></div>
+  <div class="card"><p><span class="r">Windows menghalang fail itu:</span> ulang langkah skrin biru (<span class="y">More info</span> kemudian <span class="y">Run anyway</span>).</p></div>
+  <p class="cta"><a class="btn green" href="https://wa.me/60177977935" target="_blank" rel="noopener">WHATSAPP KAMI</a></p>
+  <p class="foot">Jika masih tidak berjaya, hubungi kami di WhatsApp.</p>
+</main>
+
+<script>
+(function(){
+  var b=document.getElementById('cp'),a=document.getElementById('lnk');
+  b.addEventListener('click',function(){
+    var t=a.href,ok=function(){b.textContent='✓ Disalin';setTimeout(function(){b.textContent='⧉ Salin'},1800)};
+    var fb=function(){var x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy');ok()}catch(e){}document.body.removeChild(x)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fb)}else{fb()}
+  });
+})();
+</script>
+</body>
+</html>
