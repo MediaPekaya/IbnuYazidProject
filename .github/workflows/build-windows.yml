@@ -52,10 +52,17 @@ jobs:
       - name: Salinan pemasang bernama tetap (untuk pautan muat turun /download/windows)
         shell: bash
         run: cp "dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe" dist/Global-Streamer-Setup.exe
+      - name: Versi zip (boleh diekstrak dan dijalankan tanpa pemasang)
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/win-unpacked/*" -DestinationPath "dist/Global-Streamer-Portable-${{ steps.ver.outputs.v }}.zip" -CompressionLevel Optimal
+          Copy-Item "dist/Global-Streamer-Portable-${{ steps.ver.outputs.v }}.zip" "dist/Global-Streamer-Portable.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: GlobalStreamer-Windows
-          path: global-streamer/dist/*.exe
+          path: |
+            global-streamer/dist/*.exe
+            global-streamer/dist/*.zip
           if-no-files-found: error
       # Setiap push ke main / cabang ccr-* menerbitkan Release baharu. App yang dipasang menyemak Release terkini
       # (electron-updater, penyedia github) setiap 5 minit, memuat turun di latar dan menawarkan "Mulakan semula & pasang".
@@ -70,10 +77,12 @@ jobs:
           body: |
             Binaan automatik daripada commit ${{ github.sha }}.
             Pemasang: Global-Streamer-Setup.exe. App yang sudah dipasang akan mengemas kini sendiri.
+            Versi zip: Global-Streamer-Portable.zip (ekstrak, kemudian jalankan "Global Streamer.exe"; tiada pemasangan).
           files: |
             global-streamer/dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe
             global-streamer/dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe.blockmap
             global-streamer/dist/Global-Streamer-Setup.exe
+            global-streamer/dist/Global-Streamer-Portable.zip
             global-streamer/dist/latest.yml
       - name: Siar versi web ke Firebase Hosting (hanya jika secret FIREBASE_SERVICE_ACCOUNT ada)
         if: github.event_name == 'push' && (github.ref_name == 'main' || startsWith(github.ref_name, 'ccr-')) && env.FIREBASE_SA != ''
