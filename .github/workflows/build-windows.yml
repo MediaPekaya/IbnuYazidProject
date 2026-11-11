@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 25
     env:
       FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      RELEASES_TOKEN: ${{ secrets.RELEASES_REPO_TOKEN }}
     defaults:
       run:
         working-directory: global-streamer
@@ -45,6 +46,10 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/gs-v* ]]; then V="${GITHUB_REF#refs/tags/gs-v}"; else V="0.2.${GITHUB_RUN_NUMBER}"; fi
           npm version "$V" --no-git-tag-version --allow-same-version
           echo "v=$V" >> "$GITHUB_OUTPUT"
+      - name: Arahkan kemas kini automatik app ke repo awam (hanya jika token RELEASES_REPO_TOKEN ada)
+        if: env.RELEASES_TOKEN != ''
+        shell: bash
+        run: npm pkg set "build.publish[0].repo=global-streamer-releases-apps-files"
       - name: Bina installer
         run: npm run dist
         env:
@@ -78,6 +83,26 @@ jobs:
             Binaan automatik daripada commit ${{ github.sha }}.
             Pemasang: Global-Streamer-Setup.exe. App yang sudah dipasang akan mengemas kini sendiri.
             Versi zip: Global-Streamer-Portable.zip (ekstrak, kemudian jalankan "Global Streamer.exe"; tiada pemasangan).
+          files: |
+            global-streamer/dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe
+            global-streamer/dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe.blockmap
+            global-streamer/dist/Global-Streamer-Setup.exe
+            global-streamer/dist/Global-Streamer-Portable.zip
+            global-streamer/dist/latest.yml
+      # Repo awam khas untuk fail muat turun: pelanggan memuat turun dari sini dan app mereka mengemas kini dari sini. Kod sumber kekal peribadi.
+      - name: Terbitkan ke repo awam (pelanggan muat turun dan kemas kini automatik)
+        if: github.event_name == 'push' && (github.ref_name == 'main' || startsWith(github.ref_name, 'ccr-') || startsWith(github.ref, 'refs/tags/gs-v')) && env.RELEASES_TOKEN != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: MediaPekaya/global-streamer-releases-apps-files
+          token: ${{ secrets.RELEASES_REPO_TOKEN }}
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: Global Streamer ${{ steps.ver.outputs.v }}
+          make_latest: 'true'
+          body: |
+            Global Streamer ${{ steps.ver.outputs.v }}.
+            Pemasang: Global-Streamer-Setup.exe (app yang dipasang mengemas kini sendiri).
+            Versi zip: Global-Streamer-Portable.zip (ekstrak, kemudian jalankan "Global Streamer.exe"; tiada pemasangan, tiada kemas kini automatik).
           files: |
             global-streamer/dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe
             global-streamer/dist/Global-Streamer-Setup-${{ steps.ver.outputs.v }}.exe.blockmap
