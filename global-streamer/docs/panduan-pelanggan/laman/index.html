@@ -80,6 +80,12 @@ h2::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,rgba(140
 .warn hr{border:0;border-top:1px solid rgba(255,255,255,.7);margin:12px 30%}
 .foot{text-align:center;margin-top:44px;color:var(--mut);font-size:14px}
 @media(max-width:640px){.hero{flex-direction:column;text-align:center;padding:22px}.hero img{width:130px;height:130px}.chips{justify-content:center}.stats{grid-template-columns:1fr}h2{font-size:20px}}
+
+/* mod embed (Notion): ?c=N paparkan satu bahagian sahaja supaya muat dalam bingkai tanpa skrol */
+.emb .wrap{padding:12px 18px 12px}
+.emb h2{margin-top:6px}
+.emb .foot{margin-top:14px}
+.emb .vframe{max-width:700px;margin-left:auto;margin-right:auto}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -158,6 +164,17 @@ h2::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,rgba(140
   <p class="foot">Jika masih tidak berjaya, hubungi kami di WhatsApp.</p>
 </main>
 
+<script>
+/* Bahagian untuk paparan embed: CUTS = indeks elemen (dalam <main>) di mana bahagian baharu bermula. */
+var CUTS=[0,2,6,9,12,16,20];
+(function(){
+  var c=new URLSearchParams(location.search).get('c');
+  if(!c)return;
+  document.body.classList.add('emb');
+  var kids=[].slice.call(document.querySelectorAll('main.wrap>*'));
+  kids.forEach(function(e,i){var k=0;for(var j=0;j<CUTS.length;j++){if(i>=CUTS[j])k=j+1}if(String(k)!==c)e.style.display='none'});
+})();
+</script>
 <script>
 /* ============================================================
    TETAPAN: tukar video di SINI sahaja (satu baris).
