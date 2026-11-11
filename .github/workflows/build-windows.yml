@@ -4,11 +4,6 @@ name: Bina installer Windows (Global Streamer)
 # GlobalStreamer-Setup.exe sebagai artifak muat turun (Actions > run > Artifacts).
 on:
   workflow_dispatch:
-    inputs:
-      publish_public:
-        description: 'Terbitkan kepada pelanggan (repo awam: muat turun + kemas kini automatik)'
-        type: boolean
-        default: false
   push:
     branches: ['**']
     paths:
@@ -97,9 +92,9 @@ jobs:
             global-streamer/dist/Global-Streamer-Portable.zip
             global-streamer/dist/latest.yml
       # Repo awam khas untuk fail muat turun: pelanggan memuat turun dari sini dan app mereka mengemas kini dari sini. Kod sumber kekal peribadi.
-      # Pelanggan hanya dapat versi yang DIPUTUSKAN: jalankan manual (Actions > Run workflow > tanda 'Terbitkan kepada pelanggan') atau tolak tag gs-vX.Y.Z.
+      # Setiap kemas kini yang ditolak diterbitkan terus kepada pelanggan (app mereka mengemas kini sendiri).
       - name: Terbitkan ke repo awam (pelanggan muat turun dan kemas kini automatik)
-        if: env.RELEASES_TOKEN != '' && (startsWith(github.ref, 'refs/tags/gs-v') || (github.event_name == 'workflow_dispatch' && inputs.publish_public == true))
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'main' || startsWith(github.ref_name, 'ccr-') || startsWith(github.ref, 'refs/tags/gs-v')) && env.RELEASES_TOKEN != ''
         uses: softprops/action-gh-release@v2
         with:
           repository: MediaPekaya/global-streamer-releases-apps-files
