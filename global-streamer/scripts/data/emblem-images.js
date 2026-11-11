@@ -45,10 +45,20 @@ async function addEmblemImages(data) {
   return { sets: n, files: Object.keys(urls).length, total: names.size };
 }
 
-module.exports = { addEmblemImages };
+/** Item yang gambarnya tiada dalam data (cth nama berapostrof): cari fail "<nama>.png" melalui API wiki. */
+async function addMissingItemImages(data) {
+  const miss = (data.items || []).filter((i) => !i.img);
+  if (!miss.length) return { filled: 0, missing: 0 };
+  const urls = await fileUrls(miss.map((i) => i.name));
+  let n = 0;
+  miss.forEach((i) => { if (urls[i.name]) { i.img = urls[i.name]; n++; } });
+  return { filled: n, missing: miss.length - n };
+}
+
+module.exports = { addEmblemImages, addMissingItemImages };
 
 if (require.main === module) {
   const f = path.join(__dirname, '..', '..', 'renderer', 'data', 'mlbb-static.json');
   const data = JSON.parse(fs.readFileSync(f, 'utf8'));
-  addEmblemImages(data).then((r) => { fs.writeFileSync(f, JSON.stringify(data)); console.error('emblem:', JSON.stringify(r)); }).catch((e) => { console.error(e); process.exit(1); });
+  addEmblemImages(data).then(async (r) => { console.error('emblem:', JSON.stringify(r)); console.error('item:', JSON.stringify(await addMissingItemImages(data))); fs.writeFileSync(f, JSON.stringify(data)); }).catch((e) => { console.error(e); process.exit(1); });
 }

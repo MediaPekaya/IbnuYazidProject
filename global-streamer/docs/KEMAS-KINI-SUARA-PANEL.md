@@ -93,3 +93,4 @@ Butang ikon di penjuru tab panel kanan mengeluarkan panel ke tetingkap baharu. T
 * **Label kekunci**: setiap butang efek memaparkan "ALT 1" hingga "ALT 9" sentiasa (kuning dengan sempadan cerah, sepadan tema), bukan hanya bila tetikus di atasnya.
 * **Suara & Bot "AKAN DATANG"**: palang merah dengan tulisan putih, sempadan merah, sempang merah menyerong dari bucu kiri atas ke kanan bawah; kandungan kelabu dan tidak boleh ditekan.
 * **Footer Video**: Sumber > + > "Footer Video (video bergerak di bar bawah)". Pilih video siap (cth 5-10 saat, WebM/MP4/MOV); ia diletakkan di bar bawah, berulang automatik, mengisi bar (cover), dan bar teks disembunyikan (boleh dipaparkan semula melalui kotak "Sembunyikan bar teks"). "Banner / Video sendiri" kekal untuk imej, GIF dan video lain.
+* Semua 105 item kini ada gambar (item berapostrof dicari melalui API wiki oleh `scripts/data/emblem-images.js`).
