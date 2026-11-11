@@ -102,7 +102,7 @@
 
     /* ---- panel game ---- */
     'Jenis kill': 'Kill type', 'Efek skrin': 'Screen effects', 'Item untuk "Beli Item"': 'Item for "Buy Item"',
-    'Cetus manual, hotkey Alt+1…6, atau (Fasa 5) pengesan auto daripada capture card.': 'Trigger manually, use hotkeys Alt+1…6, or (Phase 5) auto-detection from the capture card.',
+    'Cetus manual, hotkey Alt+1…9, atau (Fasa 5) pengesan auto daripada capture card.': 'Trigger manually, use hotkeys Alt+1…9, or (Phase 5) auto-detection from the capture card.',
     'Kira automatik bila efek Victory / Defeat dicetus': 'Auto-count when the Victory / Defeat effect is triggered',
     'Set semula W/L': 'Reset W/L', 'Set semula masa main': 'Reset play time', 'Pengesan auto (capture card)': 'Auto-detection (capture card)',
     'Kill / Mati': 'Kill / Death', 'Pembelian item & item penuh': 'Item purchases & full build', 'Hero draft (ally / musuh)': 'Hero draft (ally / enemy)',
@@ -707,6 +707,7 @@
     'Telinga bot: Groq Whisper aktif (faham Bahasa Melayu).': 'Bot ears: Groq Whisper active (understands Malay).',
     '(Untuk bot faham Bahasa Melayu, pilih Groq dan masukkan key Groq. Tanpa itu, pengecam Windows Inggeris digunakan dan kurang tepat.)': '(For the bot to understand Malay, choose Groq and enter a Groq key. Without it the English Windows recogniser is used and is less accurate.)',
     'AKAN DATANG': 'COMING SOON',
+    'Enemy Slain': 'Enemy Slain',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

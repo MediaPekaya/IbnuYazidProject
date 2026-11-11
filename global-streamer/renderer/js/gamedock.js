@@ -38,7 +38,7 @@
           h('label', { class: 'field' }, h('span', null, 'Jenis kill'), killSel),
           h('label', { class: 'field' }, h('span', null, 'Item untuk "Beli Item"'), itemSel)),
         h('label', { class: 'field' }, h('span', null, 'Mesej "Notis Item"'), h('input', { type: 'text', value: alertMsg, placeholder: 'cth Midlane, beli sekarang!', onInput: (e) => { alertMsg = e.target.value || 'BELI SEKARANG!'; } })),
-        h('p', { class: 'muted note' }, 'Cetus manual, hotkey Alt+1…6, atau (Fasa 5) pengesan auto daripada capture card.')),
+        h('p', { class: 'muted note' }, 'Cetus manual, hotkey Alt+1…9, atau (Fasa 5) pengesan auto daripada capture card.')),
       h('div', { class: 'gd-sec' },
         h('h4', null, 'Menang / Kalah'),
         h('div', { class: 'wl' },

@@ -889,6 +889,7 @@
 
   const defs = {
     kill: { dur: 2900, draw: drawKill, sfx: 'kill' },
+    slain: { dur: 2900, draw: drawKill, sfx: 'kill' }, // musuh dibunuh: visual kill + suara "You have slain an enemy"
     death: { dur: 2600, draw: drawDeath, sfx: 'death' },
     victory: { dur: 6000, draw: drawVictory, sfx: 'victory' },
     defeat: { dur: 5600, draw: drawDefeat, sfx: 'defeat' },

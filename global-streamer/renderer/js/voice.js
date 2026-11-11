@@ -431,7 +431,7 @@
     sad: { rate: -16, pitch: -12, sRate: 0.82, sPitch: 0.8, el: { stability: 0.85, style: 0.1, speed: 0.85 } },
   };
   V.MOODS = MOODS;
-  const MOOD_OF = { victory: 'happy', defeat: 'sad', death: 'sad', kill: 'excited', 'first blood': 'excited', 'double kill': 'excited', 'triple kill': 'excited', maniac: 'excited', savage: 'excited', 'killing spree': 'excited', legendary: 'excited', shutdown: 'excited', fullitem: 'happy' };
+  const MOOD_OF = { slain: 'excited', victory: 'happy', defeat: 'sad', death: 'sad', kill: 'excited', 'first blood': 'excited', 'double kill': 'excited', 'triple kill': 'excited', maniac: 'excited', savage: 'excited', 'killing spree': 'excited', legendary: 'excited', shutdown: 'excited', fullitem: 'happy' };
 
   /** Pilih suara sistem mengikut jantina dan bahasa. TIDAK menggunakan suara Indonesia sebagai ganti Melayu. */
   const MALE_RE = /\b(david|mark|george|james|guy|ryan|rizwan|osman|richard|daniel|alex|fred|jorge|thomas|paul|stefan|male|lelaki)\b/i;

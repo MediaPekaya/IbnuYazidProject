@@ -318,6 +318,7 @@
       { id: 'itembuy', label: 'Beli Item', icon: 'plus', hotkey: '6' },
       { id: 'itemalert', label: 'Notis Item', icon: 'bolt', hotkey: '7' },
       { id: 'tierlist', label: 'Tier List', icon: 'trophy', hotkey: '8' },
+      { id: 'slain', label: 'Enemy Slain', icon: 'flame', hotkey: '9', params: { label: 'ENEMY SLAIN' } },
     ],
     killLabels: ['KILL', 'FIRST BLOOD', 'DOUBLE KILL', 'TRIPLE KILL', 'MANIAC', 'SAVAGE', 'KILLING SPREE'],
   };

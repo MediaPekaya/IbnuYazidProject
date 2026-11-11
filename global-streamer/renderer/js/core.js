@@ -117,7 +117,7 @@
       // pengumum: efek (kill, double kill, victory, defeat...) BERCAKAP menggunakan suara yang dipilih
       announcer: {
         v: 3, on: true, lang: 'en-US', keepBeep: true,
-        textsEn: { kill: '', 'first blood': 'First blood', 'double kill': 'Double kill', 'triple kill': 'Triple kill', maniac: 'Maniac', savage: 'Savage', 'killing spree': 'Killing spree', legendary: 'Legendary', shutdown: 'Shutdown', death: 'You have been slain', victory: 'Victory', defeat: 'Defeat', fullitem: 'Full item' },
+        textsEn: { kill: '', slain: 'You have slain an enemy', 'first blood': 'First blood', 'double kill': 'Double kill', 'triple kill': 'Triple kill', maniac: 'Maniac', savage: 'Savage', 'killing spree': 'Killing spree', legendary: 'Legendary', shutdown: 'Shutdown', death: 'You have been slain', victory: 'Victory', defeat: 'Defeat', fullitem: 'Full item' },
         textsMs: { kill: 'Bunuh!', 'first blood': 'Darah pertama!', 'double kill': 'Bunuh dua!', 'triple kill': 'Bunuh tiga!', maniac: 'Maniak!', savage: 'Ganas!', 'killing spree': 'Tak boleh dihentikan!', legendary: 'Legenda!', shutdown: 'Tamatkan dia!', death: 'Kau dah mati.', victory: 'Kita menang! Syabas semua!', defeat: 'Kita kalah... tak apa, lain kali kita cuba lagi.', fullitem: 'Item penuh!' },
       },
       bot: {
