@@ -17,10 +17,8 @@
   A.setMode = function (mode) {
     const st = GS.state;
     st.mode = mode;
-    if (mode === 'studio' && st.previewId === st.programId && st.scenes.length > 1) {
-      const other = st.scenes.find((s) => s.id !== st.programId);
-      st.previewId = other.id;
-    }
+    // Mod Studio: pratonton bermula SAMA dengan program; ia hanya berubah bila pengguna klik scene lain
+    if (mode === 'studio') st.previewId = st.programId;
     $('#screens').className = 'screens ' + mode;
     $$('#modeSwitch button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
     $('#modeSwitch').dataset.mode = mode;

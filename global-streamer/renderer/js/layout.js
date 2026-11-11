@@ -161,6 +161,24 @@
     Y.apply(); GS.save(); if (GS.app) GS.app.fit();
   };
 
+  /** Animasi licin (FLIP) apabila panel bertukar tempat: perlahan dan lembut seperti peralihan iOS. */
+  function flip(change) {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const before = {};
+    DOCKS.forEach((id) => { const d = el(id); if (d && d.offsetParent !== null) before[id] = d.getBoundingClientRect(); });
+    change();
+    if (reduce) return;
+    DOCKS.forEach((id) => {
+      const d = el(id), b = before[id];
+      if (!d || !b || d.offsetParent === null || !d.animate) return;
+      const a = d.getBoundingClientRect();
+      const dx = b.left - a.left, dy = b.top - a.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      if (d._flip) d._flip.cancel();
+      d._flip = d.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+    });
+  }
+
   /* ---------- susun semula: tarik tajuk dock ---------- */
   function bindReorder(id) {
     const d = el(id);
@@ -189,7 +207,7 @@
           // tulis semula kedudukan kumpulan ini ke dalam susunan penuh (slot kumpulan kekal sama)
           const slots = L.order.map((x, i) => (group.includes(x) ? i : -1)).filter((i) => i >= 0);
           slots.forEach((slot, k) => { L.order[slot] = order[k]; });
-          Y.apply(); Y.build(); Y.place();
+          flip(() => { Y.apply(); Y.build(); Y.place(); });
         }
       };
       const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); d.classList.remove('dragging'); document.body.classList.remove('reordering'); if (dragging) GS.save(); };

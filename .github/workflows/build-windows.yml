@@ -4,6 +4,11 @@ name: Bina installer Windows (Global Streamer)
 # GlobalStreamer-Setup.exe sebagai artifak muat turun (Actions > run > Artifacts).
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Terbitkan release kepada pelanggan (app mereka akan memuat turun kemas kini)'
+        type: boolean
+        default: false
   push:
     branches: ['**']
     paths:
@@ -73,10 +78,11 @@ jobs:
             global-streamer/dist/*.exe
             global-streamer/dist/*.zip
           if-no-files-found: error
-      # Setiap push ke main / cabang ccr-* menerbitkan Release baharu. App yang dipasang menyemak Release terkini
+      # Release HANYA diterbitkan apabila tag gs-vX.Y.Z ditolak, atau Run workflow dengan "release" ditandakan (push biasa hanya membina dan menguji).
+      # Ini supaya pelanggan tidak memuat turun kemas kini berkali-kali: kumpulkan perubahan, kemudian terbitkan SEKALI. App yang dipasang menyemak Release terkini
       # (electron-updater, penyedia github) setiap 5 minit, memuat turun di latar dan menawarkan "Mulakan semula & pasang".
       - name: Terbitkan GitHub Release (pemasang + latest.yml + blockmap)
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'main' || startsWith(github.ref_name, 'ccr-') || startsWith(github.ref, 'refs/tags/gs-v'))
+        if: (startsWith(github.ref, 'refs/tags/gs-v') || (github.event_name == 'workflow_dispatch' && inputs.release == true))
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.v }}
@@ -96,7 +102,7 @@ jobs:
       # Repo awam khas untuk fail muat turun: pelanggan memuat turun dari sini dan app mereka mengemas kini dari sini. Kod sumber kekal peribadi.
       # Setiap kemas kini yang ditolak diterbitkan terus kepada pelanggan (app mereka mengemas kini sendiri).
       - name: Terbitkan ke repo awam (pelanggan muat turun dan kemas kini automatik)
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'main' || startsWith(github.ref_name, 'ccr-') || startsWith(github.ref, 'refs/tags/gs-v')) && env.RELEASES_TOKEN != ''
+        if: (startsWith(github.ref, 'refs/tags/gs-v') || (github.event_name == 'workflow_dispatch' && inputs.release == true)) && env.RELEASES_TOKEN != ''
         uses: softprops/action-gh-release@v2
         with:
           repository: GeniusDigitalDeveloper/global-streamer-releases-exe-apps

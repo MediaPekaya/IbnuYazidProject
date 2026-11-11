@@ -216,7 +216,16 @@
       GS.toast('Gagal simpan tetapan (storan penuh?). Cuba kecilkan imej logo.', 'warn');
     }
   };
-  GS.save = GS.debounce(GS.saveNow, 250);
+  /* Simpan automatik: setiap perubahan disimpan sebentar kemudian, dan dipaksa simpan apabila app ditutup/disembunyikan
+   * supaya susunan scene, sumber, sifat dan panel kekal tanpa perlu ditambah atau disusun semula. */
+  let dirty = false;
+  const saveSoon = GS.debounce(() => { dirty = false; GS.saveNow(); }, 250);
+  GS.save = () => { dirty = true; saveSoon(); };
+  const flush = () => { if (dirty) { dirty = false; GS.saveNow(); } };
+  window.addEventListener('pagehide', flush);
+  window.addEventListener('beforeunload', flush);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  setInterval(flush, 5000);
 
   /* ---------- modal helper ---------- */
   GS.modal = function ({ title, body, footer, wide = false, onClose }) {

@@ -163,13 +163,17 @@
       ctx.beginPath();
       ctx.rect(s.x, s.y, s.w, s.h);
       ctx.clip();
+      // potongan (crop) pengguna: bahagian sumber yang dipaparkan, pecahan 0-1
+      const c = s.props && s.props.crop;
+      let ox = 0, oy = 0, cw = sw, ch = sh;
+      if (c && c.w > 0 && c.h > 0) { ox = c.x * sw; oy = c.y * sh; cw = Math.max(1, c.w * sw); ch = Math.max(1, c.h * sh); }
       let dw = s.w, dh = s.h;
       if (s.fit !== 'stretch') {
-        const r = s.fit === 'contain' ? Math.min(s.w / sw, s.h / sh) : Math.max(s.w / sw, s.h / sh);
-        dw = sw * r;
-        dh = sh * r;
+        const r = s.fit === 'contain' ? Math.min(s.w / cw, s.h / ch) : Math.max(s.w / cw, s.h / ch);
+        dw = cw * r;
+        dh = ch * r;
       }
-      ctx.drawImage(el, s.x + (s.w - dw) / 2, s.y + (s.h - dh) / 2, dw, dh);
+      ctx.drawImage(el, ox, oy, cw, ch, s.x + (s.w - dw) / 2, s.y + (s.h - dh) / 2, dw, dh);
     }
 
     placeholder(ctx, s, now) {

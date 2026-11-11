@@ -718,5 +718,15 @@
     'Versi zip: muat turun zip baharu untuk mengemas kini': 'Zip version: download the new zip to update',
     'Tamatkan': 'End', 'Pengesahan': 'Confirm', 'Batal': 'Cancel', 'Ya': 'Yes',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
+    'Video belum dimuat. Cuba sebentar lagi.': 'The video has not loaded yet. Try again in a moment.',
+    'Zum': 'Zoom', 'Gerak kiri/kanan': 'Move left/right', 'Gerak atas/bawah': 'Move up/down',
+    'Potong kiri': 'Crop left', 'Potong kanan': 'Crop right', 'Potong atas': 'Crop top', 'Potong bawah': 'Crop bottom',
+    'Ikut kotak footer': 'Match footer box', 'Bebas': 'Free', 'Tiada potongan': 'No crop', 'Siap': 'Done',
+    'Potong video': 'Crop video', 'Tukar video': 'Replace video', 'Tambah video lagi': 'Add another video',
+    'Seret kotak kuning pada video untuk pilih bahagian yang dipaparkan. Roda tetikus atau peluncur untuk zum.': 'Drag the yellow box over the video to choose the part that is shown. Mouse wheel or the slider to zoom.',
+    'Klik untuk tukar video dari peranti anda': 'Click to replace the video from your device',
+    'Tukar kepada video lain dari peranti anda (kedudukan dan saiz kekal)': 'Switch to another video from your device (position and size stay)',
+    'Pilih bahagian video yang dipaparkan': 'Choose which part of the video is shown',
+    'Tambah satu lagi video footer dari peranti': 'Add one more footer video from your device',
   });
 })();

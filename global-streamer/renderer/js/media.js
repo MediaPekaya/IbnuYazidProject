@@ -299,11 +299,11 @@
   });
 
   /* kecilkan imej besar sebelum simpan (had storan) */
-  M.downscale = (dataUrl, max = 512) => new Promise((res) => {
+  M.downscale = (dataUrl, max = 512, forcePng = false) => new Promise((res) => {
     const im = new Image();
     im.onload = () => {
       const r = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
-      if (r >= 1) return res(dataUrl);
+      if (r >= 1 && !(forcePng && !/^data:image\/png/i.test(dataUrl))) return res(dataUrl);
       const c = document.createElement('canvas');
       c.width = Math.round(im.naturalWidth * r);
       c.height = Math.round(im.naturalHeight * r);

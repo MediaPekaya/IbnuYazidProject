@@ -189,15 +189,16 @@
   /* ---------- widget: logo ---------- */
   W.logo = function (ctx, s, t) {
     const { x, y, w, h } = s;
-    W.panel(ctx, x, y, w, h, t, { phase: 2 });
     const im = GS.state.logo && GS.media.image(GS.state.logo);
-    const pad = Math.min(w, h) * 0.12;
     if (im) {
-      const r = Math.min((w - pad * 2) / im.naturalWidth, (h - pad * 2) / im.naturalHeight);
+      // logo PNG pengguna: tanpa bingkai/sempadan asal, hanya gambar (lutsinar dikekalkan)
+      const r = Math.min(w / im.naturalWidth, h / im.naturalHeight);
       const dw = im.naturalWidth * r, dh = im.naturalHeight * r;
       ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
       return;
     }
+    if (GS.state.logo) return; // logo sedang dimuat
+    W.panel(ctx, x, y, w, h, t, { phase: 2 });
     // logo lalai (vektor asli)
     const cx = x + w / 2, cy = y + h / 2, r = Math.min(w, h) * 0.36;
     ctx.save();

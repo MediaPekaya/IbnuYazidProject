@@ -170,7 +170,11 @@
     if (st().mode !== 'studio') return;
     const pv = S.preview(), pg = S.program();
     if (!pv || pv === pg) { GS.toast('Pilih scene lain dalam Pratonton dahulu.', 'info'); return; }
+    const oldProgramId = pg.id;
     S.setProgram(pv.id);
+    // tukar tempat seperti OBS: scene yang tadi dilihat penonton kini di Pratonton (kiri), scene baharu di Program (kanan)
+    st().previewId = oldProgramId;
+    changed();
   };
 
   /* ---------- sumber ---------- */
@@ -264,6 +268,103 @@
     inp.click();
     setTimeout(() => inp.remove(), 60000);
   };
+  /** Tukar video/imej sebuah klip dengan fail lain dari peranti (kedudukan dan saiz kekal; potongan ditetapkan semula). */
+  S.replaceClip = function (s) {
+    const inp = h('input', { type: 'file', accept: 'image/*,video/*,.gif,.webm,.mp4,.mov,.m4v', style: { display: 'none' } });
+    inp.addEventListener('change', () => { if (inp.files[0]) S.loadClip(s, inp.files[0]); inp.remove(); });
+    document.body.append(inp);
+    inp.click();
+    setTimeout(() => inp.remove(), 60000);
+  };
+
+  /** Potong video: tetingkap potongan diseret di atas pratonton (tiada pemegang sudut). Roda tetikus / peluncur untuk zum.
+   *  Mod "Ikut kotak" mengunci nisbah ikut kotak footer; mod "Bebas" melaras empat sisi dengan peluncur. Disimpan sebagai pecahan (0-1) dalam props.crop. */
+  S.cropClip = function (s) {
+    const rec = GS.media.clips[s.id];
+    const el = rec && rec.el;
+    const vw = el && (rec.kind === 'video' ? el.videoWidth : el.naturalWidth), vh = el && (rec.kind === 'video' ? el.videoHeight : el.naturalHeight);
+    if (!rec || !rec.ready || !vw || !vh) { GS.toast(GS.t('Video belum dimuat. Cuba sebentar lagi.'), 'warn'); return; }
+    const A = s.w / s.h;
+    const orig = s.props.crop ? Object.assign({}, s.props.crop) : null;
+    const c = orig ? Object.assign({}, orig) : { x: 0, y: 0, w: 1, h: 1 };
+    const bw = Math.min(vw, vh * A) / vw, bh = (bw * vw / A) / vh; // potongan terbesar yang ikut nisbah kotak
+    let free = !!orig && Math.abs((c.w * vw) / (c.h * vh) - A) > 0.03;
+    const clampC = () => { c.w = Math.min(1, Math.max(0.05, c.w)); c.h = Math.min(1, Math.max(0.05, c.h)); c.x = Math.min(1 - c.w, Math.max(0, c.x)); c.y = Math.min(1 - c.h, Math.max(0, c.y)); };
+    const apply = () => { clampC(); if (c.w > 0.995 && c.h > 0.995) delete s.props.crop; else s.props.crop = { x: c.x, y: c.y, w: c.w, h: c.h }; GS.save(); };
+    const zoomTo = (z) => { const cx = c.x + c.w / 2, cy = c.y + c.h / 2; c.w = bw / z; c.h = bh / z; c.x = cx - c.w / 2; c.y = cy - c.h / 2; apply(); sync(); };
+    const maxW = 640, maxH = 380;
+    const k = Math.min(maxW / vw, maxH / vh);
+    const W = Math.round(vw * k), H = Math.round(vh * k);
+    const cv = h('canvas', { width: W, height: H, class: 'crop-cv', style: { width: W + 'px', height: H + 'px', maxWidth: '100%' } });
+    const g = cv.getContext('2d');
+    let alive = true;
+    const draw = () => {
+      if (!alive) return;
+      g.clearRect(0, 0, W, H);
+      try { g.drawImage(el, 0, 0, W, H); } catch (e) { /* belum sedia */ }
+      const x = c.x * W, y = c.y * H, w = c.w * W, hh = c.h * H;
+      g.fillStyle = 'rgba(4, 8, 18, 0.66)';
+      g.fillRect(0, 0, W, y); g.fillRect(0, y + hh, W, H - y - hh); g.fillRect(0, y, x, hh); g.fillRect(x + w, y, W - x - w, hh);
+      g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1;
+      g.beginPath();
+      for (let i = 1; i < 3; i++) { g.moveTo(x + (w * i) / 3, y); g.lineTo(x + (w * i) / 3, y + hh); g.moveTo(x, y + (hh * i) / 3); g.lineTo(x + w, y + (hh * i) / 3); }
+      g.stroke();
+      g.strokeStyle = '#ffd36b'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, hh - 2);
+      requestAnimationFrame(draw);
+    };
+    let drag = null;
+    cv.style.cursor = 'grab';
+    cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); drag = { px: e.clientX, py: e.clientY, x: c.x, y: c.y }; cv.style.cursor = 'grabbing'; });
+    cv.addEventListener('pointermove', (e) => { if (!drag) return; const r = cv.getBoundingClientRect(); c.x = drag.x + (e.clientX - drag.px) / r.width; c.y = drag.y + (e.clientY - drag.py) / r.height; apply(); sync(); });
+    const end = () => { drag = null; cv.style.cursor = 'grab'; };
+    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    cv.addEventListener('wheel', (e) => { if (free) return; e.preventDefault(); zoomTo(Math.min(8, Math.max(1, bw / c.w * (e.deltaY < 0 ? 1.08 : 1 / 1.08)))); }, { passive: false });
+
+    const range = (min, max, step, onInput) => h('input', { type: 'range', min, max, step, class: 'fader crop-range', onInput: (e) => onInput(Number(e.target.value)) });
+    const lbl = (t, ctl, val) => h('label', { class: 'field crop-row' }, h('span', null, t), ctl, val);
+    const vZoom = h('b', null), vPx = h('b', null), vPy = h('b', null), vL = h('b', null), vR = h('b', null), vT = h('b', null), vB = h('b', null);
+    const rZoom = range(100, 800, 1, (v) => zoomTo(v / 100));
+    const rPx = range(0, 100, 1, (v) => { c.x = (1 - c.w) * v / 100; apply(); sync(); });
+    const rPy = range(0, 100, 1, (v) => { c.y = (1 - c.h) * v / 100; apply(); sync(); });
+    const rL = range(0, 90, 1, (v) => { const r = 1 - c.x - c.w; c.x = v / 100; c.w = 1 - c.x - r; apply(); sync(); });
+    const rR = range(0, 90, 1, (v) => { c.w = 1 - v / 100 - c.x; apply(); sync(); });
+    const rT = range(0, 90, 1, (v) => { const b = 1 - c.y - c.h; c.y = v / 100; c.h = 1 - c.y - b; apply(); sync(); });
+    const rB = range(0, 90, 1, (v) => { c.h = 1 - v / 100 - c.y; apply(); sync(); });
+    const fitPanel = h('div', { class: 'crop-panel' }, lbl(GS.t('Zum'), rZoom, vZoom), lbl(GS.t('Gerak kiri/kanan'), rPx, vPx), lbl(GS.t('Gerak atas/bawah'), rPy, vPy));
+    const freePanel = h('div', { class: 'crop-panel' }, lbl(GS.t('Potong kiri'), rL, vL), lbl(GS.t('Potong kanan'), rR, vR), lbl(GS.t('Potong atas'), rT, vT), lbl(GS.t('Potong bawah'), rB, vB));
+    const bFit = h('button', { type: 'button', class: 'btn', onClick: () => { free = false; zoomTo(Math.max(1, bw / c.w)); sync(); } }, GS.t('Ikut kotak footer'));
+    const bFree = h('button', { type: 'button', class: 'btn', onClick: () => { free = true; sync(); } }, GS.t('Bebas'));
+    function sync() {
+      clampC();
+      bFit.classList.toggle('primary', !free); bFree.classList.toggle('primary', free);
+      fitPanel.style.display = free ? 'none' : ''; freePanel.style.display = free ? '' : 'none';
+      const z = Math.min(8, Math.max(1, bw / c.w));
+      rZoom.value = Math.round(z * 100); vZoom.textContent = Math.round(z * 100) + '%';
+      const px = c.w >= 0.999 ? 0 : Math.round(c.x / (1 - c.w) * 100), py = c.h >= 0.999 ? 0 : Math.round(c.y / (1 - c.h) * 100);
+      rPx.value = px; vPx.textContent = px + '%'; rPy.value = py; vPy.textContent = py + '%';
+      const l = Math.round(c.x * 100), r = Math.round((1 - c.x - c.w) * 100), t = Math.round(c.y * 100), b = Math.round((1 - c.y - c.h) * 100);
+      rL.value = l; vL.textContent = l + '%'; rR.value = r; vR.textContent = r + '%'; rT.value = t; vT.textContent = t + '%'; rB.value = b; vB.textContent = b + '%';
+    }
+    if (!free && !orig) { c.w = bw; c.h = bh; c.x = (1 - c.w) / 2; c.y = (1 - c.h) / 2; apply(); } // mula dengan potongan di tengah ikut nisbah footer
+    let m;
+    const reset = h('button', { type: 'button', class: 'btn ghost', onClick: () => { c.x = 0; c.y = 0; c.w = 1; c.h = 1; free = true; apply(); sync(); } }, GS.t('Tiada potongan'));
+    const cancel = h('button', { type: 'button', class: 'btn ghost', onClick: () => { if (orig) s.props.crop = orig; else delete s.props.crop; GS.save(); m.close(); } }, GS.t('Batal'));
+    const done = h('button', { type: 'button', class: 'btn primary', onClick: () => m.close() }, GS.t('Siap'));
+    m = GS.modal({
+      title: GS.t('Potong video'),
+      wide: true,
+      body: h('div', { class: 'crop-wrap' },
+        h('p', { class: 'muted note' }, GS.t('Seret kotak kuning pada video untuk pilih bahagian yang dipaparkan. Roda tetikus atau peluncur untuk zum.')),
+        h('div', { class: 'crop-stage' }, cv),
+        h('div', { class: 'btn-row' }, bFit, bFree),
+        fitPanel, freePanel),
+      footer: h('div', { class: 'btn-row' }, reset, cancel, done),
+      onClose: () => { alive = false; changed('props:changed'); renderProps(); },
+    });
+    sync();
+    draw();
+  };
+
   /** Muatkan fail ke dalam sumber klip (baharu jika `src` null). */
   S.loadClip = async function (src, f) {
     const isVideo = /^video\//.test(f.type) || /\.(webm|mp4|mov|m4v)$/i.test(f.name);
@@ -278,7 +379,7 @@
       src = mk('clip', f.name, r[0], r[1], r[2], r[3], props);
       src.fit = 'contain';
       addSource(src);
-    } else { src.props = Object.assign(src.props, props); src.name = f.name; }
+    } else { delete src.props.crop; src.props = Object.assign(src.props, props); src.name = f.name; }
     GS.media.makeClip(src.id, props.src || url, props.kind, props);
     if (!path && !props.src && isVideo) GS.toast(GS.t('Video dimuat. Dalam versi web video tidak disimpan selepas muat semula; app Windows mengingati fail ini.'), 'info', 6000);
     changed('props:changed');
@@ -468,11 +569,15 @@
     if (s.type === 'clip') {
       const rec = GS.media.clips[s.id];
       const dim = rec && rec.ready ? (rec.kind === 'video' ? rec.el.videoWidth + '×' + rec.el.videoHeight : rec.el.naturalWidth + '×' + rec.el.naturalHeight) : '';
-      root.append(h('div', { class: 'prop-info', 'data-clip-info': '1' }, (s.props.name || GS.t('Klip')) + (dim ? ' · ' + dim : '') + (rec && rec.error ? ' · ' + GS.t('Tidak dapat dimainkan') : !rec ? ' · ' + GS.t('Pilih fail semula') : '')));
+      root.append(h('button', { type: 'button', class: 'prop-info clip-link', 'data-clip-info': '1', title: GS.t('Klik untuk tukar video dari peranti anda'), onClick: () => S.replaceClip(s) }, (s.props.name || GS.t('Klip')) + (dim ? ' · ' + dim : '') + (rec && rec.error ? ' · ' + GS.t('Tidak dapat dimainkan') : !rec ? ' · ' + GS.t('Pilih fail semula') : '')));
       root.append(h('div', { class: 'btn-row' },
         h('button', { class: 'btn', id: 'btnClipPick', onClick: () => { const inp = h('input', { type: 'file', accept: 'image/*,video/*,.gif,.webm,.mp4,.mov,.m4v', style: { display: 'none' } }); inp.addEventListener('change', () => { if (inp.files[0]) S.loadClip(s, inp.files[0]); inp.remove(); }); document.body.append(inp); inp.click(); } }, rec ? 'Ganti fail' : 'Pilih fail'),
         h('button', { class: 'btn ghost', id: 'btnClipFooter', title: GS.t('Letak di bar bawah (footer)'), onClick: () => { const r = footerRect(S.editTarget()); s.x = r[0]; s.y = r[1]; s.w = r[2]; s.h = r[3]; changed('props:changed'); renderProps(); } }, 'Letak di footer'),
         h('button', { class: 'btn ghost', id: 'btnClipNatural', title: GS.t('Gunakan nisbah asal media'), onClick: () => { const r2 = GS.media.clips[s.id]; if (!r2 || !r2.ready) return; const nw = r2.kind === 'video' ? r2.el.videoWidth : r2.el.naturalWidth, nh = r2.kind === 'video' ? r2.el.videoHeight : r2.el.naturalHeight; if (nw && nh) { s.h = Math.round(s.w * nh / nw); changed('props:changed'); renderProps(); } } }, 'Nisbah asal')));
+      root.append(h('div', { class: 'btn-row' },
+        h('button', { class: 'btn primary', id: 'btnClipReplace', title: GS.t('Tukar kepada video lain dari peranti anda (kedudukan dan saiz kekal)'), onClick: () => S.replaceClip(s) }, 'Tukar video'),
+        h('button', { class: 'btn', id: 'btnClipCrop', title: GS.t('Pilih bahagian video yang dipaparkan'), disabled: !(GS.media.clips[s.id] && GS.media.clips[s.id].ready), onClick: () => S.cropClip(s) }, 'Potong video'),
+        h('button', { class: 'btn ghost', id: 'btnClipMore', title: GS.t('Tambah satu lagi video footer dari peranti'), onClick: () => S.addFooterVideo() }, 'Tambah video lagi')));
       if (s.props.kind === 'video') root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: s.props.loop !== false, onChange: (e) => { s.props.loop = e.target.checked; const r2 = GS.media.clips[s.id]; if (r2) r2.el.loop = e.target.checked; GS.save(); } }), 'Ulang video (loop)'));
       root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'chkHideBars', checked: !!s.props.hideBars, onChange: (e) => { s.props.hideBars = e.target.checked; S.setBarsHidden(S.editTarget(), e.target.checked); renderProps(); } }), 'Sembunyikan bar teks (INFO / Welcome) dan banner promosi pada scene ini'));
       root.append(h('p', { class: 'muted note' }, 'Banner sendiri boleh sebarang saiz: seret pada pratonton untuk alih, tarik sudut untuk besarkan, atau tukar Lebar/Tinggi di atas. "Muat" mengekalkan seluruh gambar, "Penuhi" memotong ikut kotak.'));
@@ -507,11 +612,11 @@
   }
 
   function pickLogo() {
-    const inp = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
+    const inp = h('input', { type: 'file', accept: 'image/png,image/webp,image/*', style: { display: 'none' } });
     inp.addEventListener('change', async () => {
       const f = inp.files[0];
       if (!f) return;
-      GS.state.logo = await GS.media.downscale(await GS.media.readFile(f), 512);
+      GS.state.logo = await GS.media.downscale(await GS.media.readFile(f), 512, true); // sentiasa PNG (lutsinar dikekalkan)
       GS.save();
       renderProps();
     });

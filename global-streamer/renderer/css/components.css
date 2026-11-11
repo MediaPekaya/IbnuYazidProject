@@ -526,3 +526,13 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .talent-row > div { flex: 1 1 auto; min-width: 0; }
 .talent-row span { display: block; flex: none; font-size: 11px; color: var(--dim); line-height: 1.35; overflow-wrap: anywhere; }
 .talent-row b { text-align: left; }
+
+/* ----- potong video (modal) & pautan klip ----- */
+.clip-link { display: block; width: 100%; text-align: left; cursor: pointer; border: 1px dashed var(--line-strong); background: transparent; color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; border-radius: 8px; padding: 6px 8px; }
+.clip-link:hover { background: rgba(46, 168, 255, 0.12); }
+.crop-wrap { display: flex; flex-direction: column; gap: 12px; }
+.crop-stage { display: grid; place-items: center; padding: 8px; border-radius: 12px; background: #050b17; border: 1px solid var(--line); }
+.crop-cv { display: block; border-radius: 6px; touch-action: none; }
+.crop-panel { display: flex; flex-direction: column; gap: 8px; }
+.crop-row { display: grid; grid-template-columns: 150px 1fr 52px; align-items: center; gap: 10px; }
+.crop-row b { text-align: right; font-variant-numeric: tabular-nums; color: var(--gold); }

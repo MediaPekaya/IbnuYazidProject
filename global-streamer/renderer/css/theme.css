@@ -20,13 +20,14 @@
   --grad: linear-gradient(110deg, #2ea8ff, #7a5cff 45%, #ff3b5c);
   --grad-loop: linear-gradient(110deg, #2ea8ff, #7a5cff, #ff3b5c, #7a5cff, #2ea8ff);
   --r: 14px;
-  --ease: cubic-bezier(0.22, 0.9, 0.24, 1);
+  --ease: cubic-bezier(0.32, 0.72, 0, 1); /* lengkung licin gaya iOS */
   --font: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+.dock-body, .rbody { scroll-behavior: smooth; }
 body {
   margin: 0;
   background: var(--bg0);

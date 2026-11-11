@@ -143,3 +143,16 @@ body.gs-popout .gutter { display: none; }
 @media (max-width: 1750px) { .brand-name { display: none; } }
 @media (max-width: 1500px) { .game-pick select { max-width: 130px; } }
 @media (max-width: 1220px) { .game-pick select { max-width: 100px; } }
+
+/* ----- panel bawah (Scene, Sumber, Sifat, Audio Mixer, Template): latar RATA, tanpa kesan hologram/kabur, sempadan nipis ----- */
+.dock { background: #0a162c; backdrop-filter: none; -webkit-backdrop-filter: none; border: 1px solid var(--line); box-shadow: none; }
+.dock-head { background: #0d1c37; border-bottom: 1px solid var(--line); }
+.dock .list-item, .dock .strip, .dock .src-card, .dock .tpl-card { background: #0f2040; border: 1px solid var(--line); box-shadow: none; backdrop-filter: none; }
+.dock .list-item:hover, .dock .src-card:hover, .dock .tpl-card:hover { background: #142a52; border-color: var(--line-strong); }
+.dock .list-item.sel, .dock .tpl-card.sel { background: #163260; border-color: var(--blue); box-shadow: none; }
+.dock .list-item.pgm { background: #2a1426; border-color: rgba(255, 59, 92, 0.5); }
+.dock .list-item.pvw { background: #112d57; border-color: rgba(46, 168, 255, 0.5); }
+.dock .strip.muted { border-color: rgba(255, 59, 92, 0.4); }
+.dock .tpl-card canvas { background: #07101f; }
+.dock input, .dock select, .dock textarea { background: #0b1a33; border: 1px solid var(--line); box-shadow: none; }
+.dock.dragging { opacity: 1; outline: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); z-index: 5; }
