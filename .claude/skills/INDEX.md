@@ -98,3 +98,4 @@ Templat tambahan: `templates/video/` (dokumen skrip/storyboard/senarai semak dan
 | `social` | When the user wants help creating, scheduling, or optimizing social media content for Link... |
 | `video` | When the user wants to create, generate, or produce video content using AI tools or progra... |
 | `free-llm-apis` | Pick and configure free LLM API providers. |
+- Anthropic cloud skills: docs, docx, pdf, pptx, xlsx, google-workspace, import-memory, morning, setup-writing-style, skill-creator, session-start-hook.

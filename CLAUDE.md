@@ -13,3 +13,8 @@ Video tools have **no default**: auto-pick per task between **Higgsfield MCP** (
 - When creating a NEW repo, run `.claude/scripts/sync-skills.sh <new-repo-path>` to copy these skills into it.
 
 Also included: 52 marketing skills from marketingskills (start with `product-marketing`; upstream `marketing-plan` is `marketing-plan-corey`) and `free-llm-apis`. Sources: `.claude/skills/SOURCES.md`.
+
+Also included: Anthropic cloud skills (`docs`, `docx`, `pdf`, `pptx`, `xlsx`, `google-workspace`, `import-memory`, `morning`, `setup-writing-style`, `skill-creator`, `session-start-hook`).
+
+## New repos (important)
+Every NEW repo must get these skills: run `.claude/scripts/sync-skills.sh <new-repo-path>` right after creating/cloning it (it only adds missing skills, never overwrites) and commit the result. For an existing repo with a different skill set, run it again to top up.
