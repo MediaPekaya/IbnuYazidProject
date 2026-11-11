@@ -24,6 +24,13 @@
   /** Jalur dalam Audio Mixer. */
   U.strip = function () {
     const v = V();
+    if (v.comingSoon) {
+      return h('div', { class: 'strip voice-strip coming-soon', id: 'voiceStrip', 'aria-disabled': 'true' },
+        h('div', { class: 'strip-head' }, h('span', { class: 'strip-name' }, 'Suara & Bot')),
+        h('div', { class: 'cs-bar', id: 'voiceComingSoon' }, 'AKAN DATANG'),
+        h('button', { type: 'button', class: 'btn tiny', id: 'btnVoiceToggle', disabled: true }, 'Hidupkan bot'),
+        h('button', { type: 'button', class: 'btn tiny ghost', id: 'btnVoiceOpen', disabled: true }, 'Atur…'));
+    }
     const s = statusText();
     return h('div', { class: 'strip voice-strip' + (v.running ? ' on' : ''), id: 'voiceStrip' },
       h('div', { class: 'strip-head' }, h('span', { class: 'strip-name', title: GS.t('Kawalan suara dan bot') }, 'Suara & Bot'), h('i', { class: 'voice-dot ' + (v.running ? 'on' : '') })),
@@ -72,6 +79,7 @@
   };
 
   U.open = function () {
+    if (V().comingSoon) return;
     if (U.modal && U.modal.card && U.modal.card.isConnected) return;
     const v = V();
     const nat = !!(window.gsNative && window.gsNative.voice);

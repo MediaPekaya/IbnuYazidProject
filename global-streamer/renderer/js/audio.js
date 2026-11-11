@@ -255,12 +255,13 @@
   A.sfx = function (name) {
     try {
       switch (name) {
-        case 'kill': osc('sawtooth', 180, 720, 0.5, 0.16); noise(0.5, 0.25, 1800); osc('square', 520, 1040, 0.25, 0.08, 0.12); break;
-        case 'death': noise(0.9, 0.5, 900); osc('sawtooth', 90, 38, 0.8, 0.28); osc('square', 1400, 200, 0.2, 0.1); break;
+        case 'kill': osc('sawtooth', 180, 720, 0.5, 0.16); noise(0.5, 0.25, 1800); osc('square', 520, 1040, 0.25, 0.08, 0.12); osc('sawtooth', 62, 44, 0.8, 0.2); osc('sine', 55, 34, 0.7, 0.22, 0.05); break; // seram: raungan rendah
+        case 'death': noise(0.9, 0.5, 900); osc('sawtooth', 90, 38, 0.8, 0.28); osc('square', 1400, 200, 0.2, 0.1); osc('sawtooth', 700, 80, 1.1, 0.07); osc('sawtooth', 712, 90, 1.1, 0.07, 0.03); break; // seram: rintihan menurun
         case 'victory': [523, 659, 784, 1047].forEach((f, i) => osc('triangle', f, f, 0.9, 0.16, i * 0.14)); noise(1.2, 0.1, 5000, 0.5); break;
         case 'defeat': [392, 330, 262, 196].forEach((f, i) => osc('sawtooth', f, f * 0.96, 0.8, 0.1, i * 0.22)); break;
         case 'fullitem': for (let i = 0; i < 6; i++) osc('triangle', 600 + i * 110, 600 + i * 110, 0.22, 0.12, i * 0.1); osc('sine', 1760, 1760, 0.6, 0.12, 0.7); break;
         case 'itembuy': osc('sine', 988, 988, 0.12, 0.14); osc('sine', 1319, 1319, 0.35, 0.14, 0.09); break;
+        case 'chest': osc('sawtooth', 140, 90, 0.55, 0.07); noise(0.5, 0.08, 900); osc('sine', 90, 40, 0.25, 0.22, 0.55); [1319, 1568, 1976, 2637].forEach((f, i) => osc('triangle', f, f, 0.4, 0.12, 0.7 + i * 0.07)); noise(0.5, 0.05, 7000, 0.75); break; // peti: berderit, hentakan, kilauan
         case 'alert': osc('sine', 880, 1320, 0.25, 0.1); break;
         default: break;
       }

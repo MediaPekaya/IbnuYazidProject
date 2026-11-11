@@ -11,7 +11,9 @@
   'use strict';
   const GS = window.GS;
   const { h } = GS;
-  const V = (GS.voice = { running: false, engine: '', speaking: false, awaitUntil: 0, last: null, error: '', info: {}, lastFx: {}, taps: {}, log: [] });
+  const V = (GS.voice = { comingSoon: !window.GS_FORCE_VOICE, running: false, engine: '', speaking: false, awaitUntil: 0, last: null, error: '', info: {}, lastFx: {}, taps: {}, log: [] });
+  /** Suara & Bot (mikrofon, bot, AI) ditutup: "Akan datang". Pengumum efek (Inggeris) kekal berfungsi. Ujian boleh membukanya dengan window.GS_FORCE_VOICE. */
+  const COMING_SOON = !window.GS_FORCE_VOICE;
   const native = () => !!(window.gsNative && window.gsNative.voice);
   const cfg = () => GS.state.voice;
 
@@ -435,12 +437,13 @@
   const MALE_RE = /\b(david|mark|george|james|guy|ryan|rizwan|osman|richard|daniel|alex|fred|jorge|thomas|paul|stefan|male|lelaki)\b/i;
   const FEMALE_RE = /\b(zira|hazel|susan|aria|jenny|yasmin|emma|samantha|victoria|karen|moira|ayu|gadis|siti|female|perempuan|helen|linda|catherine|sabina)\b/i;
   V.pickSystemVoice = function (vs, gender, lang) {
-    const l = String(lang || 'ms').slice(0, 2).toLowerCase();
-    const rank = (v) => { const x = String(v.lang || '').toLowerCase().replace('_', '-'); return x.startsWith(l) ? 0 : x.startsWith('en') ? 2 : 3; };
+    const l = String(lang || 'ms').slice(0, 2).toLowerCase(), full = String(lang || '').toLowerCase().replace('_', '-');
+    // loghat sebenar diutamakan (cth en-US sebelum en-GB/en-IN/en-AU); suara bahasa lain tidak dipilih
+    const rank = (v) => { const x = String(v.lang || '').toLowerCase().replace('_', '-'); return x === full ? 0 : x.startsWith(l) ? 0.5 : x.startsWith('en') ? 2 : 3; };
     const isG = (v) => (gender === 'male' ? MALE_RE.test(v.name) && !FEMALE_RE.test(v.name) : FEMALE_RE.test(v.name) && !MALE_RE.test(v.name));
     const sorted = vs.slice().sort((a, b) => rank(a) - rank(b));
     // suara Indonesia/lain TIDAK pernah dipilih sebagai ganti Melayu; jantina yang betul diutamakan, kemudian Melayu, kemudian Inggeris
-    return sorted.find((v) => isG(v) && rank(v) <= 2) || sorted.find((v) => rank(v) === 0) || sorted.find((v) => rank(v) === 2) || null;
+    return sorted.find((v) => isG(v) && rank(v) <= 2) || sorted.find((v) => rank(v) <= 0.5) || sorted.find((v) => rank(v) === 2) || null;
   };
   /** Laporan suara sistem pada PC ini: ada suara Melayu lelaki/perempuan atau tidak. */
   V.systemVoiceReport = function (lang) {
@@ -476,7 +479,8 @@
     const b = cfg().bot;
     text = String(text || '').trim();
     if (!text || (!b.voiceOn && !o.force && !o.announcer)) return false;
-    const tts = b.tts || {};
+    const tts = COMING_SOON ? { provider: 'system', gender: 'male' } : (b.tts || {}); // akan datang: pengumum sahaja, suara sistem Inggeris (US) lelaki
+    const inStream = COMING_SOON ? true : b.inStream;
     const lang = o.lang || V.detectLang(text);   // bahasa suara = bahasa teks
     const mood = o.mood || '';
     V.stopSpeech();
@@ -489,7 +493,7 @@
         try { const buf = await V.getBuffer(tts.provider, text, lang, tts.gender, mood); playBuf(buf, done); return true; } catch (e) { warn(String((e && e.message) || e) + ' ' + GS.t('Menggunakan suara sistem.')); }
       }
       // 2) suara Windows dijana sebagai WAV dan dicampur ke dalam siaran
-      if (b.inStream && native()) {
+      if (inStream && native()) {
         const r = await window.gsNative.voice.say(text, { voice: b.voiceName, culture: lang, gender: tts.gender, rate: b.rate });
         if (r && r.ok) { playBuf(await GS.audio.ensure().decodeAudioData(r.wav.buffer.slice(r.wav.byteOffset, r.wav.byteOffset + r.wav.byteLength)), done); return true; }
         if (r && r.error) GS.toast(GS.t('Suara bot ke siaran gagal: {0}', r.error), 'warn');
@@ -535,7 +539,7 @@
     clearTimeout(prewarmT);
     prewarmT = setTimeout(async () => {
       const tts = cfg().bot.tts, a = cfg().announcer;
-      if (!a.on || (tts.provider !== 'azure' && tts.provider !== 'eleven')) return;
+      if (COMING_SOON || !a.on || (tts.provider !== 'azure' && tts.provider !== 'eleven')) return;
       if (!(tts.provider === 'azure' ? V.azureKey() : V.elevenKey())) return;
       const set = a.lang === 'ms-MY' ? a.textsMs : a.textsEn;
       for (const [k, raw] of Object.entries(set)) { const t = String(raw || '').trim(); if (!t) continue; try { await V.getBuffer(tts.provider, t, a.lang, tts.gender, MOOD_OF[k] || ''); } catch (e) { warn(String((e && e.message) || e)); return; } }
@@ -831,6 +835,7 @@
   };
 
   V.start = async function () {
+    if (COMING_SOON) return false;
     if (V.running) return true;
     V.error = ''; V.info = {};
     cfg().enabled = true;
@@ -885,7 +890,8 @@
     try { if ('speechSynthesis' in window) { speechSynthesis.getVoices(); speechSynthesis.addEventListener('voiceschanged', () => speechSynthesis.getVoices()); } } catch (e) { /* abaikan */ }
     V.prewarm();
     // pulihkan selepas dibuka semula: bot/efek suara dimulakan jika sebelum ini dihidupkan (mikrofon sudah diberi kebenaran)
-    if (cfg().enabled && native()) setTimeout(() => { cfg().enabled = false; V.start(); }, 2500);
+    if (COMING_SOON) cfg().enabled = false;
+    else if (cfg().enabled && native()) setTimeout(() => { cfg().enabled = false; V.start(); }, 2500);
     else cfg().enabled = false; // pelayar: memerlukan klik pengguna untuk mikrofon
   };
 })();

@@ -706,6 +706,7 @@
     'Pengecam: Groq Whisper (faham Melayu)': 'Recogniser: Groq Whisper (understands Malay)',
     'Telinga bot: Groq Whisper aktif (faham Bahasa Melayu).': 'Bot ears: Groq Whisper active (understands Malay).',
     '(Untuk bot faham Bahasa Melayu, pilih Groq dan masukkan key Groq. Tanpa itu, pengecam Windows Inggeris digunakan dan kurang tepat.)': '(For the bot to understand Malay, choose Groq and enter a Groq key. Without it the English Windows recogniser is used and is less accurate.)',
+    'AKAN DATANG': 'COMING SOON',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

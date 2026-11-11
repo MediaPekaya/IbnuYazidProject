@@ -892,11 +892,11 @@
     death: { dur: 2600, draw: drawDeath, sfx: 'death' },
     victory: { dur: 6000, draw: drawVictory, sfx: 'victory' },
     defeat: { dur: 5600, draw: drawDefeat, sfx: 'defeat' },
-    fullitem: { dur: 4600, draw: drawFullItem, sfx: 'fullitem' },
+    fullitem: { dur: 4600, draw: drawFullItem, sfx: 'chest' },
     itembuy: { dur: 3400, draw: drawItemBuy, sfx: 'itembuy' },
     alert: { dur: 3400, draw: drawAlert, sfx: 'alert' },
     botsay: { dur: 5000, draw: drawBotSay, sfx: 'alert' },
-    itemalert: { dur: 4400, draw: drawItemAlert, sfx: 'itembuy' },
+    itemalert: { dur: 4400, draw: drawItemAlert, sfx: 'chest' },
     tierlist: { dur: 9000, draw: drawTierList, sfx: 'alert' },
   };
   FX.names = Object.keys(defs);

@@ -76,3 +76,11 @@ Butang ikon di penjuru tab panel kanan mengeluarkan panel ke tetingkap baharu. T
 * Tanpa kunci Groq: pengecam Windows (jika aliran gagal, mikrofon lalai Windows). Bunyi game (pengumum) kekal pada pengecam Windows.
 * Bot hanya bersembang dengan streamer melalui mikrofon; komen penonton TIDAK dibaca.
 * Had: Groq percuma ada had permintaan sehari; mesej had dipaparkan. Belum diuji dengan kunci Groq dan mikrofon sebenar.
+
+## 11. Kembali ke asas: kekunci Alt + efek bercakap Inggeris; Suara & Bot "AKAN DATANG"
+* Kotak **Suara & Bot** (mikrofon, bot, AI, telinga Whisper) ditutup: palang merah "AKAN DATANG", kelabu, butang dimatikan. Kod kekal dan boleh dibuka semula (bendera `COMING_SOON` dalam `renderer/js/voice.js`; ujian guna `window.GS_FORCE_VOICE`).
+* **Kekunci Alt+1..Alt+8** (kill, mati, victory, defeat, item penuh, beli item, notis item, tier list) kekal. Jenis kill (First Blood, Double Kill, Triple Kill, Maniac, Savage, Killing Spree...) dipilih di panel Game.
+* **Setiap efek ada bunyi**: kill = bunyi seram (raungan rendah), mati = rintihan seram menurun, victory/defeat = melodi, item penuh dan notis item = **bunyi peti** (berderit, hentakan, kilauan), beli item = loceng.
+* **Pengumum bercakap Inggeris sahaja**: "First blood", "Double kill", "Triple kill", "Maniac", "Savage", "Killing spree", "Legendary", "Shutdown", "You have been slain", "Victory", "Defeat", "Full item". Kill biasa tanpa jenis = bunyi seram sahaja. Suara sistem Windows lelaki **en-US** (cth Microsoft David) dipilih; suara en-US diutamakan, kemudian Inggeris lain; suara Indonesia/Cina/India tidak dipilih. Tanpa kunci apa pun; bunyi efek dimainkan bersama suara. Suara pengumum dimasukkan ke siaran (app Windows).
+* Tetapan lama pengumum (bahasa Melayu) dipindahkan ke lalai baharu ini (v3).
+* Batasan: bunyi efek ke siaran bergantung pada Tetapan > Audio ("bunyi efek dalam siaran"). Suara en-US wujud pada Windows biasa; jika PC tiada suara en-US, suara Inggeris lain digunakan. Belum diuji pada Windows sebenar.
