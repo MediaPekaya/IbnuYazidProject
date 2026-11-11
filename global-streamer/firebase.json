@@ -5,8 +5,8 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "updates/**"],
     "cleanUrls": true,
     "redirects": [
-      { "source": "/updates/:file", "destination": "https://github.com/MediaPekaya/IbnuYazidProject/releases/latest/download/:file", "type": 302 },
-      { "source": "/download/windows", "destination": "https://github.com/MediaPekaya/IbnuYazidProject/releases/latest/download/Global-Streamer-Setup.exe", "type": 302 }
+      { "source": "/updates/:file", "destination": "https://github.com/IzzulIsyraf011207/global-streamer-releases-exe-apps/releases/latest/download/:file", "type": 302 },
+      { "source": "/download/windows", "destination": "https://github.com/IzzulIsyraf011207/global-streamer-releases-exe-apps/releases/latest/download/Global-Streamer-Setup.exe", "type": 302 }
     ],
     "rewrites": [
       { "source": "/landing", "destination": "/site/index.html" },

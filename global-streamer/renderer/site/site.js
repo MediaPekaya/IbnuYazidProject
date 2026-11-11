@@ -18,7 +18,7 @@
   if (box) {
     // pautan tetap /download/windows sentiasa menunjuk ke pemasang terkini (GitHub Releases); maklumat versi daripada API awam
     var a = box.querySelector('a.btn.primary'); a.href = '/download/windows'; a.removeAttribute('aria-disabled');
-    fetch('https://api.github.com/repos/MediaPekaya/IbnuYazidProject/releases/latest', { headers: { Accept: 'application/vnd.github+json' } }).then(function (r) { if (!r.ok) throw new Error('x'); return r.json(); }).then(function (rel) {
+    fetch('https://api.github.com/repos/IzzulIsyraf011207/global-streamer-releases-exe-apps/releases/latest', { headers: { Accept: 'application/vnd.github+json' } }).then(function (r) { if (!r.ok) throw new Error('x'); return r.json(); }).then(function (rel) {
       var asset = (rel.assets || []).filter(function (x) { return x.name === 'Global-Streamer-Setup.exe'; })[0];
       if (!asset) throw new Error('x');
       box.querySelector('[data-f="version"]').textContent = String(rel.tag_name || '').replace(/^v/, '');
