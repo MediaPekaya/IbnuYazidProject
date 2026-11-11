@@ -702,6 +702,10 @@
     'Pengecam suara tidak dapat membuka mikrofon. Semak mikrofon Windows (Tetapan > Privasi > Mikrofon > benarkan aplikasi desktop).': 'The speech recogniser could not open the microphone. Check Windows microphone settings (Settings > Privacy > Microphone > allow desktop apps).',
     'Tiada pengecam suara Windows dipasang (Tetapan > Masa & bahasa > Pertuturan).': 'No Windows speech recogniser is installed (Settings > Time & language > Speech).',
     'Pengecam: Windows (mikrofon lalai)': 'Recogniser: Windows (default microphone)',
+    'Mendengar (Whisper)… sebut nama bot': 'Listening (Whisper)… say the bot name',
+    'Pengecam: Groq Whisper (faham Melayu)': 'Recogniser: Groq Whisper (understands Malay)',
+    'Telinga bot: Groq Whisper aktif (faham Bahasa Melayu).': 'Bot ears: Groq Whisper active (understands Malay).',
+    '(Untuk bot faham Bahasa Melayu, pilih Groq dan masukkan key Groq. Tanpa itu, pengecam Windows Inggeris digunakan dan kurang tepat.)': '(For the bot to understand Malay, choose Groq and enter a Groq key. Without it the English Windows recogniser is used and is less accurate.)',
     'WAJIB. Stream Key daripada platform ini.': 'REQUIRED. Stream Key from this platform.',
   });
 })();

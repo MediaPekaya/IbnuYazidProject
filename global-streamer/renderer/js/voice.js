@@ -561,7 +561,9 @@
     if (!text) return { ignored: 'kosong' };
     const source = ev.source === 'game' ? 'game' : 'mic';
     if (source === 'mic' && V.speaking && !ev.test) return { ignored: 'bot bercakap' }; // elak bot mendengar suaranya sendiri
-    if (ev.conf != null && ev.conf < st.minConf) { V.note({ source, text, conf: ev.conf, result: 'keyakinan rendah' }); return { ignored: 'keyakinan' }; }
+    V.heard = { text, at: Date.now(), conf: ev.conf == null ? null : ev.conf, source };
+    const wakeNow = source === 'mic' && st.bot.enabled && (V.parseWake(text).woke || V.awaitUntil > Date.now());
+    if (ev.conf != null && ev.conf < st.minConf && !wakeNow) { V.note({ source, text, conf: ev.conf, result: 'keyakinan rendah' }); GS.emit('voice:status'); return { ignored: 'keyakinan' }; } // efek memerlukan keyakinan; memanggil bot tidak
     const now = Date.now();
     // latih nama: ayat pendek seterusnya didengar ditambah sebagai ejaan sebutan nama bot
     if (V.learning && Date.now() < V.learnUntil && source === 'mic' && !ev.interim && !ev.test) {
@@ -675,10 +677,10 @@
     GS.emit('voice:status');
   };
 
-  async function startNative() {
+  async function startNative(only) {
     const st = cfg();
     const started = [];
-    for (const src of ['mic', 'game']) {
+    for (const src of (only || ['mic', 'game'])) {
       if (!st[src].on) continue;
       const ch = chFor(src);
       if (!ch) { if (src === 'mic') V.error = GS.t('Pilih input mikrofon dalam Audio Mixer dahulu.'); continue; }
@@ -688,6 +690,104 @@
       if (off) { V.taps[src] = off; started.push(src); }
     }
     return started.length > 0;
+  }
+
+  /* ---------- enjin: telinga awan (Groq Whisper, percuma, faham Bahasa Melayu) ---------- */
+  V.sttKey = () => ((GS.platforms && GS.platforms.getKey('ai-groq')) || '').trim();
+  const HALLU = /kerana menonton|for watching|thanks for watching|subscribe|amara\.org|subtitle|terjemahan oleh|sarikata/i;
+  const wavOf = (i16) => {
+    const n = i16.length, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+    const w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+    new Int16Array(b, 44).set(i16);
+    return b;
+  };
+  const sttPrompt = () => {
+    const b = cfg().bot, names = [b.name].concat(splitList(b.aliases)).filter(Boolean).join(', ');
+    return ('Bahasa Melayu Malaysia, sembang game. Nama bot: ' + names + '. Kata: kill, double kill, triple kill, savage, victory, defeat, mati, menang, kalah.').slice(0, 220);
+  };
+  V.transcribe = async function (wav) {
+    const key = V.sttKey();
+    if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', 'Groq'));
+    const body = { key, wav, language: 'ms', prompt: sttPrompt() };
+    let r;
+    if (native() && window.gsNative.ai && window.gsNative.ai.stt) r = await window.gsNative.ai.stt(body);
+    else {
+      try {
+        const fd = new FormData();
+        fd.append('file', new Blob([wav], { type: 'audio/wav' }), 'ucapan.wav'); fd.append('model', 'whisper-large-v3-turbo'); fd.append('language', 'ms'); fd.append('response_format', 'json'); fd.append('temperature', '0'); fd.append('prompt', body.prompt);
+        const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd });
+        const j = await res.json().catch(() => ({}));
+        r = res.ok ? { ok: true, text: j.text || '' } : { ok: false, status: res.status, code: String((j.error && (j.error.code || j.error.type)) || ''), message: String((j.error && j.error.message) || '') };
+      } catch (e) { r = { ok: false, status: 0, code: 'network' }; }
+    }
+    if (!r || !r.ok) { const e = new Error(aiErr('Groq', r || {})); e.status = r && r.status; throw e; }
+    return String(r.text || '').trim();
+  };
+  /** Pengesan ucapan (VAD) bertenaga: memotong audio mikrofon menjadi ayat, dan menghantar setiap ayat untuk ditranskripsi. */
+  function makeCloud() {
+    const C = { pre: [], buf: [], speaking: false, run: 0, quiet: 0, noise: 0.006, busy: 0, errAt: 0 };
+    const FR = 0.085; // saat setiap bingkai (kira-kira)
+    C.finish = async () => {
+      const frames = C.buf, vn = C.voicedN; C.buf = []; C.speaking = false; C.quiet = 0; C.run = 0; C.voicedN = 0;
+      const total = frames.reduce((a, f) => a + f.length, 0);
+      if (vn < 5) return; // kurang 0.4 saat bercakap sebenar: hingar sahaja
+      const all = new Int16Array(total); let o = 0; frames.forEach((f) => { all.set(f, o); o += f.length; });
+      if (C.busy >= 2) return; // transkripsi ketinggalan: buang
+      C.busy++;
+      try {
+        const text = await V.transcribe(wavOf(all));
+        if (!text || text.length < 2 || (HALLU.test(text) && text.split(/\s+/).length <= 8)) return;
+        V.handleText({ source: 'mic', text, conf: null, final: true });
+      } catch (e) {
+        if (e.status === 401 || e.status === 403) { V.error = e.message; GS.emit('voice:status'); }
+        else if (Date.now() - C.errAt > 20000) { C.errAt = Date.now(); warn(String(e.message || e)); }
+      } finally { C.busy--; }
+    };
+    C.feed = (i16) => {
+      let sum = 0; for (let i = 0; i < i16.length; i++) sum += i16[i] * i16[i];
+      const rms = Math.sqrt(sum / (i16.length || 1)) / 32768;
+      const thr = Math.max(0.012, C.noise * 3);
+      const voiced = rms > thr;
+      if (!C.speaking) {
+        C.pre.push(i16); if (C.pre.length > 4) C.pre.shift();
+        if (voiced) { C.run++; } else { C.run = 0; C.noise = C.noise * 0.95 + rms * 0.05; }
+        if (C.run >= 2) { C.speaking = true; C.buf = C.pre.slice(); C.pre = []; C.quiet = 0; C.voicedN = C.run; }
+        return;
+      }
+      C.buf.push(i16);
+      if (voiced) C.voicedN++;
+      C.quiet = voiced ? 0 : C.quiet + 1;
+      const secs = C.buf.length * FR;
+      if (C.quiet >= 8 || secs > 14) C.finish();
+    };
+    return C;
+  }
+  function tapRaw(ch, cb) {
+    const ctx = GS.audio.ensure();
+    if (!ctx || !ch || !ch.node) return null;
+    const proc = ctx.createScriptProcessor(4096, 1, 1);
+    const mute = ctx.createGain(); mute.gain.value = 0;
+    const ratio = ctx.sampleRate / 16000;
+    proc.onaudioprocess = (e) => {
+      if (V.speaking) return; // bot bercakap: jangan dengar suaranya sendiri
+      const inp = e.inputBuffer.getChannelData(0), n = Math.floor(inp.length / ratio), out = new Int16Array(n);
+      for (let i = 0; i < n; i++) { const a = Math.floor(i * ratio), b = Math.min(inp.length, Math.floor((i + 1) * ratio)); let s = 0; for (let j = a; j < b; j++) s += inp[j]; s /= (b - a) || 1; out[i] = Math.max(-1, Math.min(1, s)) * 32767; }
+      cb(out);
+    };
+    ch.node.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+    return () => { try { ch.node.disconnect(proc); } catch (e) { /* abaikan */ } try { proc.disconnect(); mute.disconnect(); } catch (e) { /* abaikan */ } };
+  }
+  function startCloud() {
+    const ch = chFor('mic');
+    if (!ch) { V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); return false; }
+    const C = (V.cloud = makeCloud());
+    const off = tapRaw(ch, (f) => C.feed(f));
+    if (!off) { V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); return false; }
+    V.taps.cloud = off;
+    V.info.mic = { culture: 'ms', name: 'Groq Whisper', input: 'cloud' };
+    return true;
   }
 
   /* ---------- enjin: pelayar web (Web Speech API) ---------- */
@@ -739,9 +839,13 @@
     try { if (!(await V.ensureMic())) V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); } catch (e) { V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); }
     if (V.error) { cfg().enabled = false; GS.save(); GS.emit('voice:status'); return false; }
     let ok = false;
-    V.engine = native() ? 'windows' : 'web';
+    V.engine = native() ? 'windows' : 'web'; V.cloud = null;
     try {
-      if (native()) { if (!(await window.gsNative.voice.available())) V.error = GS.t('Pengecam suara luar talian hanya tersedia dalam app Windows.'); else ok = await startNative(); }
+      if (V.sttKey() && cfg().mic.on) {
+        V.engine = 'cloud'; ok = startCloud();
+        if (ok && native() && cfg().game.on && (await window.gsNative.voice.available())) { try { await startNative(['game']); } catch (e) { /* bunyi game: pilihan */ } }
+      }
+      else if (native()) { if (!(await window.gsNative.voice.available())) V.error = GS.t('Pengecam suara luar talian hanya tersedia dalam app Windows.'); else ok = await startNative(); }
       else ok = startWeb();
     } catch (e) { V.error = String((e && e.message) || e); ok = false; }
     V.running = ok;

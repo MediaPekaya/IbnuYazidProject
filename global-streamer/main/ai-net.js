@@ -40,4 +40,31 @@ async function chat(p) {
   } finally { clearTimeout(to); }
 }
 
-module.exports = { chat, PROVIDERS };
+/** Speech-to-text (Groq Whisper, percuma): WAV pendek -> teks. Faham Bahasa Melayu. */
+async function transcribe(p) {
+  p = p || {};
+  const key = String(p.key || '').trim();
+  if (!key || key.length > 300 || /[\r\n]/.test(key)) return bad('kunci tidak sah');
+  const buf = p.wav && (Buffer.isBuffer(p.wav) ? p.wav : Buffer.from(p.wav.buffer ? new Uint8Array(p.wav.buffer, p.wav.byteOffset, p.wav.byteLength) : new Uint8Array(p.wav)));
+  if (!buf || buf.length < 1000 || buf.length > 3 * 1024 * 1024) return bad('audio tidak sah');
+  const lang = /^[a-z]{2}$/.test(String(p.language || '')) ? p.language : 'ms';
+  const model = /^[A-Za-z0-9._:\/-]{2,60}$/.test(String(p.model || '')) ? p.model : 'whisper-large-v3-turbo';
+  const base = process.env.GS_AI_BASE || PROVIDERS.groq.base;
+  const fd = new FormData();
+  fd.append('file', new Blob([buf], { type: 'audio/wav' }), 'ucapan.wav');
+  fd.append('model', model); fd.append('language', lang); fd.append('response_format', 'json'); fd.append('temperature', '0');
+  if (p.prompt) fd.append('prompt', String(p.prompt).slice(0, 220));
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const res = await fetch(base + '/audio/transcriptions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + key }, body: fd });
+    const txt = await res.text();
+    let j = null; try { j = JSON.parse(txt); } catch (e) { /* bukan JSON */ }
+    if (!res.ok) { const d = (j && (j.error || j)) || {}; return { ok: false, status: res.status, code: String(d.status || d.code || d.type || ''), message: String(d.message || txt).slice(0, 200) }; }
+    return { ok: true, text: String((j && j.text) || '').trim() };
+  } catch (e) {
+    return { ok: false, status: 0, code: e && e.name === 'AbortError' ? 'timeout' : 'network', message: String((e && e.message) || e) };
+  } finally { clearTimeout(to); }
+}
+
+module.exports = { chat, transcribe, PROVIDERS };

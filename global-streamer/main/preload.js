@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('gsNative', {
   },
   ai: {
     chat: (params) => ipcRenderer.invoke('ai:chat', params),
+    stt: (params) => ipcRenderer.invoke('ai:stt', params),
   },
   rec: {
     open: () => ipcRenderer.invoke('rec:open'),

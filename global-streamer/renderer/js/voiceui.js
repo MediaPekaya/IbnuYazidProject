@@ -14,7 +14,8 @@
     const v = V();
     if (v.error) return { cls: 'bad', text: v.error, title: v.errorDetail || '' };
     if (v.running) {
-      const last = v.last ? GS.t('Didengar: "{0}"', short(v.last.text, 40)) : GS.t('Mendengar…');
+      const hd = v.heard && Date.now() - v.heard.at < 30000 ? v.heard : v.last;
+      const last = hd ? GS.t('Didengar: "{0}"', short(hd.text, 40)) : (v.engine === 'cloud' ? GS.t('Mendengar (Whisper)… sebut nama bot') : GS.t('Mendengar…'));
       return { cls: 'ok', text: last };
     }
     return { cls: '', text: GS.t('Mati. Tekan Hidupkan untuk kawalan suara.') };
@@ -55,7 +56,7 @@
     const v = V();
     const s = statusText();
     if (st) {
-      const eng = v.engine === 'windows' ? GS.t(v.info.mic && v.info.mic.input === 'device' ? 'Pengecam: Windows (mikrofon lalai)' : 'Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
+      const eng = v.engine === 'cloud' ? GS.t('Pengecam: Groq Whisper (faham Melayu)') : v.engine === 'windows' ? GS.t(v.info.mic && v.info.mic.input === 'device' ? 'Pengecam: Windows (mikrofon lalai)' : 'Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
       const inf = Object.keys(v.info).map((k) => (k === 'mic' ? GS.t('Suara saya') : GS.t('Bunyi game')) + ': ' + (v.info[k].name || v.info[k].culture || '')).join(' · ');
       st.className = 'voice-status big ' + s.cls;
       st.textContent = [s.text, v.running ? eng : '', v.running ? inf : ''].filter(Boolean).join('  ·  ');
@@ -240,10 +241,11 @@
     const drawAi = () => {
       aiBox.innerHTML = '';
       const A = v.AI, pv = c.bot.ai.provider;
-      const keyIn = h('input', { type: 'password', id: 'aiKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'API key', value: v.aiKey(), onChange: (e) => { v.setAiKey(e.target.value); } });
+      const keyIn = h('input', { type: 'password', id: 'aiKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'API key', value: v.aiKey(), onChange: (e) => { v.setAiKey(e.target.value); const n = GS.$('#sttNote'); if (n) { const on = !!v.sttKey(); n.className = on ? 'muted note' : 'key-note'; n.textContent = on ? GS.t('Telinga bot: Groq Whisper aktif (faham Bahasa Melayu).') : GS.t('(Untuk bot faham Bahasa Melayu, pilih Groq dan masukkan key Groq. Tanpa itu, pengecam Windows Inggeris digunakan dan kurang tepat.)'); } } });
       aiBox.append(
         h('h4', null, 'Otak AI bot (jawapan spontan, tanpa skrip)'),
         h('p', { class: 'muted note' }, 'Dengan kunci AI percuma, bot menjawab apa-apa soalan secara spontan dan kreatif (bukan daripada senarai), dan menggunakan data game semasa (hero, K/D/A, rekod). Daftar percuma di aistudio.google.com (Google Gemini) atau console.groq.com (Groq), buat API key dan tampal di bawah. Tanpa kunci, bot guna jawapan spontan luar talian yang lebih terhad.'),
+        h('p', { class: v.sttKey() ? 'muted note' : 'key-note', id: 'sttNote' }, v.sttKey() ? GS.t('Telinga bot: Groq Whisper aktif (faham Bahasa Melayu).') : GS.t('(Untuk bot faham Bahasa Melayu, pilih Groq dan masukkan key Groq. Tanpa itu, pengecam Windows Inggeris digunakan dan kurang tepat.)')),
         h('div', { class: 'grid2' },
           field('Penyedia AI', h('select', { id: 'aiProvider', onChange: (e) => { c.bot.ai.provider = e.target.value; save(); drawAi(); } }, Object.keys(A).map((k) => h('option', { value: k, selected: pv === k }, A[k].name + ' (percuma)')))),
           field('Kunci API AI', keyIn, nat ? 'Disimpan disulitkan oleh Windows, bukan dalam fail tetapan.' : 'Versi web: hanya dalam memori.')),

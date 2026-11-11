@@ -9,7 +9,7 @@ const { openLink } = require('./open-link');
 const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
 const { fetchTTS, elevenApi } = require('./tts-net');
-const { chat: aiChat } = require('./ai-net');
+const { chat: aiChat, transcribe: aiStt } = require('./ai-net');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -65,6 +65,7 @@ ipcMain.handle('tts:fetch', async (_e, kind, p) => {
   return r.ok ? { ok: true, audio: new Uint8Array(r.audio) } : r;
 });
 
+ipcMain.handle('ai:stt', (_e, p) => aiStt(p && typeof p === 'object' ? p : {}));
 ipcMain.handle('ai:chat', (_e, p) => aiChat(p && typeof p === 'object' ? p : {}));
 ipcMain.handle('tts:eleven', (_e, op, p) => elevenApi(String(op), p && typeof p === 'object' ? p : {}));
 
