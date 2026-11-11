@@ -1,7 +1,7 @@
 /* Global Streamer - proses utama Electron (app Windows).
  * STATUS: kerangka Fasa 2, BELUM diuji pada PC Windows sebenar. */
 'use strict';
-const { app, BrowserWindow, ipcMain, safeStorage, session, desktopCapturer, shell, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, safeStorage, session, desktopCapturer, shell, Menu, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { StreamEngine } = require('./stream-engine');
@@ -112,27 +112,48 @@ ipcMain.handle('rec:reveal', (_e, f) => {
   return true;
 });
 
-/* bar kecil sentiasa di atas semasa merakam skrin penuh (tidak muncul dalam rakaman): masa dan butang "Henti & simpan" */
+/* bar kecil sentiasa di atas semasa merakam skrin penuh (tidak muncul dalam rakaman): masa, Jeda dan "Henti & simpan".
+ * Boleh DISEMBUNYIKAN sementara (butang "Sembunyi" atau Ctrl+Alt+H): bar mengecil menjadi tab kecil di tengah atas, klik tab atau tekan pintasan untuk paparkan semula. */
 let recBar = null;
+let recBarHidden = false;
+const BAR_W = 360, BAR_H = 56, TAB_W = 74, TAB_H = 18;
+function recBarPlace(hidden) {
+  if (!recBar || recBar.isDestroyed()) return;
+  const { screen } = require('electron');
+  const wa = screen.getPrimaryDisplay().workArea;
+  const w = hidden ? TAB_W : BAR_W, h = hidden ? TAB_H : BAR_H;
+  recBar.setBounds({ x: Math.round(wa.x + wa.width / 2 - w / 2), y: wa.y + (hidden ? 0 : 12), width: w, height: h });
+  recBarHidden = hidden;
+  recBar.webContents.send('rec:bar-collapsed', hidden);
+}
 function showRecBar(on) {
-  if (!on) { if (recBar && !recBar.isDestroyed()) recBar.close(); recBar = null; return; }
+  if (!on) {
+    try { globalShortcut.unregister('CommandOrControl+Alt+H'); } catch (e) { /* abaikan */ }
+    if (recBar && !recBar.isDestroyed()) recBar.close();
+    recBar = null; recBarHidden = false; return;
+  }
   if (recBar && !recBar.isDestroyed()) return;
   const { screen } = require('electron');
   const wa = screen.getPrimaryDisplay().workArea;
   recBar = new BrowserWindow({
-    width: 300, height: 56, x: Math.round(wa.x + wa.width / 2 - 150), y: wa.y + 12, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: true,
+    width: BAR_W, height: BAR_H, x: Math.round(wa.x + wa.width / 2 - BAR_W / 2), y: wa.y + 12, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: true,
     backgroundColor: '#0b1020', title: 'Global Streamer REC',
     webPreferences: { preload: path.join(__dirname, 'recbar-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
+  recBarHidden = false;
   recBar.setAlwaysOnTop(true, 'screen-saver');
   try { recBar.setContentProtection(true); } catch (e) { /* tidak disokong */ }
   recBar.webContents.on('will-navigate', (e) => e.preventDefault());
   recBar.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   recBar.loadFile(path.join(__dirname, 'recbar.html'));
   recBar.once('ready-to-show', () => recBar && !recBar.isDestroyed() && recBar.showInactive());
+  try { globalShortcut.register('CommandOrControl+Alt+H', () => recBarPlace(!recBarHidden)); } catch (e) { /* pintasan sudah digunakan */ }
 }
 ipcMain.handle('rec:bar', (_e, on) => { showRecBar(!!on); return true; });
 ipcMain.on('rec:bar-stop', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:stop-request'); });
+ipcMain.on('rec:bar-pause', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:pause-request'); });
+ipcMain.on('rec:bar-hide', (_e, hide) => recBarPlace(!!hide));
+ipcMain.on('rec:bar-state', (_e, st) => { if (recBar && !recBar.isDestroyed()) recBar.webContents.send('rec:bar-state', st); });
 ipcMain.handle('app:minimize', () => { if (win && !win.isDestroyed()) win.minimize(); return true; });
 ipcMain.handle('app:restore', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } return true; });
 
@@ -252,5 +273,5 @@ ipcMain.handle('update:check', () => { if (!updater) return false; checkUpdate(t
 ipcMain.handle('update:install', () => { if (updater && updState.state === 'downloaded') { updater.quitAndInstall(true, true); return true; } return false; });
 ipcMain.handle('update:enable', (_e, on) => { const v = Object.assign(readUpd(), { enabled: !!on }); fs.writeFileSync(updFile(), JSON.stringify(v)); return v.enabled; });
 
-app.on('before-quit', () => { engine.stop(); voice.stopAll(); try { if (recStream) recStream.end(); } catch (e) { /* abaikan */ } showRecBar(false); });
+app.on('before-quit', () => { engine.stop(); voice.stopAll(); try { if (recStream) recStream.end(); } catch (e) { /* abaikan */ } showRecBar(false); try { globalShortcut.unregisterAll(); } catch (e) { /* abaikan */ } });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

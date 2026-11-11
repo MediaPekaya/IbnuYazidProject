@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('gsNative', {
     reveal: (f) => ipcRenderer.invoke('rec:reveal', f),
     bar: (on) => ipcRenderer.invoke('rec:bar', on),
     onStopRequest: (cb) => ipcRenderer.on('rec:stop-request', () => cb()),
+    onPauseRequest: (cb) => ipcRenderer.on('rec:pause-request', () => cb()),
+    barState: (st) => ipcRenderer.send('rec:bar-state', st),
   },
   win: {
     minimize: () => ipcRenderer.invoke('app:minimize'),

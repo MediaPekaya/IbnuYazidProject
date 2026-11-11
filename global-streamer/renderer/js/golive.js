@@ -17,9 +17,9 @@
     const list = ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9,opus', 'video/webm'];
     return list.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
   }
-  function makeRecorder(stream) {
+  function makeRecorder(stream, kbps) {
     const s = GS.state.settings;
-    return new MediaRecorder(stream, { mimeType: pickMime(), videoBitsPerSecond: s.vbitrate * 1000, audioBitsPerSecond: s.abitrate * 1000 });
+    return new MediaRecorder(stream, { mimeType: pickMime(), videoBitsPerSecond: (kbps || s.vbitrate) * 1000, audioBitsPerSecond: s.abitrate * 1000 });
   }
 
   /* ---------- rakaman tempatan ----------
@@ -34,7 +34,14 @@
   /** Aliran video+audio untuk mod yang dipilih. Mengembalikan {stream, cleanup}. */
   async function recordingSource(mode) {
     GS.audio.ensure();
-    if (mode === 'program') return { stream: outputStream(), cleanup() { /* tiada */ } };
+    if (mode === 'program') {
+      // rakaman paparan penonton: sekurang-kurangnya 1080 (naik skala jika saiz output lebih kecil), paling banyak 2K (2560x1440)
+      const cv = GS.app.programComp.canvas, fps = GS.state.settings.fps;
+      const fit = GS.recres.fit(cv, cv.width, cv.height, fps);
+      if (!fit) return { stream: outputStream(), cleanup() { /* tiada */ }, w: cv.width, h: cv.height, kbps: Math.max(GS.state.settings.vbitrate, GS.recres.bitrate(cv.width, cv.height)) };
+      GS.audio.ensure();
+      return { stream: new MediaStream([fit.track, ...GS.audio.dest.stream.getAudioTracks()]), cleanup() { fit.stop(); }, w: fit.w, h: fit.h, kbps: Math.max(GS.state.settings.vbitrate, GS.recres.bitrate(fit.w, fit.h)) };
+    }
     const A = GS.audio, st = GS.state.settings;
     const sysAudio = !!st.recSystemAudio;
     if (native() && window.gsNative.sources) {
@@ -47,9 +54,18 @@
       if (!id) { const e = new Error('dibatalkan'); e.name = 'NotAllowedError'; throw e; }
       await window.gsNative.sources.select(id, { audio: sysAudio });
     }
-    const vc = { frameRate: { ideal: 30, max: 60 }, displaySurface: mode === 'screen' ? 'monitor' : 'window' };
+    const vc = { frameRate: { ideal: 60, max: 60 }, width: { max: 2560 }, height: { max: 1440 }, cursor: 'always', displaySurface: mode === 'screen' ? 'monitor' : 'window' };
     const dm = await navigator.mediaDevices.getDisplayMedia({ video: vc, audio: sysAudio });
-    const vtrack = dm.getVideoTracks()[0];
+    let vtrack = dm.getVideoTracks()[0];
+    // saiz sebenar skrin: pastikan sekurang-kurangnya 1080 (naik skala jika skrin lebih kecil) dan paling banyak 2K (2560x1440)
+    const probe = document.createElement('video');
+    probe.muted = true; probe.playsInline = true; probe.srcObject = new MediaStream([vtrack]);
+    await probe.play().catch(() => {});
+    await new Promise((ok) => { if (probe.videoWidth) ok(); else { probe.onloadedmetadata = () => ok(); setTimeout(ok, 1500); } });
+    const sw = probe.videoWidth || (vtrack.getSettings().width || 1920), sh = probe.videoHeight || (vtrack.getSettings().height || 1080);
+    const fit = GS.recres.fit(probe, sw, sh, 60);
+    let outW = sw, outH = sh;
+    if (fit) { vtrack = fit.track; outW = fit.w; outH = fit.h; } else { probe.pause(); probe.srcObject = null; }
     const mix = A.ctx.createMediaStreamDestination();
     A.master.connect(mix);                       // campuran mixer (mikrofon, game, suara bot)
     let sys = null;
@@ -58,14 +74,15 @@
     vtrack.addEventListener('ended', () => { if (R.active) R.stop(); });   // pengguna menghentikan perkongsian melalui OS
     return {
       stream: new MediaStream([vtrack, ...mix.stream.getAudioTracks()]),
-      cleanup() { try { A.master.disconnect(mix); } catch (e) { /* abaikan */ } try { if (sys) sys.disconnect(); } catch (e) { /* abaikan */ } dm.getTracks().forEach((t) => t.stop()); },
+      w: outW, h: outH, kbps: GS.recres.bitrate(outW, outH),
+      cleanup() { try { A.master.disconnect(mix); } catch (e) { /* abaikan */ } try { if (sys) sys.disconnect(); } catch (e) { /* abaikan */ } if (fit) fit.stop(); try { probe.pause(); probe.srcObject = null; } catch (e) { /* abaikan */ } dm.getTracks().forEach((t) => t.stop()); },
     };
   }
 
-  function makeScreenRecorder(stream) {
+  function makeScreenRecorder(stream, kbps) {
     const s = GS.state.settings;
     const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
-    return new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000, audioBitsPerSecond: Math.max(192, s.abitrate || 160) * 1000 });
+    return new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: (kbps || 16000) * 1000, audioBitsPerSecond: Math.max(192, s.abitrate || 160) * 1000 });
   }
 
   R.start = async function (modeArg) {
@@ -77,7 +94,8 @@
       const src = await recordingSource(mode);
       recCleanup = src.cleanup;
       recChunks = []; recChain = Promise.resolve();
-      recorder = mode === 'program' ? makeRecorder(src.stream) : makeScreenRecorder(src.stream);
+      recorder = mode === 'program' ? makeRecorder(src.stream, src.kbps) : makeScreenRecorder(src.stream, src.kbps);
+      R.size = src.w && src.h ? src.w + '×' + src.h : '';
       recToDisk = false;
       if (native() && window.gsNative.rec) {
         const o = await window.gsNative.rec.open();
@@ -91,13 +109,13 @@
       };
       recorder.onstop = () => finishRecording(mode);
       recorder.start(1000);
-      R.active = true; R.mode_ = mode; R.startedAt = Date.now();
+      R.active = true; R.mode_ = mode; R.startedAt = Date.now(); R.paused = false; R.pausedMs = 0;
       render();
       if (native() && mode !== 'program' && window.gsNative.rec) {
         window.gsNative.rec.bar(true);                                  // bar REC sentiasa di atas (tidak dirakam)
         if (GS.state.settings.recMinimize && window.gsNative.win) setTimeout(() => window.gsNative.win.minimize(), 700);
       }
-      GS.toast(GS.t('Merakam: {0}', GS.t(R.modes[mode])), 'ok', 3500);
+      GS.toast(GS.t('Merakam: {0}', GS.t(R.modes[mode])) + (R.size ? ' · ' + R.size : ''), 'ok', 3500);
       return true;
     } catch (e) {
       if (recCleanup) { try { recCleanup(); } catch (e2) { /* abaikan */ } recCleanup = null; }
@@ -107,7 +125,7 @@
   };
 
   async function finishRecording(mode) {
-    R.active = false;
+    R.active = false; R.paused = false;
     try { if (recCleanup) recCleanup(); } catch (e) { /* abaikan */ }
     recCleanup = null;
     if (native() && window.gsNative.rec) { window.gsNative.rec.bar(false); if (window.gsNative.win) window.gsNative.win.restore(); }
@@ -158,6 +176,16 @@
     setTimeout(() => document.addEventListener('pointerdown', away, true), 0);
   };
   if (window.gsNative && window.gsNative.rec) window.gsNative.rec.onStopRequest(() => R.stop());
+  /* jeda / sambung rakaman (daripada bar REC): masa dalam app tidak mengira tempoh jeda */
+  R.togglePause = function () {
+    if (!recorder || !R.active) return;
+    if (recorder.state === 'recording') { recorder.pause(); R.paused = true; R.pausedAt = Date.now(); }
+    else if (recorder.state === 'paused') { recorder.resume(); R.paused = false; R.pausedMs = (R.pausedMs || 0) + (Date.now() - R.pausedAt); }
+    else return;
+    if (window.gsNative && window.gsNative.rec && window.gsNative.rec.barState) window.gsNative.rec.barState({ paused: !!R.paused });
+    render();
+  };
+  if (window.gsNative && window.gsNative.rec && window.gsNative.rec.onPauseRequest) window.gsNative.rec.onPauseRequest(() => R.togglePause());
 
   /* ---------- siaran ---------- */
   L.start = async function () {
@@ -333,7 +361,7 @@
     }
     if (rt) {
       rt.parentElement.classList.toggle('hidden', !R.active);
-      if (R.active) rt.textContent = GS.fmtDur((Date.now() - R.startedAt) / 1000);
+      if (R.active) rt.textContent = GS.fmtDur(((R.paused ? R.pausedAt : Date.now()) - R.startedAt - (R.pausedMs || 0)) / 1000);
     }
     const ec = GS.$('#encChip');
     if (ec) {
