@@ -50,7 +50,7 @@ jobs:
         if: env.RELEASES_TOKEN != ''
         shell: bash
         run: |
-          npm pkg set "build.publish[0].owner=IzzulIsyraf011207"
+          npm pkg set "build.publish[0].owner=GeniusDigitalDeveloper"
           npm pkg set "build.publish[0].repo=global-streamer-releases-exe-apps"
       - name: Bina installer
         run: npm run dist
@@ -99,7 +99,7 @@ jobs:
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'main' || startsWith(github.ref_name, 'ccr-') || startsWith(github.ref, 'refs/tags/gs-v')) && env.RELEASES_TOKEN != ''
         uses: softprops/action-gh-release@v2
         with:
-          repository: IzzulIsyraf011207/global-streamer-releases-exe-apps
+          repository: GeniusDigitalDeveloper/global-streamer-releases-exe-apps
           token: ${{ secrets.RELEASES_REPO_TOKEN }}
           tag_name: v${{ steps.ver.outputs.v }}
           name: Global Streamer ${{ steps.ver.outputs.v }}
