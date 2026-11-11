@@ -53,6 +53,10 @@
           x.roles.map((r) => h('span', { class: 'tag', style: { '--rc': roleColor[r] } }, r)),
           x.lanes.map((l) => h('span', { class: 'tag lane' }, LANE[l]))),
         kv('Spesialiti', x.specialties.join(' / ')), kv('Asal', x.region), kv('Harga', price), kv('Keluaran', x.released || '#' + x.order));
+      // emblem sesuai mengikut peranan hero (set emblem Custom <peranan> daripada wiki); bukan statistik tournament
+      const emb = GS.data.mlbbEmblems.find((e) => new RegExp('Custom ' + x.roles[0] + ' Emblem', 'i').test(e.name));
+      if (emb) detail.append(h('h4', null, 'Emblem sesuai (ikut peranan)'),
+        h('div', { class: 'emb-head' }, imgOf(emb.img, 44, 'eimg'), h('div', null, h('b', null, emb.name), h('div', { class: 'emb-attr' }, emb.attributes.map((a) => h('span', { class: 'chip-attr' }, a.stat + ' ' + a.value))))));
       if (m) {
         const a = GS.meta.aggregate();
         detail.append(h('h4', null, 'Meta tournament'),
@@ -95,7 +99,6 @@
       box.append(h('div', { class: 'lb-row' },
         h('span', { class: 'lb-rank' }, String(i + 1)),
         h('span', { class: 'lb-name' }, avatar(x.name, 22), x.name),
-        h('span', { class: 'lb-bar' }, h('i', { style: { width: Math.max(4, Math.round((v.bar / maxv) * 100)) + '%', '--rc': roleColor[(x.roles || [])[0]] || '#2ea8ff' } })),
         h('b', { class: 'lb-val' }, v.text)));
     });
     return box;
@@ -114,9 +117,9 @@
       body.innerHTML = '';
       const opt = { lane: lane || undefined, n: 8 };
       body.append(
-        leaderboard('Top Pick Hero', M.top('pick', opt), (x) => ({ bar: x.p, text: x.p + ' · ' + pct(x.pickRate) }), Math.max(1, ...M.top('pick', opt).map((x) => x.p))),
-        leaderboard('Top Ban Hero', M.top('ban', opt), (x) => ({ bar: x.b, text: x.b + ' · ' + pct(x.banRate) }), Math.max(1, ...M.top('ban', opt).map((x) => x.b))),
-        leaderboard('Kadar Menang Tertinggi (min. 15 pick)', M.top('wr', opt), (x) => ({ bar: x.wr - 0.3, text: pct(x.wr) + ' · ' + x.p }), 0.4),
+        leaderboard('Top Pick Hero', M.top('pick', opt), (x) => ({ bar: x.p, text: pct(x.pickRate) }), Math.max(1, ...M.top('pick', opt).map((x) => x.p))),
+        leaderboard('Top Ban Hero', M.top('ban', opt), (x) => ({ bar: x.b, text: pct(x.banRate) }), Math.max(1, ...M.top('ban', opt).map((x) => x.b))),
+        leaderboard('Kadar Menang Tertinggi (min. 15 pick)', M.top('wr', opt), (x) => ({ bar: x.wr - 0.3, text: pct(x.wr) }), 0.4),
         leaderboard('Pick + Ban (kehadiran)', M.top('pb', opt), (x) => ({ bar: x.presence, text: pct(x.presence) }), 1));
       body.append(h('div', { class: 'gd-sec' }, h('h4', null, 'Tournament dalam skop'),
         a.tournaments.map((t) => h('div', { class: 'kv' }, h('span', null, t.label + (t.live ? ' · LIVE' : '')), h('b', null, GS.t('{0} game', t.games))))));

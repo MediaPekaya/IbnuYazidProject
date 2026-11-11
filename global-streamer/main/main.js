@@ -172,6 +172,18 @@ function createWindow() {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
+  // klik kanan pada kotak teks: Potong / Salin / Tampal / Pilih semua (memastikan tampal sentiasa boleh digunakan untuk URL dan key)
+  app.on('web-contents-created', (_e, wc) => {
+    wc.on('context-menu', (_ev, params) => {
+      if (!params.isEditable && !params.selectionText) return;
+      const t = [];
+      if (params.isEditable) t.push({ role: 'undo', label: 'Buat asal' }, { role: 'redo', label: 'Buat semula' }, { type: 'separator' }, { role: 'cut', label: 'Potong' });
+      t.push({ role: 'copy', label: 'Salin' });
+      if (params.isEditable) t.push({ role: 'paste', label: 'Tampal' });
+      t.push({ role: 'selectAll', label: 'Pilih semua' });
+      Menu.buildFromTemplate(t).popup();
+    });
+  });
   // izinkan kamera/mikrofon/skrin hanya untuk app ini
   session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(['media', 'display-capture', 'mediaKeySystem'].includes(permission)));
   // kongsi skrin: sumber yang dipilih pengguna (pemilih dalam app); jika tiada, skrin pertama

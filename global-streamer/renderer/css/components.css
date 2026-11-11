@@ -304,15 +304,17 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .kv { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; line-height: 1.45; }
 .kv span { color: var(--muted); flex: 0 0 38%; }
 .kv b { font-weight: 600; text-align: right; flex: 1; }
-.kv.col { flex-direction: column; gap: 2px; }
+.kv.col { flex-direction: column; gap: 2px; align-items: stretch; }
+.kv.col > span { flex: 0 0 auto; }  /* elak span mengambil 38% tinggi lajur (punca teks bertindan) */
+.kv.col > div { flex: 0 0 auto; min-width: 0; }
 .kv.col b { text-align: left; font-weight: 500; color: var(--text); }
 .kv .talent { font-size: 11.5px; }
-.lb-row { display: grid; grid-template-columns: 18px 1.2fr 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
+.lb-row { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
 .lb-rank { color: var(--dim); font-weight: 800; }
 .lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .lb-bar i { display: block; height: 100%; border-radius: 3px; background: var(--rc, var(--cyan)); box-shadow: 0 0 8px var(--rc, var(--cyan)); }
-.lb-val { font-size: 11.5px; color: var(--muted); min-width: 64px; text-align: right; }
+.lb-val { font-size: 13px; font-weight: 800; color: #ffd36b; min-width: 64px; text-align: right; }
 .sug { display: flex; flex-direction: column; gap: 8px; }
 .sug-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 1px solid var(--line); font-size: 12.5px; }
 .sug-row:first-of-type { border-top: 0; }
@@ -521,4 +523,6 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .chip-attr { font-size: 10.5px; padding: 2px 7px; border-radius: 99px; background: rgba(255, 211, 107, 0.12); border: 1px solid rgba(255, 211, 107, 0.35); color: #ffd36b; font-weight: 700; }
 .talent-row { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; }
 .talent-row b { display: block; font-size: 12px; }
-.talent-row span { display: block; font-size: 11px; color: var(--dim); line-height: 1.35; }
+.talent-row > div { flex: 1 1 auto; min-width: 0; }
+.talent-row span { display: block; flex: none; font-size: 11px; color: var(--dim); line-height: 1.35; overflow-wrap: anywhere; }
+.talent-row b { text-align: left; }
