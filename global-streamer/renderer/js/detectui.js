@@ -87,7 +87,7 @@
       h('div', { class: 'det-prevwrap' }, prev),
       h('p', { class: 'muted note' }, 'Kotak hijau = hero disahkan, kuning = diterima tetapi belum stabil, kelabu = tidak yakin. Klik nama cadangan pada kad di bawah untuk membetulkan slot; sistem akan mengingati rupa potret itu (disimpan pada PC ini).'),
       grid, learned,
-      h('div', { class: 'btn-row' }, h('button', { class: 'btn tiny ghost', onClick: () => { if (confirm(GS.t('Padam semua templat yang dipelajari?'))) { D.clearLearned(); draw(); } } }, 'Padam pembelajaran')),
+      h('div', { class: 'btn-row' }, h('button', { class: 'btn tiny ghost', onClick: async () => { if (await GS.ask(GS.t('Padam semua templat yang dipelajari?'), { danger: true })) { D.clearLearned(); draw(); } } }, 'Padam pembelajaran')),
       calib);
 
     const cards = {};

@@ -392,7 +392,7 @@
         h('li', null, h('kbd', null, 'Delete'), 'Padam sumber dipilih'),
         h('li', null, h('kbd', null, 'Anak panah'), 'Gerak sumber (Shift = lebih jauh)')),
       h('h3', null, 'Data'),
-      h('div', { class: 'btn-row' }, h('button', { class: 'btn danger', onClick: () => { if (confirm(GS.t('Padam SEMUA tetapan, scene dan data tempatan?'))) GS.resetState(); } }, 'Set semula semua data')),
+      h('div', { class: 'btn-row' }, h('button', { class: 'btn danger', onClick: async () => { if (await GS.ask(GS.t('Padam SEMUA tetapan, scene dan data tempatan?'), { danger: true })) GS.resetState(); } }, 'Set semula semua data')),
       h('p', { class: 'muted note' }, GS.t('Global Streamer v{0} · {1}', GS.version, GS.t(native() ? 'App Windows' : 'Versi web (demo)'))));
     GS.modal({ title: 'Tetapan', body });
   };

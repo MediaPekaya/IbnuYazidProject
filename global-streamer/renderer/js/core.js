@@ -241,4 +241,19 @@
     requestAnimationFrame(() => back.classList.add('in'));
     return { close, card, back };
   };
+
+  /** Pengesahan (ya/tidak) yang selamat untuk app Windows: confirm() asli Electron boleh menyebabkan kotak teks tidak boleh ditaip selepasnya,
+   *  jadi app Windows guna dialog dalam app. Pelayar web guna confirm() biasa. Mengembalikan Promise<boolean>. */
+  GS.ask = function (message, opts) {
+    opts = opts || {};
+    if (!(window.gsNative && window.gsNative.app)) return Promise.resolve(window.confirm(message));
+    return new Promise((resolve) => {
+      let done = false, m;
+      const fin = (v) => { if (done) return; done = true; try { m.close(); } catch (e) { /* abaikan */ } resolve(v); };
+      const yes = GS.h('button', { type: 'button', class: 'btn ' + (opts.danger ? 'danger' : 'primary'), id: 'askYes', onClick: () => fin(true) }, opts.ok || 'Ya');
+      const no = GS.h('button', { type: 'button', class: 'btn ghost', id: 'askNo', onClick: () => fin(false) }, opts.cancel || 'Batal');
+      m = GS.modal({ title: opts.title || 'Pengesahan', body: GS.h('p', { class: 'ask-msg' }, message), footer: GS.h('div', { class: 'btn-row' }, no, yes), onClose: () => fin(false) });
+      setTimeout(() => { try { yes.focus(); } catch (e) { /* abaikan */ } }, 60);
+    });
+  };
 })();

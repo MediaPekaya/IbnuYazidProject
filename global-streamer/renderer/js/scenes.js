@@ -133,10 +133,10 @@
     st().scenes.push(copy);
     changed();
   };
-  S.remove = function (id) {
+  S.remove = async function (id) {
     if (st().scenes.length <= 1) { GS.toast('Mesti ada sekurang-kurangnya satu scene.', 'warn'); return; }
     const sc = byId(id);
-    if (!sc || !confirm(GS.t('Padam scene "{0}"?', GS.t(sc.name)))) return;
+    if (!sc || !(await GS.ask(GS.t('Padam scene "{0}"?', GS.t(sc.name)), { danger: true }))) return;
     sc.sources.forEach((s) => GS.media.close(s.id));
     st().scenes = st().scenes.filter((s) => s.id !== id);
     if (st().programId === id) st().programId = st().scenes[0].id;

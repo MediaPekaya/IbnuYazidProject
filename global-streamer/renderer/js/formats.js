@@ -42,10 +42,10 @@
   }
 
   /** Guna template pada scene aktif (menukar format dahulu jika template itu untuk format lain). */
-  F.use = function (t) {
+  F.use = async function (t) {
     if (!t) return false;
     const sc0 = GS.scenes.editTarget();
-    if (!confirm(GS.t('Guna template "{0}"? Susun atur scene aktif akan diganti (peranti video dikekalkan).', GS.t(t.name)))) return false;
+    if (!(await GS.ask(GS.t('Guna template "{0}"? Susun atur scene aktif akan diganti (peranti video dikekalkan).', GS.t(t.name))))) return false;
     if (t.orientation !== GS.orient() && !F.set(t.orientation)) return false;
     const sc = GS.scenes.editTarget() || sc0;
     const r = GS.scenes.applyTemplate(t.id, sc && sc.id);

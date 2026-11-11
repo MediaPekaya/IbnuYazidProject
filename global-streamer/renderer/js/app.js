@@ -36,7 +36,7 @@
     $('#btnLive').addEventListener('click', () => {
       GS.audio.ensure();
       if (GS.live.state === 'idle') GS.live.quickStart();
-      else if (confirm(GS.t('Tamatkan siaran langsung sekarang?'))) GS.live.stop();
+      else GS.ask(GS.t('Tamatkan siaran langsung sekarang?'), { danger: true, ok: GS.t('Tamatkan') }).then((y) => { if (y) GS.live.stop(); });
     });
     $('#btnRec').addEventListener('click', () => { GS.audio.ensure(); GS.rec.toggle(); });
     $('#btnRecMode').addEventListener('click', () => GS.rec.openMenu());

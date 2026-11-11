@@ -171,7 +171,7 @@
             h('button', { type: 'button', class: 'icon-btn', title: 'Tunjuk / sembunyi key', onClick: () => { keyInput.type = keyInput.type === 'password' ? 'text' : 'password'; }, html: icon('eye', 16) })),
           h('small', null, def.keyHint)),
         def.extra && def.preset && def.preset.link ? h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost tiny', 'data-pf-link': id, onClick: () => window.open(def.preset.link, '_blank', 'noopener') }, GS.t('Buka halaman {0} untuk dapatkan URL dan key', def.preset.name))) : null,
-        def.extra ? h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost tiny', 'data-pf-del': id, onClick: () => { if (confirm(GS.t('Buang {0}?', cfg.name || id))) P.removeExtra(id); } }, 'Buang aplikasi ini')) : null,
+        def.extra ? h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost tiny', 'data-pf-del': id, onClick: async () => { if (await GS.ask(GS.t('Buang {0}?', cfg.name || id), { danger: true })) P.removeExtra(id); } }, 'Buang aplikasi ini')) : null,
         h('p', { class: 'muted note' }, P.native()
           ? 'Key disimpan disulitkan pada PC ini dan tidak dihantar ke mana-mana pelayan kami.'
           : 'Mod web: key hanya disimpan dalam memori tab ini dan hilang bila ditutup. Pasang app Windows untuk simpanan selamat.')));

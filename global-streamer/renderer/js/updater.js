@@ -11,9 +11,9 @@
     return GS.t(TXT[e.state] || e.state, e.state === 'downloading' ? e.progress : e.state === 'error' ? e.message : e.version);
   };
   /** Butang kemas kini sentiasa kelihatan di bar atas (app Windows): versi semasa, status, dan klik untuk semak/pasang. */
-  U.install = function () {
+  U.install = async function () {
     if (U.ev.state !== 'downloaded') return;
-    if (GS.live && GS.live.state && GS.live.state !== 'idle' && !confirm(GS.t('Siaran sedang berjalan. Memasang kemas kini akan menamatkan siaran. Teruskan?'))) return;
+    if (GS.live && GS.live.state && GS.live.state !== 'idle' && !(await GS.ask(GS.t('Siaran sedang berjalan. Memasang kemas kini akan menamatkan siaran. Teruskan?')))) return;
     GS.saveNow();
     window.gsNative.app.installUpdate();
   };
