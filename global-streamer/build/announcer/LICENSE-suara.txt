@@ -1,0 +1,2 @@
+Suara pengumum (Inggeris US) dijana dengan Piper TTS (https://github.com/rhasspy/piper, MIT) menggunakan model suara "john" (en_US-john-medium),
+dilatih daripada rakaman LibriVox domain awam (public domain). Boleh diedarkan dan digunakan secara komersial.

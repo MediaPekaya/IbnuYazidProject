@@ -526,10 +526,33 @@
   };
   /** Efek yang dicetus oleh pengecam suara tidak diumumkan semula (elak mengulang perkataan yang baru disebut/didengar). */
   V.suppressBeep = (name, params) => !!(!(params && params.viaVoice) && V.announceText(name, params) && !cfg().announcer.keepBeep);
+  /** Klip suara terbina dalam (Inggeris US, disertakan dalam app): pengguna tidak perlu mencari suara luar. Hanya jika teks pengumum masih teks lalai. */
+  const BUILTIN_TEXT = { 'first blood': 'First blood', 'double kill': 'Double kill', 'triple kill': 'Triple kill', maniac: 'Maniac', savage: 'Savage', 'killing spree': 'Killing spree', legendary: 'Legendary', shutdown: 'Shutdown', death: 'You have been slain', slain: 'You have slain an enemy', victory: 'Victory', defeat: 'Defeat', fullitem: 'Full item' };
+  const clipBufs = new Map();
+  V.hasBuiltin = (key, text) => !!(GS.data && GS.data.announcerClips && GS.data.announcerClips[key] && BUILTIN_TEXT[key] && String(text).trim().toLowerCase() === BUILTIN_TEXT[key].toLowerCase());
+  V.builtinClip = async function (key) {
+    if (clipBufs.has(key)) return clipBufs.get(key);
+    const b64 = GS.data.announcerClips[key];
+    const bin = atob(b64), u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    const buf = await GS.audio.ensure().decodeAudioData(u.buffer);
+    clipBufs.set(key, buf);
+    return buf;
+  };
   V.announce = async function (name, params) {
     if (params && params.viaVoice) return;
     const t = V.announceText(name, params);
     if (!t) return;
+    const key = V.announceKey(name, params);
+    if (cfg().announcer.lang === 'en-US' && V.hasBuiltin(key, t)) {
+      try {
+        const buf = await V.builtinClip(key);
+        V.stopSpeech(); V.speaking = true;
+        playBuf(buf, () => { setTimeout(() => { if (!curSrc) { V.speaking = false; GS.emit('voice:status'); } }, 300); });
+        V.lastBuiltin = key;
+        return;
+      } catch (e) { console.warn('[GS] klip pengumum', e); }
+    }
     const ok = await V.speak(t, { announcer: true, lang: cfg().announcer.lang, mood: MOOD_OF[V.announceKey(name, params)] || '' });
     if (!ok && V.suppressBeep(name, params) && GS.fx.sfxName) GS.audio.sfx(GS.fx.sfxName(name)); // suara gagal: bunyi biasa sebagai sandaran
   };

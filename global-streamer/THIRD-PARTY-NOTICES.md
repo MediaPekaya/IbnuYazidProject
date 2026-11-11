@@ -26,3 +26,6 @@ Global Streamer menyertakan atau menggunakan perisian pihak ketiga berikut. Noti
 
 * Penggunaan pengekod H.264 secara komersial mungkin tertakluk kepada hak paten di sesetengah negara. Dapatkan nasihat undang-undang sebelum menjual.
 * Mobile Legends: Bang Bang dan nama/jenama hero, item dan lain-lain ialah milik Moonton. Global Streamer ialah alat tidak rasmi dan tiada kaitan dengan Moonton.
+
+## Klip suara pengumum
+Suara pengumum Inggeris US (build/announcer, renderer/data/announcer-clips.js) dijana dengan Piper TTS (MIT, https://github.com/rhasspy/piper) menggunakan model en_US-john-medium, dilatih daripada rakaman LibriVox domain awam. Boleh diedarkan secara komersial.
