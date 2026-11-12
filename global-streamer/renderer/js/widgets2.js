@@ -352,6 +352,14 @@
 
   /* ---------- bot kecil (sumber berasingan di sebelah banner promosi) ---------- */
   W.bot = function (ctx, s, t) {
+    // gambar sendiri (anime, kartun, haiwan, foto, apa sahaja) menggantikan bot asal; muat dalam kotak tanpa dipotong
+    const own = s.props.img && GS.media.image(s.props.img);
+    if (own && own.naturalWidth) {
+      const r = Math.min(s.w / own.naturalWidth, s.h / own.naturalHeight);
+      const dw = own.naturalWidth * r, dh = own.naturalHeight * r;
+      ctx.drawImage(own, s.x + (s.w - dw) / 2, s.y + (s.h - dh) / 2 + Math.sin(t * 0.004) * s.h * 0.02, dw, dh);
+      return;
+    }
     const size = Math.min(s.w / 1.24, s.h / 1.12) * 0.62;
     W.mascot(ctx, s.x + s.w / 2, s.y + s.h / 2, size, t, s.props.tone === 'gold' ? 'gold' : 'blue');
   };

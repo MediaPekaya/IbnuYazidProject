@@ -621,6 +621,12 @@
       if (w === 'ticker') {
         root.append(field('Mesej bar teks (satu baris = satu mesej)', h('textarea', { rows: 4, onInput: (e) => { GS.state.ticker.messages = e.target.value.split('\n').map((x) => x.trim()).filter(Boolean); GS.save(); } }, (GS.state.ticker.messages || []).join('\n'))));
       }
+      if (w === 'bot') {
+        root.append(h('div', { class: 'btn-row' },
+          h('button', { class: 'btn primary', id: 'btnBotImg', title: GS.t('Letak gambar anda sendiri: anime, kartun, haiwan, foto atau apa sahaja'), onClick: () => pickBotImage((url) => { s.props.img = url; changed('props:changed'); renderProps(); }) }, 'Tukar gambar bot'),
+          s.props.img ? h('button', { class: 'btn ghost', id: 'btnBotReset', onClick: () => { delete s.props.img; changed('props:changed'); renderProps(); } }, 'Guna bot asal') : null));
+        root.append(h('p', { class: 'muted note' }, 'Pilih gambar anda sendiri (anime, kartun, haiwan, foto). PNG lutsinar (tanpa latar) paling kemas. Seret pada pratonton untuk alih, tarik sudut untuk besarkan.'));
+      }
       if (w === 'brand') root.append(field('Tajuk', h('input', { type: 'text', value: s.props.text || '', placeholder: 'GLOBAL STREAMER', onInput: (e) => { s.props.text = e.target.value; GS.save(); } })));
       if (w === 'frame') root.append(field('Label bingkai', h('input', { type: 'text', value: s.props.label || '', onInput: (e) => { s.props.label = e.target.value.toUpperCase(); GS.save(); } })));
       if (w === 'logo') {
@@ -629,6 +635,19 @@
           GS.state.logo ? h('button', { class: 'btn ghost', onClick: () => { GS.state.logo = null; GS.save(); renderProps(); } }, 'Guna logo lalai') : null));
       }
     }
+  }
+
+  /** Pilih gambar bot daripada peranti (PNG lutsinar dikekalkan) dan serahkan data URL kepada `cb`. */
+  function pickBotImage(cb) {
+    const inp = h('input', { type: 'file', accept: 'image/png,image/webp,image/jpeg,image/gif,image/*', style: { display: 'none' } });
+    inp.addEventListener('change', async () => {
+      const f = inp.files[0];
+      if (!f) return;
+      try { cb(await GS.media.downscale(await GS.media.readFile(f), 1024, true)); } catch (e) { GS.toast(GS.t('Gambar tidak dapat dibaca. Cuba fail PNG atau JPG lain.'), 'warn'); }
+    });
+    document.body.append(inp);
+    inp.click();
+    setTimeout(() => inp.remove(), 60000);
   }
 
   function pickLogo() {
