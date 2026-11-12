@@ -116,7 +116,7 @@ ipcMain.handle('rec:reveal', (_e, f) => {
  * Boleh DISEMBUNYIKAN sementara (butang "Sembunyi" atau Ctrl+Alt+H): bar mengecil menjadi tab kecil di tengah atas, klik tab atau tekan pintasan untuk paparkan semula. */
 let recBar = null;
 let recBarHidden = false;
-const BAR_W = 450, BAR_H = 56, PILL_W = 132, PILL_H = 34;
+const BAR_W = 450, BAR_H = 56, PILL_W = 34, PILL_H = 34;
 /* tukar antara bar penuh dan pil merah REC: kedudukan semasa (yang diseret pengguna) dikekalkan, hanya saiz berubah di sekitar titik tengah atasnya */
 function recBarPlace(hidden) {
   if (!recBar || recBar.isDestroyed()) return;
@@ -158,6 +158,21 @@ ipcMain.handle('rec:bar', (_e, on) => { showRecBar(!!on); return true; });
 ipcMain.on('rec:bar-stop', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:stop-request'); });
 ipcMain.on('rec:bar-pause', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:pause-request'); });
 ipcMain.on('rec:bar-hide', (_e, hide) => recBarPlace(!!hide));
+/* seret bar / bulatan REC ke mana-mana (tepi, bucu, bawah, tengah) dengan tetikus */
+let recDrag = null;
+ipcMain.on('rec:bar-drag', (_e, d) => {
+  if (!recBar || recBar.isDestroyed() || !d) return;
+  if (d.phase === 'start') { const b = recBar.getBounds(); recDrag = { b, sx: d.x, sy: d.y }; return; }
+  if (!recDrag) return;
+  if (d.phase === 'end') { recDrag = null; return; }
+  const { screen } = require('electron');
+  const b = recDrag.b;
+  const nx = Math.round(b.x + d.x - recDrag.sx), ny = Math.round(b.y + d.y - recDrag.sy);
+  const wa = screen.getDisplayNearestPoint({ x: nx + Math.round(b.width / 2), y: ny + Math.round(b.height / 2) }).workArea;
+  const x = Math.max(wa.x, Math.min(wa.x + wa.width - b.width, nx));
+  const y = Math.max(wa.y, Math.min(wa.y + wa.height - b.height, ny));
+  recBar.setBounds({ x, y, width: b.width, height: b.height });
+});
 ipcMain.on('rec:bar-state', (_e, st) => { if (recBar && !recBar.isDestroyed()) recBar.webContents.send('rec:bar-state', st); });
 ipcMain.handle('app:minimize', () => { if (win && !win.isDestroyed()) win.minimize(); return true; });
 ipcMain.handle('app:restore', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } return true; });

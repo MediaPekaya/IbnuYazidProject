@@ -3,12 +3,13 @@
 <style>
   html, body { margin: 0; height: 100%; background: transparent; color: #eaf4ff; font: 700 14px "Segoe UI", system-ui, sans-serif; user-select: none; overflow: hidden; }
   /* bar penuh: seret pada mana-mana ruang kosong untuk alih ke tempat lain */
-  #bar { height: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: #0b1020; border: 1px solid #ff3b5c; border-radius: 12px; -webkit-app-region: drag; }
+  #bar { height: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: #0b1020; border: 1px solid #ff3b5c; border-radius: 12px; cursor: grab; }
+  body.dragging, body.dragging * { cursor: grabbing !important; }
   i { width: 12px; height: 12px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 10px #ff3b5c; animation: p 1.2s ease-in-out infinite; flex: none; }
   .paused i { animation: none; background: #ffd36b; box-shadow: 0 0 10px #ffd36b; }
   @keyframes p { 50% { opacity: .35; } }
   #t { font-variant-numeric: tabular-nums; letter-spacing: .06em; flex: 1; white-space: nowrap; }
-  button { -webkit-app-region: no-drag; border: 0; border-radius: 9px; padding: 8px 11px; font: 800 12px "Segoe UI", system-ui, sans-serif; cursor: pointer; color: #fff; white-space: nowrap; transition: filter .15s, transform .15s; }
+  button { cursor: pointer; border: 0; border-radius: 9px; padding: 8px 11px; font: 800 12px "Segoe UI", system-ui, sans-serif; cursor: pointer; color: #fff; white-space: nowrap; transition: filter .15s, transform .15s; }
   button:hover { filter: brightness(1.18); }
   button:active { transform: scale(.97); }
   #p { background: #2b3a63; min-width: 74px; }
@@ -16,11 +17,10 @@
   #h { background: #1a2442; }
   #s { background: #ff3b5c; }
   /* pil merah apabila disembunyikan: klik untuk buka semula bar */
-  #pill { display: none; height: 100%; box-sizing: border-box; align-items: stretch; background: #e0213f; border-radius: 99px; box-shadow: 0 2px 12px rgba(224, 33, 63, .6); overflow: hidden; }
-  #grip { width: 16px; -webkit-app-region: drag; cursor: grab; background: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255,255,255,.55) 3px 4px) 4px 50% / 8px 12px no-repeat; }
-  #open { -webkit-app-region: no-drag; flex: 1; display: flex; align-items: center; gap: 7px; background: transparent; border-radius: 0; padding: 0 14px 0 4px; font: 800 13px "Segoe UI", system-ui, sans-serif; color: #fff; }
-  #open i { width: 9px; height: 9px; background: #fff; box-shadow: none; }
-  .paused #open i { background: #ffd36b; }
+  /* bulatan merah kecil apabila disembunyikan: seret untuk alih, klik untuk buka semula bar */
+  #pill { display: none; width: 100%; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; background: #e0213f; border-radius: 50%; box-shadow: 0 2px 10px rgba(224, 33, 63, .65); cursor: grab; }
+  #pill i { width: 12px; height: 12px; background: #fff; box-shadow: none; }
+  .paused #pill { background: #c99a1f; }
   body.collapsed #bar { display: none; }
   body.collapsed #pill { display: flex; }
 </style></head>
@@ -30,7 +30,7 @@
   <button id="h" type="button" title="Sembunyikan bar ini. Klik pil merah REC untuk buka semula (atau Ctrl+Alt+H)">Hide</button>
   <button id="s" type="button" title="Tamatkan rakaman dan simpan fail">Simpan rakaman</button>
 </div>
-<div id="pill"><div id="grip" title="Seret untuk alih"></div><button id="open" type="button" title="Klik untuk buka semula bar rakaman (atau Ctrl+Alt+H)"><i></i><span id="pt">REC 00:00</span></button></div>
+<div id="pill" title="Klik untuk buka bar rakaman. Seret untuk alih."><i></i></div>
 <script>
   const pad = (n) => String(n).padStart(2, '0');
   let t0 = Date.now(), paused = false, pausedAt = 0, pausedTotal = 0;
@@ -40,7 +40,7 @@
     const s = Math.max(0, Math.floor((now - t0 - pausedTotal) / 1000));
     return (s >= 3600 ? pad(Math.floor(s / 3600)) + ':' : '') + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
   }
-  function render() { const c = clock(); el('t').textContent = (paused ? 'PAUSE ' : 'REC ') + c; el('pt').textContent = (paused ? 'PAUSE ' : 'REC ') + c; }
+  function render() { const c = clock(); el('t').textContent = (paused ? 'PAUSE ' : 'REC ') + c; }
   setInterval(render, 300);
   window.recbar.onState((st) => {
     const p = !!(st && st.paused);
@@ -54,5 +54,28 @@
   el('s').addEventListener('click', () => window.recbar.stop());
   el('p').addEventListener('click', () => window.recbar.pause());
   el('h').addEventListener('click', () => window.recbar.hide(true));
-  el('open').addEventListener('click', () => window.recbar.hide(false));
+  /* seret dengan tetikus: bar hitam (ruang kosong) dan bulatan merah. Klik tanpa seret pada bulatan = buka semula bar. */
+  let dr = null;
+  function startDrag(ev, isPill) {
+    if (ev.button !== 0) return;
+    dr = { sx: ev.screenX, sy: ev.screenY, moved: false, isPill };
+    window.recbar.drag('start', ev.screenX, ev.screenY);
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+  }
+  function moveDrag(ev) {
+    if (!dr) return;
+    if (!dr.moved && Math.abs(ev.screenX - dr.sx) + Math.abs(ev.screenY - dr.sy) > 4) { dr.moved = true; document.body.classList.add('dragging'); }
+    if (dr.moved) window.recbar.drag('move', ev.screenX, ev.screenY);
+  }
+  function endDrag(ev) {
+    if (!dr) return;
+    const d = dr; dr = null;
+    document.body.classList.remove('dragging');
+    window.recbar.drag('end', ev.screenX, ev.screenY);
+    if (d.isPill && !d.moved) window.recbar.hide(false);
+  }
+  const barEl = el('bar'), pillEl = el('pill');
+  barEl.addEventListener('pointerdown', (ev) => { if (!ev.target.closest('button')) startDrag(ev, false); });
+  pillEl.addEventListener('pointerdown', (ev) => startDrag(ev, true));
+  [barEl, pillEl].forEach((n) => { n.addEventListener('pointermove', moveDrag); n.addEventListener('pointerup', endDrag); n.addEventListener('pointercancel', endDrag); });
 </script></body></html>
