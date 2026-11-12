@@ -55,7 +55,23 @@
           const octx = off.getContext('2d', { alpha: false });
           octx.setTransform(k, 0, 0, k, 0, 0);
           this.drawScene(octx, tr.to, now);
-          if (tr.type === 'slide') {
+          if (tr.type === 'ios') {
+            // gerakan lembut gaya iOS: scene lama zum keluar sedikit sambil pudar, scene baharu zum masuk dari kecil dengan lengkung perlahan di hujung
+            const q = 1 - Math.pow(1 - p, 4);
+            ctx.save();
+            ctx.translate(LW / 2, LH / 2); ctx.scale(1 + 0.035 * q, 1 + 0.035 * q); ctx.translate(-LW / 2, -LH / 2);
+            this.drawScene(ctx, tr.from, now);
+            ctx.restore();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalAlpha = Math.min(1, q * 1.15);
+            ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+            const sc = 0.94 + 0.06 * q;
+            ctx.scale(sc, sc);
+            ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
+            ctx.drawImage(off, 0, 0);
+            ctx.globalAlpha = 1;
+            ctx.setTransform(k, 0, 0, k, 0, 0);
+          } else if (tr.type === 'slide') {
             ctx.save();
             ctx.translate(-LW * e, 0);
             this.drawScene(ctx, tr.from, now);
@@ -98,6 +114,7 @@
       const b = this.bg.getContext('2d');
       b.setTransform(this.bg.width / LW, 0, 0, this.bg.height / LH, 0, 0);
       const th = GS.theme.cur;
+      if (th.flat) { ctx.fillStyle = th.bgBase; ctx.fillRect(0, 0, LW, LH); return; }   // 2D: latar plain tanpa cahaya atau grid
       b.fillStyle = th.bgBase;
       b.fillRect(0, 0, LW, LH);
       const a = now * 0.0002;

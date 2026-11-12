@@ -19,6 +19,7 @@
 
   /* gradien hologram biru -> ungu -> merah yang sentiasa bertukar */
   W.holoGrad = function (ctx, x, y, w, h, t, phase = 0) {
+    if (GS.theme && GS.theme.cur && GS.theme.cur.flat) return GS.theme.cur.g[0];   // tema 2D: warna rata, bukan gradien bergerak
     const a = t * 0.00035 + phase;
     const cx = x + w / 2, cy = y + h / 2, r = Math.max(w, h) / 2;
     const g = ctx.createLinearGradient(cx - Math.cos(a) * r, cy - Math.sin(a) * r, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
@@ -66,10 +67,11 @@
       ctx.fillStyle = g;
       ctx.fill();
     }
-    // kilauan menyapu
+    // kilauan menyapu (tiada pada tema 2D)
     ctx.save();
     rr(ctx, x, y, w, h, r);
     ctx.clip();
+    if (!th.flat) {
     const sweep = ((t * 0.00028 + (o.phase || 0)) % 1.8) - 0.4;
     const sx = x + sweep * w * 1.2;
     const sg = ctx.createLinearGradient(sx - w * 0.15, y, sx + w * 0.15, y + h);
@@ -78,6 +80,7 @@
     sg.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = sg;
     ctx.fillRect(x, y, w, h);
+    }
     ctx.restore();
     // sempadan bergradien
     rr(ctx, x + 1.5, y + 1.5, w - 3, h - 3, r);

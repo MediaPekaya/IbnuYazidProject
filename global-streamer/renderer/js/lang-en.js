@@ -742,6 +742,7 @@
     'Fail PowerPoint hanya boleh dibuka dalam app Windows. Simpan sebagai PDF dahulu jika menggunakan versi web.': 'PowerPoint files can only be opened in the Windows app. Save as PDF first if you use the web version.',
     'Menukar PowerPoint kepada PDF… tunggu sebentar.': 'Converting PowerPoint to PDF… please wait.', 'Tidak dapat menukar PowerPoint. Pasang Microsoft PowerPoint atau LibreOffice, atau simpan fail sebagai PDF.': 'PowerPoint could not be converted. Install Microsoft PowerPoint or LibreOffice, or save the file as PDF.',
     'Tidak dapat membaca fail yang ditukar.': 'The converted file could not be read.',
+    'Gaming': 'Gaming', 'Formal': 'Formal', 'Template "{0}" digunakan. Tekan Ctrl+Z untuk undur.': 'Template "{0}" applied. Press Ctrl+Z to undo.',
     'Resume rakaman': 'Resume recording', 'Pause rakaman': 'Pause recording', 'Simpan rakaman': 'Save recording',
     'Sambung merakam dari tempat anda berhenti.': 'Continue recording from where you stopped.',
     'Hentikan rakaman buat seketika, sambung bila-bila masa.': 'Stop recording for a moment and continue any time.',

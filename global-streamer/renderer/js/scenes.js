@@ -115,6 +115,7 @@
       if (i >= 0) { const o = pool.splice(i, 1)[0]; n.id = o.id; n.props = Object.assign({}, o.props); }
     });
     pool.forEach((o) => { if (!fresh.some((n) => n.id === o.id)) GS.media.close(o.id); });
+    const before = sc ? Object.assign({}, sc) : null;   // keadaan lama (sumber + tema) untuk animasi peralihan
     if (!sc) { sc = { id: GS.uid('scene'), name: newName || 'Live · ' + tpl.name, sources: [] }; st().scenes.push(sc); }
     sc.sources = fresh;
     sc.templateId = tpl.id;
@@ -124,6 +125,11 @@
     sc.alertY = tpl.alertY;
     st().templateId = tpl.id;
     selectedId = null;
+    // animasi lembut (gaya iOS) daripada rupa lama ke template baharu, pada paparan yang sedang menyunting scene ini
+    if (before && GS.app && !S.noAnimate) {
+      const comp = st().mode === 'studio' ? GS.app.previewComp : GS.app.programComp;
+      if (comp && comp.startTransition) comp.startTransition(before, sc, 'ios', 760);
+    }
     changed();
     return sc;
   };

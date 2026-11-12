@@ -6,6 +6,8 @@
   const { h, $, $$ } = GS;
   const F = (GS.formats = {});
   let viewO = null;          // format yang sedang dilihat dalam dock Template
+  let viewC = 'gaming';      // jenis template: 'gaming' atau 'formal'
+  try { viewC = sessionStorage.getItem('gs.tplCat') || 'gaming'; } catch (e) { /* abaikan */ }
   const thumbs = {};         // cache gambar kecil: id|tema -> canvas
 
   F.syncSwitch = function () {
@@ -45,11 +47,10 @@
   F.use = async function (t) {
     if (!t) return false;
     const sc0 = GS.scenes.editTarget();
-    if (!(await GS.ask(GS.t('Guna template "{0}"? Susun atur scene aktif akan diganti (peranti video dikekalkan).', GS.t(t.name))))) return false;
     if (t.orientation !== GS.orient() && !F.set(t.orientation)) return false;
     const sc = GS.scenes.editTarget() || sc0;
     const r = GS.scenes.applyTemplate(t.id, sc && sc.id);
-    if (r) GS.toast(GS.t('Template "{0}" digunakan.', GS.t(t.name)), 'ok');
+    if (r) GS.toast(GS.t('Template "{0}" digunakan. Tekan Ctrl+Z untuk undur.', GS.t(t.name)), 'ok');
     return !!r;
   };
 
@@ -61,18 +62,25 @@
     $$('#tplTabs button').forEach((b) => b.classList.toggle('on', b.dataset.o === viewO));
     const sc = GS.scenes.editTarget();
     root.innerHTML = '';
-    templates(viewO).forEach((t) => {
+    $$('#tplCats button').forEach((b) => b.classList.toggle('on', b.dataset.c === viewC));
+    const cats = $('#tplCats'); if (cats) cats.dataset.c = viewC;
+    templates(viewO).filter((t) => (t.category || 'gaming') === viewC).forEach((t) => {
       const sel = viewO === cur && sc && sc.templateId === t.id;
       root.append(h('button', { type: 'button', class: 'tpl-card ' + t.orientation + (sel ? ' sel' : ''), 'data-tpl': t.id, title: t.desc || t.name, onClick: () => F.use(t) },
         thumb(t), h('span', null, t.name)));
     });
     if (!root.children.length) root.append(h('div', { class: 'empty' }, 'Tiada template untuk format ini.'));
+    // animasi lembut apabila bertukar jenis / format (hanya bila bertukar, bukan setiap muat semula)
+    const sig = viewO + '|' + viewC;
+    if (F._sig !== undefined && F._sig !== sig) { root.classList.remove('swap'); void root.offsetWidth; root.classList.add('swap'); }
+    F._sig = sig;
   };
 
   F.init = function () {
     const sw = $('#fmtSwitch');
     if (sw) $$('button', sw).forEach((b) => b.addEventListener('click', () => { F.set(b.dataset.o); viewO = GS.orient(); F.drawDock(); }));
     $$('#tplTabs button').forEach((b) => b.addEventListener('click', () => { viewO = b.dataset.o; F.drawDock(); }));
+    $$('#tplCats button').forEach((b) => b.addEventListener('click', () => { viewC = b.dataset.c; try { sessionStorage.setItem('gs.tplCat', viewC); } catch (e) { /* abaikan */ } F.drawDock(); }));
     GS.on('scenes:changed', () => { F.syncSwitch(); F.drawDock(); });
     GS.on('format:changed', (o) => { viewO = o; });
     F.syncSwitch();
