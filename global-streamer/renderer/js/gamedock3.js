@@ -96,10 +96,10 @@
     if (!rows.length) { box.append(h('div', { class: 'placeholder' }, 'Belum ada data')); return box; }
     rows.forEach((x, i) => {
       const v = valf(x);
-      box.append(h('div', { class: 'lb-row' },
+      box.append(h('div', { class: 'lb-row' + (i < rows.length - 1 ? ' gap' : '') },
         h('span', { class: 'lb-rank' }, String(i + 1)),
         h('span', { class: 'lb-name' }, avatar(x.name, 22), x.name),
-        h('b', { class: 'lb-val' }, v.text)));
+        h('b', { class: 'lb-val ' + (i % 2 === 0 ? 'red' : 'yellow') }, v.text)));
     });
     return box;
   }

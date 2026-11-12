@@ -562,3 +562,8 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .crop-panel { display: flex; flex-direction: column; gap: 8px; }
 .crop-row { display: grid; grid-template-columns: 150px 1fr 52px; align-items: center; gap: 10px; }
 .crop-row b { text-align: right; font-variant-numeric: tabular-nums; color: var(--gold); }
+
+/* Meta Hero: peratusan berselang merah dan kuning, garis pemisah kelabu antara baris */
+.lb-val.red { color: #ff4b5c; }
+.lb-val.yellow { color: #ffd24a; }
+.lb-row.gap { padding-bottom: 6px; border-bottom: 1px solid rgba(150, 158, 176, 0.45); margin-bottom: 2px; }

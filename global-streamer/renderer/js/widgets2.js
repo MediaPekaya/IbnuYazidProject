@@ -509,11 +509,15 @@
         W.text(ctx, (i + 1) + '', cx, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: C.muted });
         W.heroAvatar(ctx, r.name, cx + rh * 0.85, ry + rh * 0.42, rh * 0.36, col);
         W.text(ctx, r.name, cx + rh * 1.35, ry + rh * 0.55, { size: rh * 0.4, weight: 700, color: C.text, maxW: cw * 0.5 - rh });
-        W.text(ctx, txt(r), cx + cw, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: col, align: 'right' });
+        // peratusan berselang merah dan kuning (baris 1 merah, baris 2 kuning, dan seterusnya)
+        const alt = i % 2 === 0 ? '#ff4b5c' : '#ffd24a';
+        W.text(ctx, txt(r), cx + cw, ry + rh * 0.55, { size: rh * 0.4, weight: 800, color: alt, align: 'right' });
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
         ctx.fillRect(cx, ry + rh * 0.76, cw, 3);
-        ctx.fillStyle = col;
+        ctx.fillStyle = alt;
         ctx.fillRect(cx, ry + rh * 0.76, cw * (val(r) / maxv), 3);
+        // garis pemisah kelabu antara baris, dari nombor hero hingga hujung peratusan (tidak terlalu terang)
+        if (i < rows.length - 1) { ctx.fillStyle = 'rgba(150,158,176,0.55)'; ctx.fillRect(cx, ry + rh - 1, cw, 1.5); }
       });
     });
     W.text(ctx, 'Data: Liquipedia · CC-BY-SA', x + 18, y + h - 12, { size: Math.min(h * 0.04, 13), weight: 600, color: C.muted });
