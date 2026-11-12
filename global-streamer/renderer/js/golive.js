@@ -156,10 +156,13 @@
 
   /** Menu pilihan rakaman (di sebelah butang REC): tema cerah, tulisan hitam, tanda ✓ pada pilihan semasa. */
   R.openMenu = function () {
+    const prev = GS.$('.rec-pop');
+    if (prev) { if (prev._close) prev._close(); return; }   // klik anak panah lagi = tutup
     GS.$$('.popover').forEach((p) => p.remove());
     const st = GS.state.settings;
     const pop = h('div', { class: 'popover rec-pop', role: 'menu' });
-    const item = (label, sub, on, run, extra) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : '') + (extra ? ' ' + extra : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { close(); run(); } },
+    // keep=true: menu kekal terbuka selepas klik (pilihan tick); selainnya menu tutup
+    const item = (label, sub, on, run, extra, keep) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : '') + (extra ? ' ' + extra : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { if (keep) { run(); sync(); } else { close(); run(); } } },
       h('span', null, h('b', null, GS.t(label)), sub ? h('small', null, GS.t(sub)) : null));
     // semasa merakam: Pause/Resume dan Simpan rakaman terus daripada menu
     if (R.active) {
@@ -179,15 +182,23 @@
       R.start(m);                                      // terus minta akses kepada apa yang mahu dirakam (skrin / tetingkap)
     })));
     pop.append(h('hr'));
-    pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain turut masuk ke dalam rakaman. Pakai fon kepala supaya tiada dengung.', !!st.recSystemAudio, () => { st.recSystemAudio = true; GS.save(); GS.toast(GS.t('Rakaman akan membawa bunyi komputer.'), 'ok'); }));
-    pop.append(item('Tanpa bunyi komputer', 'Rakaman hanya membawa suara mikrofon dan campuran bunyi dalam app ini.', !st.recSystemAudio, () => { st.recSystemAudio = false; GS.save(); GS.toast(GS.t('Rakaman tanpa bunyi komputer.'), 'ok'); }));
+    pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain turut masuk ke dalam rakaman. Pakai fon kepala supaya tiada dengung.', !!st.recSystemAudio, () => { st.recSystemAudio = true; GS.save(); }, '', true));
+    pop.append(item('Tanpa bunyi komputer', 'Rakaman hanya membawa suara mikrofon dan campuran bunyi dalam app ini.', !st.recSystemAudio, () => { st.recSystemAudio = false; GS.save(); }, '', true));
     pop.append(h('hr'));
-    pop.append(item('Kecilkan Global Streamer semasa merakam', 'Tetingkap app diturunkan supaya skrin anda bersih. Guna bar REC di atas untuk Pause, Hide dan Simpan rakaman.', !!st.recMinimize, () => { st.recMinimize = !st.recMinimize; GS.save(); }));
+    pop.append(item('Kecilkan Global Streamer semasa merakam', 'Tetingkap app diturunkan supaya skrin anda bersih. Guna bar REC di atas untuk Pause, Hide dan Simpan rakaman.', !!st.recMinimize, () => { st.recMinimize = !st.recMinimize; GS.save(); }, '', true));
     document.body.append(pop);
     const anchor = GS.$('#btnRecMode'), r = anchor.getBoundingClientRect(), pr = pop.getBoundingClientRect();
     pop.style.left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.right - pr.width)) + 'px';
     pop.style.top = (r.bottom + 8) + 'px';
     requestAnimationFrame(() => requestAnimationFrame(() => pop.classList.add('in')));
+    // kemas kini tanda ✓ tanpa menutup menu (3 item terakhir: bunyi komputer, tanpa bunyi, kecilkan)
+    function sync() {
+      const on = [!!st.recSystemAudio, !st.recSystemAudio, !!st.recMinimize];
+      const all = pop.querySelectorAll('.pop-item');
+      const n = all.length;
+      on.forEach((v, k) => { const el = all[n - 3 + k]; el.classList.toggle('on', v); el.setAttribute('aria-checked', v ? 'true' : 'false'); });
+    }
+    pop._close = () => close();
     function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 320); document.removeEventListener('pointerdown', away, true); }
     function away(ev) { if (!pop.contains(ev.target) && ev.target !== anchor) close(); }
     setTimeout(() => document.addEventListener('pointerdown', away, true), 0);
