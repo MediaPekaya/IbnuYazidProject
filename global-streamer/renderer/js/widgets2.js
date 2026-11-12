@@ -322,7 +322,14 @@
     const items = (gift ? GS.state.promo.gift : GS.state.promo.items) || [];
     W.panel(ctx, x, y, w, h, t, { phase: gift ? 4.2 : 3.6, r: Math.min(22, h * 0.3) });
     const tone = gift ? 'gold' : 'blue';
-    W.mascot(ctx, x + h * 0.62, y + h * 0.56, h * 0.62, t, tone);
+    // bot / karakter sendiri (PNG lutsinar) menggantikan GS-Bot asal; bergerak naik-turun perlahan seperti bot asal
+    const own = s.props.mascot && GS.media.image(s.props.mascot);
+    if (own && own.naturalWidth) {
+      const box = h * 1.1, bob = Math.sin(t * 0.004) * h * 0.02;
+      const r = Math.min(box / own.naturalWidth, box / own.naturalHeight);
+      const dw = own.naturalWidth * r, dh = own.naturalHeight * r;
+      ctx.drawImage(own, x + h * 0.62 - dw / 2, y + h * 0.56 - dh / 2 + bob, dw, dh);
+    } else W.mascot(ctx, x + h * 0.62, y + h * 0.56, h * 0.62, t, tone);
     if (!items.length) return;
     const period = 4600;
     const idx = Math.floor(t / period) % items.length;
