@@ -39,9 +39,7 @@
     $('#btnRec').addEventListener('click', () => { GS.audio.ensure(); GS.rec.toggle(); });
     $('#btnRecMode').addEventListener('click', () => GS.rec.openMenu());
     $('#btnSettings').addEventListener('click', GS.live.openSettings);
-    const ls = GS.i18n.switcher();
-    ls.id = 'langSwitch';
-    $('#btnSettings').before(ls);
+    // pertukaran bahasa kini hanya dalam Tetapan > Umum (tiada butang BM/EN di topbar)
     $('#btnTransition').addEventListener('click', GS.scenes.doTransition);
 
     const sel = $('#selTransition');

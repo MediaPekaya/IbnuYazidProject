@@ -20,6 +20,10 @@
 }
 .btn.primary:hover:not(:disabled) { background: var(--grad-loop); background-size: 300% 100%; box-shadow: 0 8px 30px rgba(110, 90, 255, 0.55); }
 .live-btn { padding: 9px 20px; letter-spacing: 0.1em; }
+/* Mula Live: merah pepejal, tulisan putih, tiada gradien atau gerakan hologram */
+#btnLive, #btnLive:hover:not(:disabled) { background: #e0213f; background-image: none; animation: none; color: #ffffff; box-shadow: none; border: 0; }
+#btnLive:hover:not(:disabled) { background: #f0294a; }
+#btnLive:active:not(:disabled) { background: #c81b37; }
 .live-btn.live { background: linear-gradient(110deg, #ff3b5c, #c4163a, #ff3b5c); background-size: 300% 100%; box-shadow: 0 0 0 0 rgba(255, 59, 92, 0.6); animation: shift 4s linear infinite, ring 1.8s infinite; }
 @keyframes ring { 70% { box-shadow: 0 0 0 12px rgba(255, 59, 92, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 92, 0); } }
 .rec-btn.rec { border-color: rgba(255, 59, 92, 0.7); color: #ff8da1; }

@@ -111,7 +111,7 @@
     const s = GS.state.settings;
     const row = (it) => h('button', { class: 'pop-item size-item' + (s.width === it.w ? ' on' : ''), role: 'menuitem', onClick: () => { close(); if (Z.apply(it.w)) GS.toast(GS.t('Saiz output: {0}×{1} (bitrate dicadangkan {2} kbps)', it.w, it.h, it.br), 'ok'); } },
       h('b', null, it.w + '×' + it.h), h('span', null, GS.t(it.tag)), h('em', null, it.br + ' kbps'));
-    const fps = h('div', { class: 'pop-fps' }, [30, 60].map((f) => h('button', { class: 'subtab' + (s.fps === f ? ' on' : ''), onClick: () => { close(); Z.apply(s.width, { keepBitrate: true, fps: f }); } }, f + ' fps')));
+    const fps = h('div', { class: 'pop-fps' }, [30, 60, 120, 200].map((f) => h('button', { class: 'subtab' + (s.fps === f ? ' on' : ''), onClick: () => { close(); Z.apply(s.width, { keepBitrate: true, fps: f }); } }, f + ' fps')));
     const pop = h('div', { class: 'popover size-pop', role: 'menu' }, h('h5', null, GS.orient() === 'portrait' ? 'Saiz menegak 9:16' : 'Saiz mendatar 16:9'), Z.list().map(row), h('hr'), fps,
       h('p', { class: 'muted note' }, 'Orientasi ditukar dalam Tetapan. TikTok dan Facebook biasanya menghadkan 1080p; 4K hanya untuk YouTube.'));
     document.body.append(pop);

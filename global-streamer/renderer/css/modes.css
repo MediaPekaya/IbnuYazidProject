@@ -1,0 +1,91 @@
+/* Global Streamer - tab Tetapan dan mod aplikasi (Hologram asal + mod Formal 2D rata tanpa cahaya) */
+
+/* ---------- tab dalam Tetapan ---------- */
+.set-tabs { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px; margin: 0 0 14px; border-radius: 12px; background: rgba(4, 10, 24, 0.55); border: 1px solid var(--line); }
+.set-tabs button { flex: 1 1 auto; border: 0; background: none; padding: 8px 14px; border-radius: 9px; color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.set-tabs button:hover { color: var(--text); }
+.set-tabs button.on { background: var(--blue); color: #fff; }
+.set-pane { display: none; }
+.set-pane.on { display: block; }
+.settings .ver-line { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.ver-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; background: rgba(46, 168, 255, 0.16); color: var(--cyan); font-weight: 800; font-size: 13px; }
+.changelog { margin: 0; padding-left: 20px; display: grid; gap: 7px; font-size: 13.5px; line-height: 1.5; }
+.mode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.mode-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; padding: 12px; border-radius: 12px; border: 2px solid var(--line); background: rgba(255, 255, 255, 0.03); color: var(--text); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.mode-card:hover { border-color: var(--line-strong); }
+.mode-card.on { border-color: var(--blue); background: rgba(46, 168, 255, 0.12); }
+.mode-card small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.mode-sw { display: flex; width: 100%; height: 26px; border-radius: 7px; overflow: hidden; border: 1px solid var(--line); }
+.mode-sw i { flex: 1; display: block; }
+
+/* ---------- mod Formal: rata, tanpa cahaya, tanpa gradien bergerak ---------- */
+html[data-appmode^="formal"] .bg-fx { display: none; }
+html[data-appmode^="formal"] body { background: var(--bg0); }
+html[data-appmode^="formal"] { --grad: linear-gradient(var(--accent), var(--accent)); --grad-loop: linear-gradient(var(--accent), var(--accent)); --violet: var(--accent); }
+html[data-appmode^="formal"] *, html[data-appmode^="formal"] *::before, html[data-appmode^="formal"] *::after { animation: none !important; }
+html[data-appmode^="formal"] #topbar::after { display: none; }
+html[data-appmode^="formal"] #topbar, html[data-appmode^="formal"] #stage, html[data-appmode^="formal"] #right { backdrop-filter: none; box-shadow: none; }
+html[data-appmode^="formal"] .grad-text, html[data-appmode^="formal"] .brand-name { background: none; -webkit-text-fill-color: currentColor; color: var(--text); }
+html[data-appmode^="formal"] .dock { background: var(--panel); border-color: var(--line); }
+html[data-appmode^="formal"] .dock-head { background: var(--panel-2); border-bottom-color: var(--line); }
+html[data-appmode^="formal"] .dock .list-item, html[data-appmode^="formal"] .dock .strip, html[data-appmode^="formal"] .dock .src-card, html[data-appmode^="formal"] .dock .tpl-card { background: var(--card); border-color: var(--line); }
+html[data-appmode^="formal"] .dock .list-item:hover, html[data-appmode^="formal"] .dock .src-card:hover, html[data-appmode^="formal"] .dock .tpl-card:hover { background: var(--card-hover); border-color: var(--line-strong); }
+html[data-appmode^="formal"] .dock .list-item.sel, html[data-appmode^="formal"] .dock .tpl-card.sel { background: var(--card-sel); border-color: var(--accent); }
+html[data-appmode^="formal"] .dock .list-item.pgm { background: var(--card-pgm); border-color: rgba(216, 33, 47, 0.55); }
+html[data-appmode^="formal"] .dock .list-item.pvw { background: var(--card-sel); border-color: var(--accent); }
+html[data-appmode^="formal"] .dock input, html[data-appmode^="formal"] .dock select, html[data-appmode^="formal"] .dock textarea,
+html[data-appmode^="formal"] .modal-card input, html[data-appmode^="formal"] .modal-card select, html[data-appmode^="formal"] .modal-card textarea { background: var(--field); border: 1px solid var(--line-strong); color: var(--text); }
+html[data-appmode^="formal"] .mode-switch, html[data-appmode^="formal"] .seg-mini, html[data-appmode^="formal"] .set-tabs { background: var(--card); border-color: var(--line); }
+html[data-appmode^="formal"] .mode-switch .thumb { background: var(--accent); }
+html[data-appmode^="formal"] .mode-switch button.on, html[data-appmode^="formal"] .seg-mini button.on { color: #fff; }
+html[data-appmode^="formal"] .btn.primary, html[data-appmode^="formal"] .btn.go { background: var(--accent); box-shadow: none; color: #fff; }
+html[data-appmode^="formal"] .btn.primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: none; }
+html[data-appmode^="formal"] .btn { box-shadow: none; }
+html[data-appmode^="formal"] .screen-view { background: var(--screen); border-color: var(--line); }
+html[data-appmode^="formal"] .tpl-card canvas, html[data-appmode^="formal"] .dock .tpl-card canvas { background: var(--screen); }
+html[data-appmode^="formal"] .modal-card { background: var(--panel); border-color: var(--line-strong); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); }
+html[data-appmode^="formal"] .modal-card::before { display: none; }
+html[data-appmode^="formal"] .popover:not(.rec-pop) { background: var(--panel); border-color: var(--line-strong); color: var(--text); }
+html[data-appmode^="formal"] .set-tabs button.on, html[data-appmode^="formal"] .mode-card.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+html[data-appmode^="formal"] .mode-card.on small { color: rgba(255, 255, 255, 0.85); }
+html[data-appmode^="formal"] .ver-badge { background: var(--card-sel); color: var(--accent); }
+html[data-appmode^="formal"] .rtab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+html[data-appmode="formal-white"] {
+  --bg0: #eef1f6; --bg1: #f3f5f9; --panel: #ffffff; --panel-2: #f1f4f9; --line: #d9dfea; --line-strong: #b9c3d4;
+  --text: #1b2433; --muted: #5b6678; --dim: #8892a3; --accent: #1d4fd8; --accent-hover: #1a44b8; --blue: #1d4fd8; --cyan: #1d4fd8; --red: #d8212f; --gold: #b7791f; --green: #107a45;
+  --card: #f4f6fa; --card-hover: #eaeef6; --card-sel: #e3ecff; --card-pgm: #fdeaec; --field: #ffffff; --screen: #dfe5ef; color-scheme: light;
+}
+html[data-appmode="formal-gray"] {
+  --bg0: #d5dae3; --bg1: #dfe3ea; --panel: #eceff4; --panel-2: #e2e6ee; --line: #c4cbd8; --line-strong: #a6b0c2;
+  --text: #1f2937; --muted: #556070; --dim: #7c8798; --accent: #374151; --accent-hover: #1f2937; --blue: #374151; --cyan: #374151; --red: #c62633; --gold: #a16207; --green: #166534;
+  --card: #f6f7fa; --card-hover: #ffffff; --card-sel: #dde3ee; --card-pgm: #f7e3e5; --field: #ffffff; --screen: #cfd5e0; color-scheme: light;
+}
+html[data-appmode="formal-dark"] {
+  --bg0: #101216; --bg1: #15171c; --panel: #1c1f26; --panel-2: #23272f; --line: #2f343e; --line-strong: #444b58;
+  --text: #e8ebf0; --muted: #a0a8b6; --dim: #7a8392; --accent: #4c8dff; --accent-hover: #6aa0ff; --blue: #4c8dff; --cyan: #7fb0ff; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
+  --card: #252932; --card-hover: #2d323c; --card-sel: #243453; --card-pgm: #3a2228; --field: #15171c; --screen: #0b0c0f; color-scheme: dark;
+}
+html[data-appmode="formal-blue"] {
+  --bg0: #0b1426; --bg1: #0f1b33; --panel: #14223e; --panel-2: #1a2b4d; --line: #263a60; --line-strong: #38507f;
+  --text: #e9f0fc; --muted: #9db0d0; --dim: #7186aa; --accent: #3b82f6; --accent-hover: #5b97f8; --blue: #3b82f6; --cyan: #8ab8ff; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
+  --card: #1b2d51; --card-hover: #223764; --card-sel: #24407a; --card-pgm: #3b2233; --field: #0f1b33; --screen: #08101f; color-scheme: dark;
+}
+
+/* bahagian lain yang asalnya berlatar biru tua: ikut warna mod Formal */
+html[data-appmode^="formal"] .chip, html[data-appmode^="formal"] .device, html[data-appmode^="formal"] .pick-card, html[data-appmode^="formal"] .pf-card.on,
+html[data-appmode^="formal"] .hero, html[data-appmode^="formal"] .hav, html[data-appmode^="formal"] .ev-chip, html[data-appmode^="formal"] .add-pf-card,
+html[data-appmode^="formal"] .item-card, html[data-appmode^="formal"] .eleven-box, html[data-appmode^="formal"] .pf-details, html[data-appmode^="formal"] .subtabs,
+html[data-appmode^="formal"] .lang-switch { background: var(--card); border-color: var(--line); color: var(--text); }
+html[data-appmode^="formal"] input[type='text'], html[data-appmode^="formal"] input[type='number'], html[data-appmode^="formal"] input[type='password'],
+html[data-appmode^="formal"] input[type='email'], html[data-appmode^="formal"] input[type='url'], html[data-appmode^="formal"] input[type='search'], html[data-appmode^="formal"] input[type='color'],
+html[data-appmode^="formal"] select, html[data-appmode^="formal"] textarea { background: var(--field); border-color: var(--line-strong); color: var(--text); }
+html[data-appmode^="formal"] select option, html[data-appmode^="formal"] select optgroup { background: var(--field); color: var(--text); }
+html[data-appmode^="formal"] .toast { background: var(--panel); color: var(--text); border-color: var(--line-strong); }
+html[data-appmode^="formal"] .game-pick select { background: var(--field); color: var(--text); }
+html[data-appmode^="formal"] .subtab.on, html[data-appmode^="formal"] .tab.on { background: var(--accent); color: #fff; }
+html[data-appmode^="formal"] .strip { background: var(--card); border-color: var(--line); }
+html[data-appmode^="formal"] .modal-card .field span, html[data-appmode^="formal"] .muted { color: var(--muted); }
+html[data-appmode^="formal"] #stage, html[data-appmode^="formal"] #right, html[data-appmode^="formal"] #topbar { background: var(--panel); border-color: var(--line); }
+html[data-appmode^="formal"] .chip.mute, html[data-appmode^="formal"] .size-chip { color: var(--muted); }
+html[data-appmode^="formal"] .screen-label span { color: var(--muted); }

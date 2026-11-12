@@ -171,7 +171,7 @@ class StreamEngine {
     this.reset();
     this.cfg = {
       targets,
-      fps: clampInt(cfg.fps, 15, 60, 30),
+      fps: clampInt(cfg.fps, 15, 200, 30),
       vb: clampInt(cfg.vbitrate, 1000, 60000, 6000),
       ab: clampInt(cfg.abitrate, 64, 320, 160),
       reconnect: cfg.reconnect !== false,
