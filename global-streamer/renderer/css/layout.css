@@ -104,10 +104,10 @@ body.portrait .screens.studio #transitionCol { width: 100px; }
 #dockTemplates .dock-head { gap: 8px; }
 #dockTemplates .dock-head h3 { font-size: 11px; }
 #tplTabs button { white-space: nowrap; padding-left: 7px; padding-right: 7px; }
-.tpl-cats { position: relative; display: grid; grid-template-columns: 1fr 1fr; margin: 0 0 0 auto; padding: 2px; border-radius: 10px; background: rgba(4, 10, 24, 0.55); border: 1px solid var(--line); }
+.tpl-cats { position: relative; display: grid; grid-template-columns: 1fr 1fr 1.5fr; margin: 0 0 0 auto; padding: 2px; border-radius: 10px; background: rgba(4, 10, 24, 0.55); border: 1px solid var(--line); }
 .tpl-cats button { position: relative; z-index: 1; background: none; border: 0; padding: 3px 10px; border-radius: 8px; color: var(--muted); font-weight: 800; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: color 0.35s var(--ease); }
 .tpl-cats button.on { color: #fff; }
-.tpl-cats .thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 2px); border-radius: 8px; background: var(--blue); transition: transform 0.5s var(--ease); }
+.tpl-cats .thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: 0; transition: transform 0.5s var(--ease), width 0.5s var(--ease), left 0.5s var(--ease); border-radius: 8px; background: var(--blue); transition: transform 0.5s var(--ease); }
 .tpl-cats[data-c="formal"] .thumb { transform: translateX(100%); }
 .tpl-strip.swap .tpl-card { animation: tplIn 0.55s var(--ease) both; }
 .tpl-strip.swap .tpl-card:nth-child(2) { animation-delay: 0.04s; } .tpl-strip.swap .tpl-card:nth-child(3) { animation-delay: 0.08s; }
@@ -212,3 +212,10 @@ html.win-open .gutter, html.win-restore .gutter, html.win-closing .gutter, html.
 @keyframes macMin { to { opacity: 0; transform: scale(0.55) translateY(40%); } }
 @keyframes macZoom { 0% { transform: scale(0.985); } 100% { transform: none; } }
 @media (prefers-reduced-motion: reduce) { html.win-open body, html.win-restore body { animation-duration: 0.01ms !important; } }
+
+/* dock Template: tajuk dan kawalan dimampatkan supaya muat dalam satu baris */
+#dockTemplates .dock-head { gap: 6px; padding-left: 10px; padding-right: 8px; }
+#dockTemplates .dock-head h3 { font-size: 9.5px; letter-spacing: 0.1em; }
+#dockTemplates .tpl-cats button { font-size: 9px; padding: 3px 7px; letter-spacing: 0.03em; white-space: nowrap; }
+#dockTemplates .seg-mini button { font-size: 9px; padding: 3px 6px; white-space: nowrap; }
+#dockTemplates .dock-head h3 { display: none; }   /* tajuk 'Template' dikosongkan supaya jenis dan format muat dalam satu baris */

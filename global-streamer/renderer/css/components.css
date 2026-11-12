@@ -586,3 +586,6 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 /* menu timbul panjang boleh diskrol (cth tambah sumber): tidak terpotong dan tidak tersekat */
 .popover { max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; scrollbar-gutter: stable; }
 #scenesBody, #sourcesBody { overflow-y: auto; overscroll-behavior: contain; }
+
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cd-in { width: 100%; }

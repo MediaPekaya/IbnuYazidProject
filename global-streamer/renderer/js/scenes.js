@@ -41,11 +41,14 @@
     const por = GS.orient() === 'portrait';
     const a = S.applyTemplate(por ? 'holo-portrait' : 'holo-pro', null);
     const b = S.applyTemplate(por ? 'portrait-game' : 'game-penuh', null, por ? 'Fokus Game' : 'Game Penuh');
-    const brb = por
-      ? [mk('widget', 'Tajuk', 140, 760, 800, 260, { widget: 'brand', text: 'SEBENTAR LAGI' }), mk('widget', 'Banner Promosi', 0, 1484, 1080, 140, { widget: 'promo', style: 'info' })]
-      : [mk('widget', 'Tajuk', 560, 400, 800, 200, { widget: 'brand', text: 'SEBENTAR LAGI' }), mk('widget', 'Bar Teks', 40, 846, 1840, 96, { widget: 'ticker' })];
-    const c = { id: GS.uid('scene'), name: 'Sebentar Lagi', fxStyle: 'holo', templateId: null, sources: brb };
-    st().scenes.push(c);
+    // scene "Sebentar Lagi": guna template kira detik (jam/minit/saat boleh ditetapkan, tulisan boleh diedit)
+    const c = S.applyTemplate(por ? 'sl-holo-portrait' : 'sl-holo-land', null, 'Sebentar Lagi') || (() => {
+      const brb = por
+        ? [mk('widget', 'Tajuk', 140, 760, 800, 260, { widget: 'brand', text: 'SEBENTAR LAGI' }), mk('widget', 'Banner Promosi', 0, 1484, 1080, 140, { widget: 'promo', style: 'info' })]
+        : [mk('widget', 'Tajuk', 560, 400, 800, 200, { widget: 'brand', text: 'SEBENTAR LAGI' }), mk('widget', 'Bar Teks', 40, 846, 1840, 96, { widget: 'ticker' })];
+      const sc = { id: GS.uid('scene'), name: 'Sebentar Lagi', fxStyle: 'holo', templateId: null, sources: brb };
+      st().scenes.push(sc); return sc;
+    })();
     st().programId = a.id;
     st().previewId = b.id;
     st().templateId = por ? 'holo-portrait' : 'holo-pro';
@@ -443,6 +446,7 @@
     let added = false;
     st.scenes.forEach((sc) => {
       if (sc.sources.some((s) => s.type === 'widget' && s.props.widget === 'metaboard')) return;
+      if (/^sl-/.test(sc.templateId || '') || /sebentar\s*lagi/i.test(sc.name || '')) return;   // scene Sebentar Lagi tidak memerlukan papan Meta
       const tpl = game && game.templates.find((t) => t.id === sc.templateId);
       let spec = null;
       if (tpl) { const w = tpl.build().find((s) => s.props && s.props.widget === 'metaboard'); if (w) spec = [w.x, w.y, w.w, w.h]; }
@@ -477,7 +481,7 @@
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
+    countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
@@ -556,7 +560,7 @@
   /* ---------- UI: sumber ---------- */
   /* ikon berbeza untuk setiap jenis sumber (merujuk kepada sumber yang dipilih) */
   const WIDGET_ICON = { clock: 'clock', winloss: 'scale', logo: 'hex', brand: 'typeA', ticker: 'ticker', frame: 'frame', metaboard: 'barchart', matchboard: 'sword', resultsboard: 'trophy',
-    promo: 'megaphone', bot: 'bot', queue: 'list', boss: 'skull', toplike: 'heart', statusbar: 'activity', spelltimer: 'timer', draft: 'draft', label: 'tag', tiers: 'layers' };
+    promo: 'megaphone', countdown: 'timer', bot: 'bot', queue: 'list', boss: 'skull', toplike: 'heart', statusbar: 'activity', spelltimer: 'timer', draft: 'draft', label: 'tag', tiers: 'layers' };
   const typeIcon = (s) => {
     if (s.type === 'video') {
       const k = s.props.kind;
@@ -673,6 +677,7 @@
       { label: 'Widget: Jam & Masa Main', icon: 'widget', run: () => S.addWidget('clock') },
       { label: 'Widget: Menang / Kalah', icon: 'widget', run: () => S.addWidget('winloss') },
       { label: 'Widget: Logo', icon: 'widget', run: () => S.addWidget('logo') },
+      { label: 'Widget: Kira Detik (Sebentar Lagi)', icon: 'widget', run: () => S.addWidget('countdown') },
       { label: 'Widget: Bot', icon: 'widget', run: () => S.addWidget('bot') },
       { label: 'Widget: Tajuk', icon: 'widget', run: () => S.addWidget('brand') },
       { label: 'Widget: Bar Teks', icon: 'widget', run: () => S.addWidget('ticker') },
@@ -741,6 +746,21 @@
       const w = s.props.widget;
       if (w === 'ticker') {
         root.append(field('Mesej bar teks (satu baris = satu mesej)', h('textarea', { rows: 4, onInput: (e) => { GS.state.ticker.messages = e.target.value.split('\n').map((x) => x.trim()).filter(Boolean); GS.save(); } }, (GS.state.ticker.messages || []).join('\n'))));
+      }
+      if (w === 'countdown') {
+        const p = s.props, CD = GS.countdown;
+        const num = (key, label, max) => field(label, h('input', { type: 'number', min: 0, max, value: p[key] || 0, class: 'cd-in', 'data-k': 'cd-' + key, onChange: (e) => { p[key] = GS.clamp(Number(e.target.value) || 0, 0, max); if (!CD.running(p)) { p.pausedMs = null; p.endAt = 0; } GS.save(); } }));
+        root.append(h('div', { class: 'grid3' }, num('hours', 'Jam', 99), num('minutes', 'Minit', 59), num('seconds', 'Saat', 59)));
+        root.append(h('div', { class: 'btn-row' },
+          h('button', { class: 'btn primary', id: 'btnCdStart', onClick: () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Mula'),
+          h('button', { class: 'btn', id: 'btnCdPause', onClick: () => { CD.pause(p); GS.save(); renderProps(); } }, 'Jeda'),
+          h('button', { class: 'btn ghost', id: 'btnCdReset', onClick: () => { CD.reset(p); GS.save(); renderProps(); } }, 'Set semula')));
+        const clock = h('input', { type: 'time', id: 'cdClock', class: 'cd-in' });
+        root.append(field('Kira ke jam tertentu (cth 21:00)', h('div', { class: 'btn-row' }, clock, h('button', { class: 'btn', id: 'btnCdClock', onClick: () => { if (!CD.toClock(p, clock.value)) GS.toast(GS.t('Pilih jam dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Kira ke jam ini'))));
+        root.append(field('Tajuk', h('input', { type: 'text', value: p.title || 'SEBENTAR LAGI', onInput: (e) => { p.title = e.target.value; GS.save(); } })));
+        root.append(field('Tulisan bawah (cth nama game)', h('input', { type: 'text', value: p.subtitle || 'MOBILE LEGENDS', onInput: (e) => { p.subtitle = e.target.value; GS.save(); } })));
+        root.append(field('Tulisan bila masa tamat', h('input', { type: 'text', value: p.endText || 'MULA SEKARANG!', onInput: (e) => { p.endText = e.target.value; GS.save(); } })));
+        root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: p.showHours !== false, onChange: (e) => { p.showHours = e.target.checked; GS.save(); } }), h('span', null, 'Papar jam')));
       }
       if (w === 'bot') {
         root.append(h('div', { class: 'btn-row' },

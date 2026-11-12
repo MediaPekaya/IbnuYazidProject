@@ -350,6 +350,52 @@
     ctx.restore();
   };
 
+  /* ---------- kira detik "Sebentar Lagi": jam / minit / saat, tulisan boleh diedit ---------- */
+  const CD = (GS.countdown = {
+    total: (p) => ((Number(p.hours) || 0) * 3600 + (Number(p.minutes) || 0) * 60 + (Number(p.seconds) || 0)) * 1000,
+    remaining(p) {
+      if (p.endAt) return Math.max(0, p.endAt - Date.now());
+      if (p.pausedMs != null) return p.pausedMs;
+      return CD.total(p);
+    },
+    running: (p) => !!(p.endAt && p.endAt > Date.now()),
+    start(p) { const ms = p.pausedMs != null ? p.pausedMs : CD.total(p); if (ms <= 0) return false; p.endAt = Date.now() + ms; p.pausedMs = null; return true; },
+    pause(p) { if (p.endAt) { p.pausedMs = Math.max(0, p.endAt - Date.now()); p.endAt = 0; } },
+    reset(p) { p.endAt = 0; p.pausedMs = null; },
+    /** kira ke jam tertentu (HH:MM); jika sudah lepas hari ini, ke esok */
+    toClock(p, hhmm) {
+      const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '').trim());
+      if (!m) return false;
+      const d = new Date(); d.setHours(Number(m[1]), Number(m[2]), 0, 0);
+      if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+      p.endAt = d.getTime(); p.pausedMs = null;
+      return true;
+    },
+    parts(ms) { const s = Math.ceil(ms / 1000); return { h: Math.floor(s / 3600), m: Math.floor(s / 60) % 60, s: s % 60 }; },
+  });
+  W.countdown = function (ctx, s, t) {
+    const p = s.props, { x, y, w, h } = s;
+    W.panel(ctx, x, y, w, h, t, { phase: 5.1, r: 26, opaque: true });
+    const ms = CD.remaining(p), done = ms <= 0 && (p.endAt || p.pausedMs === 0);
+    const pt = CD.parts(ms), show3 = p.showHours !== false;
+    const title = GS.tov ? GS.tov(p.title || 'SEBENTAR LAGI') : (p.title || 'SEBENTAR LAGI');
+    W.text(ctx, title, x + w / 2, y + h * 0.2, { size: Math.min(h * 0.14, w * 0.075), weight: 900, align: 'center', color: C.text, spacing: 6, maxW: w * 0.9, shadow: C.cyan, blur: 18 });
+    if (done) {
+      const k = 0.5 + 0.5 * Math.abs(Math.sin(t * 0.004));
+      W.text(ctx, p.endText || 'MULA SEKARANG!', x + w / 2, y + h * 0.6, { size: Math.min(h * 0.2, w * 0.09), weight: 900, align: 'center', color: C.gold, maxW: w * 0.92, shadow: C.gold, blur: 20 * k });
+    } else {
+      const units = show3 ? [[pt.h, 'JAM'], [pt.m, 'MINIT'], [pt.s, 'SAAT']] : [[pt.m + pt.h * 60, 'MINIT'], [pt.s, 'SAAT']];
+      const n = units.length, gap = w * 0.03, tw = (w * 0.86 - gap * (n - 1)) / n, th = h * 0.42, ty = y + h * 0.3, tx0 = x + (w - (tw * n + gap * (n - 1))) / 2;
+      units.forEach(([v, lab], i) => {
+        const tx = tx0 + i * (tw + gap);
+        ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.28)'; W.rr(ctx, tx, ty, tw, th, th * 0.14); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = W.holoGrad(ctx, tx, ty, tw, th, t, i); ctx.stroke(); ctx.restore();
+        W.text(ctx, String(v).padStart(2, '0'), tx + tw / 2, ty + th * 0.7, { size: Math.min(th * 0.66, tw * 0.62), weight: 900, align: 'center', color: C.text, maxW: tw * 0.9 });
+        W.text(ctx, GS.tov ? GS.tov(lab) : lab, tx + tw / 2, ty + th + h * 0.075, { size: Math.min(h * 0.055, tw * 0.13), weight: 800, align: 'center', color: C.muted, spacing: 3 });
+      });
+    }
+    W.text(ctx, p.subtitle || 'MOBILE LEGENDS', x + w / 2, y + h * 0.93, { size: Math.min(h * 0.075, w * 0.045), weight: 800, align: 'center', color: C.cyan, spacing: 4, maxW: w * 0.9 });
+  };
+
   /* ---------- bot kecil (sumber berasingan di sebelah banner promosi) ---------- */
   W.bot = function (ctx, s, t) {
     // gambar sendiri (anime, kartun, haiwan, foto, apa sahaja) menggantikan bot asal; muat dalam kotak tanpa dipotong
@@ -358,6 +404,14 @@
       const r = Math.min(s.w / own.naturalWidth, s.h / own.naturalHeight);
       const dw = own.naturalWidth * r, dh = own.naturalHeight * r;
       ctx.drawImage(own, s.x + (s.w - dw) / 2, s.y + (s.h - dh) / 2 + Math.sin(t * 0.004) * s.h * 0.02, dw, dh);
+      return;
+    }
+    // bot lalai = gambar watak GS (assets/default-bot.png). Pengguna boleh menggantikannya dengan gambar sendiri (Tukar gambar bot).
+    const dflt = GS.media && GS.media.image('assets/default-bot.png');
+    if (dflt && dflt.naturalWidth) {
+      const r = Math.min(s.w / dflt.naturalWidth, s.h / dflt.naturalHeight);
+      const dw = dflt.naturalWidth * r, dh = dflt.naturalHeight * r;
+      ctx.drawImage(dflt, s.x + (s.w - dw) / 2, s.y + (s.h - dh) / 2 + Math.sin(t * 0.004) * s.h * 0.02, dw, dh);
       return;
     }
     const size = Math.min(s.w / 1.24, s.h / 1.12) * 0.62;
