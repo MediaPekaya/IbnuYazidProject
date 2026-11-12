@@ -224,11 +224,11 @@
   }
 
   S.addVideo = async function (kind) {
-    const names = { capture: 'Game (Capture Card)', camera: 'Kamera', screen: 'Skrin / Tetingkap', gamepc: 'Game PC' };
+    const names = { capture: 'Game (Capture Card)', camera: 'Kamera', screen: 'Skrin / Tetingkap', gamepc: 'Game PC', display: 'Display Capture' };
     const dw = GS.design.w, dh = GS.design.h;
     const box = kind === 'camera' ? (dw > dh ? [1240, 40, 640, 360] : [640, 80, 400, 400]) : [0, 0, dw, dh];
     // "Game PC": tangkap SATU tetingkap sahaja (Steam, game, pelayar) seperti Window/Game Capture dalam OBS
-    const props = kind === 'gamepc' ? { kind: 'screen', mode: 'window', deviceId: '' } : { kind, deviceId: '' };
+    const props = kind === 'gamepc' ? { kind: 'screen', mode: 'window', deviceId: '' } : kind === 'display' ? { kind: 'screen', mode: 'display', deviceId: '' } : { kind, deviceId: '' };
     const src = mk('video', names[kind], ...box, props);
     src.fit = kind === 'camera' ? 'cover' : 'contain';
     addSource(src);
@@ -546,7 +546,7 @@
   function inlineRename(el, value, done) { GS.inlineEdit(el, value, done, () => changed()); }
 
   /* ---------- UI: sumber ---------- */
-  const typeIcon = (s) => (s.type === 'video' ? (s.props.kind === 'camera' ? 'camera' : 'monitor') : s.type === 'image' || s.type === 'clip' ? 'image' : s.type === 'text' ? 'text' : 'widget');
+  const typeIcon = (s) => (s.type === 'video' ? (s.props.kind === 'camera' ? 'camera' : 'monitor') : s.type === 'image' || s.type === 'clip' || s.type === 'slides' ? 'image' : s.type === 'text' ? 'text' : 'widget');
 
   function renderSources() {
     const root = GS.$('#sourcesBody');
@@ -573,12 +573,15 @@
     add.addEventListener('click', () => popover(add, [
       { label: 'Capture Card (game)', icon: 'monitor', run: () => S.addVideo('capture') },
       { label: 'Kamera / Webcam', icon: 'camera', run: () => S.addVideo('camera') },
+      { label: 'Display Capture (skrin atau tetingkap: game, Google, Steam, Edge)', icon: 'monitor', run: () => S.addVideo('display') },
       { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'monitor', run: () => S.addVideo('gamepc') },
       { label: 'Skrin penuh', icon: 'monitor', run: () => S.addVideo('screen') },
       '-',
       { label: 'Footer Video (video bergerak di bar bawah)', icon: 'image', run: S.addFooterVideo },
       { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'image', run: S.addClip },
       { label: 'Imej', icon: 'image', run: S.addImage },
+      { label: 'Auto Slide (gambar bergilir)', icon: 'image', run: () => GS.slides.openEditor(null) },
+      { label: 'Presentation (PDF / PowerPoint)', icon: 'widget', run: () => GS.deck.openFile(null) },
       { label: 'Teks', icon: 'text', run: S.addText },
       '-',
       { label: 'Widget: Jam & Masa Main', icon: 'widget', run: () => S.addWidget('clock') },
@@ -638,9 +641,10 @@
       const info = rec ? (rec.label || GS.t('Peranti')) + ' · ' + (rec.video.videoWidth || '?') + '×' + (rec.video.videoHeight || '?') : 'Tiada isyarat';
       root.append(h('div', { class: 'prop-info' }, info));
       root.append(h('div', { class: 'btn-row' },
-        h('button', { class: 'btn', onClick: async () => { if (await GS.media.pick(s)) S.afterPick(s); renderProps(); } }, s.props.mode === 'window' ? 'Pilih tetingkap' : s.props.kind === 'screen' ? 'Kongsi skrin' : 'Pilih peranti'),
+        h('button', { class: 'btn', onClick: async () => { if (await GS.media.pick(s)) S.afterPick(s); renderProps(); } }, s.props.mode === 'window' ? 'Pilih tetingkap' : s.props.mode === 'display' ? 'Pilih paparan / tetingkap' : s.props.kind === 'screen' ? 'Kongsi skrin' : 'Pilih peranti'),
         rec ? h('button', { class: 'btn ghost', onClick: () => { GS.media.close(s.id); s.props.deviceId = ''; changed('props:changed'); renderProps(); } }, 'Lepaskan') : null));
     }
+    if (s.type === 'slides' || s.type === 'deck') GS.sources2.props(root, s, renderProps);
     if (s.type === 'text') {
       root.append(field('Teks', h('textarea', { rows: 2, onInput: (e) => { s.props.text = e.target.value; GS.save(); } }, s.props.text || '')));
       root.append(h('div', { class: 'grid2' },

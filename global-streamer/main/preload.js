@@ -25,6 +25,10 @@ contextBridge.exposeInMainWorld('gsNative', {
     enableUpdate: (on) => ipcRenderer.invoke('update:enable', on),
     onUpdate: (cb) => ipcRenderer.on('update:event', (_e, d) => cb(d)),
   },
+  deck: {
+    read: (file) => ipcRenderer.invoke('deck:read', file),
+    convert: (file) => ipcRenderer.invoke('deck:convert', file),
+  },
   tts: {
     fetch: (kind, params) => ipcRenderer.invoke('tts:fetch', kind, params),
     eleven: (op, params) => ipcRenderer.invoke('tts:eleven', op, params),

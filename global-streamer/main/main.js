@@ -10,6 +10,7 @@ const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
 const { fetchTTS, elevenApi } = require('./tts-net');
 const { chat: aiChat, transcribe: aiStt } = require('./ai-net');
+const deck = require('./deck');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -64,6 +65,10 @@ ipcMain.handle('tts:fetch', async (_e, kind, p) => {
   const r = await fetchTTS(kind, p && typeof p === 'object' ? p : {});
   return r.ok ? { ok: true, audio: new Uint8Array(r.audio) } : r;
 });
+
+/* Presentation: baca PDF dan tukar PowerPoint kepada PDF (cache dalam folder data app) */
+ipcMain.handle('deck:read', (_e, file) => deck.readPdf(file));
+ipcMain.handle('deck:convert', (_e, file) => deck.convert(file, path.join(app.getPath('userData'), 'deck-cache')));
 
 ipcMain.handle('ai:stt', (_e, p) => aiStt(p && typeof p === 'object' ? p : {}));
 ipcMain.handle('ai:chat', (_e, p) => aiChat(p && typeof p === 'object' ? p : {}));

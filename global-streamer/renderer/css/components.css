@@ -456,6 +456,12 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .eleven-box[hidden] { display: none; }
 
 .rec-mode { padding-left: 8px; padding-right: 8px; margin-left: -6px; min-width: 0; }
+.sl-editor { display: flex; flex-direction: column; gap: 12px; }
+.sl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 300px; overflow: auto; padding: 4px; }
+.sl-item { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); }
+.sl-item img { display: block; width: 100%; height: 90px; object-fit: cover; }
+.sl-no { position: absolute; left: 6px; top: 6px; min-width: 22px; padding: 1px 7px; border-radius: 99px; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 12px; font-weight: 800; text-align: center; }
+.sl-btns { display: flex; justify-content: center; gap: 4px; padding: 4px; background: rgba(0, 0, 0, 0.3); }
 .ctx-menu { min-width: 190px; z-index: 400; }
 .ctx-menu .pop-item.danger { color: #ff8da1; }
 .strip.music { flex-basis: 170px; }

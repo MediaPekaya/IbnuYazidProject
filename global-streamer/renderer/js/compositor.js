@@ -147,6 +147,8 @@
         case 'text':
           GS.widgets.text(ctx, s.props.text || '', s.x, s.y + (s.props.size || 48), { size: s.props.size || 48, weight: s.props.weight || 700, color: s.props.color || '#eaf4ff', maxW: s.w, shadow: 'rgba(0,0,0,.6)', blur: 6 });
           break;
+        case 'slides': GS.slides.draw(ctx, s, now); break;
+        case 'deck': GS.deck.draw(ctx, s, now); break;
         case 'color':
           ctx.fillStyle = s.props.color || '#000';
           ctx.fillRect(s.x, s.y, s.w, s.h);
