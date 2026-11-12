@@ -18,7 +18,7 @@
     const st = GS.state;
     st.mode = mode;
     // Mod Studio: pratonton bermula SAMA dengan program; ia hanya berubah bila pengguna klik scene lain
-    if (mode === 'studio') st.previewId = st.programId;
+    if (mode === 'studio') { st.previewId = st.programId; if (GS.scenes.dropDrafts) GS.scenes.dropDrafts(); }
     $('#screens').className = 'screens ' + mode;
     $$('#modeSwitch button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
     $('#modeSwitch').dataset.mode = mode;
@@ -160,6 +160,7 @@
     try { const mb = GS.$('#metaBody'); if (mb) GS.gamedock.metaPage(mb); } catch (e) { console.error(e); }
     try { GS.scenes.seedMetaBoard(); } catch (e) { console.error(e); }
     try { GS.scenes.seedBots(); } catch (e) { console.error(e); }
+    try { GS.keys.init(); } catch (e) { console.error(e); }
     GS.live.render();
     A.setMode(GS.state.mode);
     bindHotkeys();

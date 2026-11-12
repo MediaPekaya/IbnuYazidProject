@@ -4,13 +4,29 @@
   const { h, icon } = { h: GS.h, icon: GS.icon };
   const S = (GS.scenes = {});
   let selectedId = null;
+  let drafts = {};   // draf Pratonton (Mod Studio), tidak disimpan ke storan
 
   /* ---------- akses ---------- */
   const st = () => GS.state;
   const byId = (id) => st().scenes.find((s) => s.id === id);
   S.all = () => st().scenes;
   S.program = () => byId(st().programId) || st().scenes[0];
-  S.preview = () => byId(st().previewId) || S.program();
+  /* Mod Studio: Pratonton ialah DRAF (salinan) scene. Apa sahaja yang disunting/ditambah di Pratonton tidak masuk Program
+   * sehingga butang Peralihan ditekan. Setiap scene yang dipratonton menyimpan drafnya sendiri. */
+  S.draftOf = (sc) => {
+    if (!sc) return sc;
+    if (!drafts[sc.id]) drafts[sc.id] = Object.assign({}, sc, { sources: GS.clone(sc.sources) });
+    return drafts[sc.id];
+  };
+  S.dropDrafts = () => { drafts = {}; };
+  S.getDrafts = () => drafts;
+  S.setDrafts = (d) => { drafts = d || {}; };
+  S.preview = () => {
+    const sc = byId(st().previewId) || S.program();
+    return st().mode === 'studio' ? S.draftOf(sc) : sc;
+  };
+  /** scene sebenar atau drafnya (Studio, scene yang sedang dipratonton) */
+  const sceneForEdit = (id) => { const sc = byId(id); return sc && st().mode === 'studio' && id === st().previewId ? S.draftOf(sc) : sc; };
   S.editTarget = () => (st().mode === 'studio' ? S.preview() : S.program());
   S.selectedSource = () => { const sc = S.editTarget(); return sc && sc.sources.find((x) => x.id === selectedId); };
   S.selectedId = () => selectedId;
@@ -89,7 +105,7 @@
     const game = GS.games[st().game];
     const tpl = game && game.templates.find((t) => t.id === tplId);
     if (!tpl) return null;
-    let sc = sceneId ? byId(sceneId) : null;
+    let sc = sceneId ? sceneForEdit(sceneId) : null;
     const fresh = tpl.build();
     const old = sc ? sc.sources : [];
     const pool = old.filter((o) => o.type === 'video');
@@ -141,6 +157,7 @@
     st().scenes = st().scenes.filter((s) => s.id !== id);
     if (st().programId === id) st().programId = st().scenes[0].id;
     if (st().previewId === id) st().previewId = st().scenes[0].id;
+    delete drafts[id];
     selectedId = null;
     changed();
   };
@@ -168,12 +185,31 @@
 
   S.doTransition = function () {
     if (st().mode !== 'studio') return;
-    const pv = S.preview(), pg = S.program();
-    if (!pv || pv === pg) { GS.toast('Pilih scene lain dalam Pratonton dahulu.', 'info'); return; }
+    const draft = S.preview(), pg = S.program();
+    const target = byId(st().previewId) || pg;
+    if (!draft || !target) return;
+    const same = target === pg;
+    // tiada perubahan dan scene sama dengan Program: tiada apa untuk dialihkan
+    if (same && JSON.stringify(draft.sources) === JSON.stringify(pg.sources)) { GS.toast(GS.t('Tiada perubahan untuk dialihkan. Sunting Pratonton atau pilih scene lain.'), 'info'); return; }
+    // rakaman keadaan Program sebelum ini untuk animasi peralihan (susunan sumber lama kekal pada objek ini)
+    const before = Object.assign({}, pg);
+    // Peralihan: draf menjadi scene sebenar (id sumber dikekalkan supaya kamera/capture tidak terputus)
+    const dropped = target.sources.filter((o) => !draft.sources.some((n) => n.id === o.id));
+    target.sources = draft.sources;
+    dropped.forEach((o) => { if (!st().scenes.some((x) => x.sources.some((y) => y.id === o.id))) { GS.media.close(o.id); if (o.type === 'clip') GS.media.removeClip(o.id); } });
+    ['name', 'theme', 'fxStyle', 'fxAnchor', 'alertY', 'templateId'].forEach((k) => { if (draft[k] !== undefined) target[k] = draft[k]; });
+    delete drafts[target.id];
     const oldProgramId = pg.id;
-    S.setProgram(pv.id);
-    // tukar tempat seperti OBS: scene yang tadi dilihat penonton kini di Pratonton (kiri), scene baharu di Program (kanan)
-    st().previewId = oldProgramId;
+    if (same) {
+      const stg = st().settings, prog = GS.app && GS.app.programComp;
+      if (prog && stg.transition !== 'cut') prog.startTransition(before, target, stg.transition, stg.transitionMs);
+    } else {
+      S.setProgram(target.id);
+      // tukar tempat seperti OBS: scene yang tadi dilihat penonton kini di Pratonton (kiri), scene baharu di Program (kanan)
+      st().previewId = oldProgramId;
+    }
+    selectedId = null;
+    GS.toast(GS.t('Dialihkan ke Program.'), 'ok');
     changed();
   };
 
@@ -447,8 +483,9 @@
     const sc = S.editTarget();
     const s = sc.sources.find((x) => x.id === id);
     if (!s) return;
-    GS.media.close(s.id);
-    if (s.type === 'clip') GS.media.removeClip(s.id);
+    // sumber yang sama mungkin masih dipakai scene sebenar (Program) apabila dipadam dalam draf Pratonton: jangan tutup medianya
+    const stillUsed = st().scenes.some((o) => o !== sc && o.sources.some((x) => x.id === id));
+    if (!stillUsed) { GS.media.close(s.id); if (s.type === 'clip') GS.media.removeClip(s.id); }
     sc.sources = sc.sources.filter((x) => x.id !== id);
     if (selectedId === id) selectedId = null;
     changed('sources:changed');
@@ -494,6 +531,7 @@
     S.all().forEach((sc) => {
       const isPgm = sc.id === st().programId, isPvw = studio && sc.id === st().previewId;
       const item = h('div', { class: 'list-item' + (isPgm ? ' pgm' : '') + (isPvw ? ' pvw' : ''), tabindex: 0, role: 'button', onClick: () => S.select(sc.id),
+        onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.name'); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && inlineRename(nm, sc.name, (v) => S.rename(sc.id, v)) }, { label: 'Salin scene', run: () => S.duplicate(sc.id) }, '-', { label: 'Padam scene', danger: true, run: () => S.remove(sc.id) }]); },
         onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); S.select(sc.id); } } },
         h('span', { class: 'tag' }, isPgm ? 'PGM' : isPvw ? 'PVW' : ''),
         h('span', { class: 'name', onDblclick: (e) => { e.stopPropagation(); inlineRename(e.currentTarget, sc.name, (v) => S.rename(sc.id, v)); } }, sc.name),
@@ -504,16 +542,8 @@
     });
   }
 
-  function inlineRename(el, value, done) {
-    const inp = h('input', { class: 'inline-input', value });
-    el.replaceWith(inp);
-    inp.focus();
-    inp.select();
-    const finish = (ok) => { if (ok) done(inp.value); else changed(); };
-    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(true); if (e.key === 'Escape') finish(false); });
-    inp.addEventListener('blur', () => finish(true));
-    inp.addEventListener('click', (e) => e.stopPropagation());
-  }
+  // suntingan nama sebaris (ruang/Enter tidak lagi dirampas oleh baris senarai)
+  function inlineRename(el, value, done) { GS.inlineEdit(el, value, done, () => changed()); }
 
   /* ---------- UI: sumber ---------- */
   const typeIcon = (s) => (s.type === 'video' ? (s.props.kind === 'camera' ? 'camera' : 'monitor') : s.type === 'image' || s.type === 'clip' ? 'image' : s.type === 'text' ? 'text' : 'widget');
@@ -527,7 +557,8 @@
     if (!sc.sources.length) root.append(h('div', { class: 'empty' }, 'Scene kosong. Tekan + untuk tambah sumber.'));
     for (let i = sc.sources.length - 1; i >= 0; i--) {
       const s = sc.sources[i];
-      root.append(h('div', { class: 'list-item' + (s.id === selectedId ? ' sel' : '') + (s.visible ? '' : ' off'), tabindex: 0, role: 'button', onClick: () => S.selectSource(s.id),
+      root.append(h('div', { class: 'list-item' + (s.id === selectedId ? ' sel' : '') + (s.visible ? '' : ' off'), 'data-sid': s.id, tabindex: 0, role: 'button', onClick: () => S.selectSource(s.id),
+        onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.name'); S.selectSource(s.id); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && inlineRename(nm, s.name, (v) => { s.name = v.trim() || s.name; changed('sources:changed'); }) }, { label: 'Salin (Ctrl+C)', run: () => GS.keys.copy() }, { label: 'Tampal (Ctrl+V)', run: () => GS.keys.paste() }, '-', { label: s.locked ? 'Buka kunci' : 'Kunci', run: () => { s.locked = !s.locked; changed('sources:changed'); } }, { label: s.visible ? 'Sembunyi' : 'Papar', run: () => { s.visible = !s.visible; changed('sources:changed'); } }, '-', { label: 'Padam sumber', danger: true, run: () => S.removeSource(s.id) }]); },
         onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); S.selectSource(s.id); } } },
         h('span', { class: 'ico', html: icon(typeIcon(s), 15) }),
         h('span', { class: 'name', onDblclick: (e) => { e.stopPropagation(); inlineRename(e.currentTarget, s.name, (v) => { s.name = v.trim() || s.name; changed('sources:changed'); }); } }, s.name),
@@ -744,15 +775,4 @@
   };
   S.renderAll = () => { renderScenes(); renderSources(); renderProps(); };
 
-  window.addEventListener('keydown', (e) => {
-    const tag = (e.target.tagName || '').toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-    if (!selectedId) return;
-    const s = S.selectedSource();
-    if (!s) return;
-    if (e.key === 'Delete') { S.removeSource(selectedId); return; }
-    const step = e.shiftKey ? 20 : 2;
-    const mv = { ArrowLeft: ['x', -step], ArrowRight: ['x', step], ArrowUp: ['y', -step], ArrowDown: ['y', step] }[e.key];
-    if (mv && !s.locked) { e.preventDefault(); s[mv[0]] += mv[1]; syncNumbers(); GS.save(); }
-  });
 })();

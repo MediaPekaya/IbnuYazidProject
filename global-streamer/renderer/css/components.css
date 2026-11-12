@@ -452,6 +452,13 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .eleven-box[hidden] { display: none; }
 
 .rec-mode { padding-left: 8px; padding-right: 8px; margin-left: -6px; min-width: 0; }
+.ctx-menu { min-width: 190px; z-index: 400; }
+.ctx-menu .pop-item.danger { color: #ff8da1; }
+.strip.music { flex-basis: 170px; }
+.music-box { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.music-title { font-size: 11px; color: var(--cyan); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.music-ctl { display: flex; gap: 6px; justify-content: center; }
+.list-item.multi { outline: 2px solid var(--cyan); outline-offset: -2px; background: rgba(46, 168, 255, 0.16); }
 .popover.rec-pop { min-width: 340px; max-width: 380px; padding: 8px; border-radius: 18px; background: #ffffff; color: #000000; border: 1px solid #d5dbe8; backdrop-filter: none; box-shadow: 0 24px 70px rgba(15, 25, 60, 0.28), 0 2px 8px rgba(15, 25, 60, 0.12);
   transform-origin: top right; opacity: 0; transform: translateY(-8px) scale(0.92); filter: blur(5px);
   transition: opacity 0.26s cubic-bezier(0.32, 0.72, 0, 1), transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), filter 0.3s cubic-bezier(0.32, 0.72, 0, 1); }

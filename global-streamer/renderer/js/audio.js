@@ -53,13 +53,101 @@
 
   /* ---------- saluran ---------- */
   function persist() {
-    GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, vol: c.vol, muted: c.muted }));
+    GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, vol: c.vol, muted: c.muted,
+      // lagu sendiri: hanya laluan fail (app Windows) disimpan; URL sementara pelayar tidak kekal
+      tracks: c.kind === 'music' ? (c.tracks || []).filter((t) => t.path).map((t) => ({ name: t.name, path: t.path })) : undefined, idx: c.kind === 'music' ? (c.idx || 0) : undefined, loop: c.kind === 'music' ? c.loop !== false : undefined }));
     GS.save();
   }
 
   function makeChannel(cfg) {
     return Object.assign({ id: GS.uid('ch'), label: 'Input', kind: 'input', deviceId: '', vol: 0.8, muted: false, node: null, gain: null, analyser: null, stream: null, level: 0 }, cfg);
   }
+
+  /* ---------- lagu sendiri (daripada PC / laptop) ---------- */
+  const trackUrl = (t) => t.url || (t.path ? GS.media.clipFileUrl(t.path) : '');
+  function attachMusic(ch) {
+    if (!A.ctx || ch.el) return;
+    const el = new Audio();
+    el.preload = 'auto';
+    el.addEventListener('ended', () => A.musicNext(ch.id, true));
+    el.addEventListener('play', () => { ch.playing = true; GS.emit('audio:changed'); });
+    el.addEventListener('pause', () => { ch.playing = false; GS.emit('audio:changed'); });
+    ch.el = el;
+    ch.node = A.ctx.createMediaElementSource(el);
+    ch.node.connect(ch.gain);
+    // penonton mendengar melalui siaran; streamer mendengar melalui pembesar suara / fon kepala
+    ch.mon = A.ctx.createGain();
+    ch.gain.connect(ch.mon);
+    ch.mon.connect(A.ctx.destination);
+    if (ch.tracks && ch.tracks[ch.idx || 0]) el.src = trackUrl(ch.tracks[ch.idx || 0]);
+  }
+  /** Tambah saluran lagu baharu dan buka tetingkap pilih fail (folder komputer). */
+  A.addMusic = function () {
+    A.ensure();
+    const ch = makeChannel({ label: GS.t('Lagu {0}', A.channels.filter((c) => c.kind === 'music').length + 1), kind: 'music', vol: 0.6, tracks: [], idx: 0, loop: true });
+    A.channels.push(ch);
+    connectChannel(ch);
+    persist();
+    GS.emit('audio:changed');
+    A.musicPick(ch.id);
+  };
+  A.musicPick = function (id) {
+    const ch = A.channels.find((c) => c.id === id);
+    if (!ch) return;
+    const inp = GS.h('input', { type: 'file', accept: 'audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac', multiple: true, style: { display: 'none' } });
+    inp.addEventListener('change', () => {
+      const files = Array.from(inp.files || []);
+      if (!files.length) return;
+      const first = !ch.tracks.length;
+      files.forEach((f) => {
+        const path = window.gsNative && window.gsNative.pathOf ? window.gsNative.pathOf(f) : '';
+        ch.tracks.push({ name: f.name.replace(/\.[^.]+$/, ''), path: path || '', url: path ? '' : URL.createObjectURL(f) });
+      });
+      if (first) { ch.idx = 0; if (ch.el) ch.el.src = trackUrl(ch.tracks[0]); }
+      persist();
+      GS.emit('audio:changed');
+      GS.toast(GS.t('{0} lagu ditambah.', files.length), 'ok');
+      if (first) A.musicToggle(id);
+    });
+    document.body.append(inp);
+    inp.click();
+    setTimeout(() => inp.remove(), 60000);
+  };
+  A.musicToggle = function (id) {
+    const ch = A.channels.find((c) => c.id === id);
+    if (!ch || !ch.el) return;
+    A.ensure();
+    if (!ch.tracks.length) { A.musicPick(id); return; }
+    if (!ch.el.src) ch.el.src = trackUrl(ch.tracks[ch.idx || 0]);
+    if (ch.el.paused) ch.el.play().catch(() => GS.toast(GS.t('Lagu tidak dapat dimainkan. Cuba fail lain.'), 'warn')); else ch.el.pause();
+  };
+  A.musicNext = function (id, auto) {
+    const ch = A.channels.find((c) => c.id === id);
+    if (!ch || !ch.el || !ch.tracks.length) return;
+    let n = (ch.idx || 0) + 1;
+    if (n >= ch.tracks.length) { if (auto && ch.loop === false) { ch.playing = false; GS.emit('audio:changed'); return; } n = 0; }
+    ch.idx = n;
+    ch.el.src = trackUrl(ch.tracks[n]);
+    ch.el.play().catch(() => {});
+    persist();
+    GS.emit('audio:changed');
+  };
+  A.musicPrev = function (id) {
+    const ch = A.channels.find((c) => c.id === id);
+    if (!ch || !ch.el || !ch.tracks.length) return;
+    ch.idx = ((ch.idx || 0) - 1 + ch.tracks.length) % ch.tracks.length;
+    ch.el.src = trackUrl(ch.tracks[ch.idx]);
+    ch.el.play().catch(() => {});
+    persist();
+    GS.emit('audio:changed');
+  };
+  A.rename = function (id, name) {
+    const ch = A.channels.find((c) => c.id === id);
+    if (!ch || !name || !name.trim()) return;
+    ch.label = name.trim();
+    persist();
+    GS.emit('audio:changed');
+  };
 
   function connectChannel(ch) {
     if (!A.ctx) return;
@@ -76,12 +164,13 @@
       ch.analyser.connect(A.master);
     }
     ch.gain.gain.value = ch.muted ? 0 : ch.vol;
+    if (ch.kind === 'music') attachMusic(ch);
   }
 
   A.channelsInit = function () {
     const saved = GS.state.audio.channels;
     if (saved && saved.length) {
-      A.channels = saved.map(makeChannel);
+      A.channels = saved.map((c) => makeChannel(c.kind === 'music' ? Object.assign({}, c, { tracks: c.tracks || [], idx: c.idx || 0 }) : c));
     } else {
       A.channels = [
         makeChannel({ id: 'ch_mic', label: 'Mikrofon', kind: 'input' }),
@@ -169,6 +258,8 @@
     const ch = A.channels.find((c) => c.id === id);
     if (!ch || ch.kind === 'sfx') return;
     if (ch.stream) ch.stream.getTracks().forEach((t) => t.stop());
+    if (ch.el) { try { ch.el.pause(); ch.el.removeAttribute('src'); ch.el.load(); } catch (e) { /* abaikan */ } }
+    try { ch.mon && ch.mon.disconnect(); } catch (e) { /* abaikan */ }
     try { ch.node && ch.node.disconnect(); ch.gain && ch.gain.disconnect(); ch.analyser && ch.analyser.disconnect(); } catch (e) { /* abaikan */ }
     A.channels = A.channels.filter((c) => c !== ch);
     persist();
@@ -275,10 +366,11 @@
     root.innerHTML = '';
     A.channels.forEach((ch) => {
       const meter = GS.h('div', { class: 'meter' }, GS.h('i', { dataset: { meter: ch.id } }));
-      const connected = ch.kind === 'sfx' || !!ch.stream;
-      const strip = GS.h('div', { class: 'strip' + (ch.muted ? ' muted' : '') + (connected ? '' : ' idle') },
+      const connected = ch.kind === 'sfx' || ch.kind === 'music' || !!ch.stream;
+      const strip = GS.h('div', { class: 'strip' + (ch.muted ? ' muted' : '') + (connected ? '' : ' idle') + (ch.kind === 'music' ? ' music' : ''),
+        onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.strip-name'); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && GS.inlineEdit(nm, ch.label, (v) => A.rename(ch.id, v), () => A.renderMixer()) }].concat(ch.kind === 'music' ? [{ label: 'Tambah lagu', run: () => A.musicPick(ch.id) }] : []).concat(ch.kind !== 'sfx' ? ['-', { label: 'Buang saluran', danger: true, run: () => A.remove(ch.id) }] : [])); } },
         GS.h('div', { class: 'strip-head' },
-          GS.h('span', { class: 'strip-name', title: ch.label }, ch.label),
+          GS.h('span', { class: 'strip-name', title: GS.t('Klik dua kali atau klik kanan untuk namakan semula') + ': ' + ch.label, onDblclick: (e) => GS.inlineEdit(e.currentTarget, ch.label, (v) => A.rename(ch.id, v), () => A.renderMixer()) }, ch.label),
           ch.kind !== 'sfx' ? GS.h('button', { class: 'icon-btn sm', title: 'Buang saluran', onClick: () => A.remove(ch.id), html: GS.icon('x', 14) }) : null),
         GS.h('div', { class: 'strip-body' },
           meter,
@@ -289,12 +381,21 @@
           GS.h('button', { class: 'icon-btn' + (ch.muted ? ' on' : ''), title: ch.muted ? 'Nyahbisu' : 'Bisu', onClick: () => A.toggleMute(ch.id), html: GS.icon(ch.muted ? 'mute' : 'volume', 16) })),
         ch.kind === 'input'
           ? GS.h('button', { class: 'btn tiny', onClick: () => A.pickDevice(ch.id) }, ch.stream ? 'Tukar input' : 'Pilih input')
-          : ch.kind === 'sfx' ? GS.h('div', { class: 'strip-note' }, 'Dalaman') : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
+          : ch.kind === 'sfx' ? GS.h('div', { class: 'strip-note' }, 'Dalaman')
+          : ch.kind === 'music' ? GS.h('div', { class: 'music-box' },
+              GS.h('div', { class: 'music-title', title: (ch.tracks[ch.idx || 0] || {}).name || '' }, (ch.tracks[ch.idx || 0] || {}).name || GS.t('Tiada lagu')),
+              GS.h('div', { class: 'music-ctl' },
+                GS.h('button', { class: 'icon-btn sm', title: GS.t('Lagu sebelum'), onClick: () => A.musicPrev(ch.id), html: GS.icon('up', 14) }),
+                GS.h('button', { class: 'icon-btn sm' + (ch.playing ? ' on' : ''), title: ch.playing ? GS.t('Jeda') : GS.t('Main'), onClick: () => A.musicToggle(ch.id), html: ch.playing ? '&#10074;&#10074;' : '&#9654;' }),
+                GS.h('button', { class: 'icon-btn sm', title: GS.t('Lagu seterusnya'), onClick: () => A.musicNext(ch.id), html: GS.icon('down', 14) })),
+              GS.h('button', { class: 'btn tiny', onClick: () => A.musicPick(ch.id) }, '+ ' + GS.t('Tambah lagu')))
+          : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
       root.append(strip);
     });
     if (GS.voiceui) root.append(GS.voiceui.strip());
     root.append(GS.h('div', { class: 'mixer-add' },
       GS.h('button', { class: 'btn ghost', onClick: A.addInput, html: GS.icon('plus', 14) + ' ' + GS.t('Input') }),
+      GS.h('button', { class: 'btn ghost', onClick: A.addMusic, html: GS.icon('plus', 14) + ' ' + GS.t('Lagu') }),
       GS.h('button', { class: 'btn ghost', onClick: A.connectDisplayAudio, html: GS.icon('monitor', 14) + ' ' + GS.t('Audio skrin') })));
   };
 
