@@ -45,7 +45,15 @@
     document.body.append(g);
     return g;
   }
-  const rect = (id) => { const d = el(id); return d && d.offsetParent !== null ? d.getBoundingClientRect() : null; };
+  /* Kedudukan elemen SEBENAR (tanpa transform/animasi). getBoundingClientRect() terjejas oleh animasi buka tetingkap dan
+   * pergerakan #app, sehingga pemisah biru tersalah letak (di atas Audio / Template) bila app baru dibuka. */
+  const lr = (d) => {
+    let x = 0, y = 0;
+    for (let e = d; e; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; }
+    const w = d.offsetWidth, hh = d.offsetHeight;
+    return { left: x, top: y, width: w, height: hh, right: x + w, bottom: y + hh };
+  };
+  const rect = (id) => { const d = el(id); return d && d.offsetParent !== null ? lr(d) : null; };
 
   Y.build = function () {
     Y.gutters.forEach((g) => g.el.remove());
@@ -92,10 +100,10 @@
           if (m === 'port') { x = (rect('dockMixer') || { left: 0 }).left; w = right2 - x; }
         } else if (g.kind === 'right-v') {
           if (!stage || !right || right.offsetParent === null) { g.el.style.display = 'none'; return; }
-          const A = stage.getBoundingClientRect(), B = right.getBoundingClientRect();
+          const A = lr(stage), B = lr(right);
           x = (A.right + B.left) / 2 - 4; y = B.top; w = 8; hh = B.height;
         } else if (g.kind === 'left-v') {
-          const A = rect('dockScenes'), S2 = stage && stage.getBoundingClientRect();
+          const A = rect('dockScenes'), S2 = stage && lr(stage);
           if (!A || !S2) { g.el.style.display = 'none'; return; }
           x = (A.right + S2.left) / 2 - 4; y = A.top; w = 8; hh = (rect('dockProps') || A).bottom - A.top;
         }
@@ -126,7 +134,7 @@
   function snapshot(g) {
     const L = st();
     const s = { dockH: (rect('dockMixer') || rect('dockScenes') || { height: 220 }).height, rightW: (el('right') && el('right').offsetWidth) || 0, leftW: (el('dockLeft') && el('dockLeft').offsetWidth) || 0 };
-    if (g.kind === 'dock-v' || g.kind === 'left-h') { const A = el(g.a).getBoundingClientRect(), B = el(g.b).getBoundingClientRect(); s.A = g.kind === 'dock-v' ? A.width : A.height; s.B = g.kind === 'dock-v' ? B.width : B.height; s.fa = L.f[g.a]; s.fb = L.f[g.b]; }
+    if (g.kind === 'dock-v' || g.kind === 'left-h') { const A = lr(el(g.a)), B = lr(el(g.b)); s.A = g.kind === 'dock-v' ? A.width : A.height; s.B = g.kind === 'dock-v' ? B.width : B.height; s.fa = L.f[g.a]; s.fb = L.f[g.b]; }
     return s;
   }
   function dragTo(g, s, dx, dy) {
@@ -220,6 +228,11 @@
     Y.apply(); Y.build(); Y.place();
     new ResizeObserver(() => Y.place()).observe(el('app') || document.body);
     window.addEventListener('resize', () => Y.place());
+    // pastikan kedudukan betul selepas animasi buka, muat fon dan susun atur selesai
+    ['animationend', 'transitionend'].forEach((ev) => document.addEventListener(ev, () => Y.place(), true));
+    window.addEventListener('load', () => Y.place());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => Y.place());
+    [60, 300, 800, 1600].forEach((ms) => setTimeout(() => Y.place(), ms));
     GS.on('format:changed', () => { Y.apply(); Y.build(); Y.place(); });
     GS.on('popout:changed', () => setTimeout(() => { Y.build(); Y.place(); }, 60));
   };

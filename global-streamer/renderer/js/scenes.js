@@ -552,7 +552,84 @@
   function inlineRename(el, value, done) { GS.inlineEdit(el, value, done, () => changed()); }
 
   /* ---------- UI: sumber ---------- */
-  const typeIcon = (s) => (s.type === 'video' ? (s.props.kind === 'camera' ? 'camera' : 'monitor') : s.type === 'image' || s.type === 'clip' || s.type === 'slides' ? 'image' : s.type === 'text' ? 'text' : 'widget');
+  /* ikon berbeza untuk setiap jenis sumber (merujuk kepada sumber yang dipilih) */
+  const WIDGET_ICON = { clock: 'clock', winloss: 'scale', logo: 'hex', brand: 'typeA', ticker: 'ticker', frame: 'frame', metaboard: 'barchart', matchboard: 'sword', resultsboard: 'trophy',
+    promo: 'megaphone', bot: 'bot', queue: 'list', boss: 'skull', toplike: 'heart', statusbar: 'activity', spelltimer: 'timer', draft: 'draft', label: 'tag', tiers: 'layers' };
+  const typeIcon = (s) => {
+    if (s.type === 'video') {
+      const k = s.props.kind;
+      if (k === 'camera') return 'camera';
+      if (k === 'capture') return 'capture';
+      if (k === 'screen') return s.props.mode === 'display' ? 'cast' : 'monitor';
+      return 'monitor';
+    }
+    if (s.type === 'image') return 'image';
+    if (s.type === 'clip') return 'film';
+    if (s.type === 'slides') return 'images';
+    if (s.type === 'deck') return 'deck';
+    if (s.type === 'text') return 'text';
+    return WIDGET_ICON[s.props && s.props.widget] || 'widget';
+  };
+  let lastDragEnd = 0;
+  /** Tahan dan seret baris sumber ke atas / bawah untuk menyusun semula (gerakan lembut; tiada keperluan menekan anak panah). */
+  function bindSourceDrag(root, sc) {
+    const rows = Array.from(root.querySelectorAll('.list-item[data-sid]'));
+    rows.forEach((row) => {
+      row.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || e.target.closest('button, input, select, textarea')) return;
+        const startY = e.clientY, idx0 = rows.indexOf(row), scroll0 = root.scrollTop;
+        const tops = rows.map((r) => r.offsetTop), hts = rows.map((r) => r.offsetHeight);
+        const step = rows.length > 1 ? Math.abs(tops[1] - tops[0]) : hts[0];
+        let dragging = false, target = idx0, raf = 0, lastY = startY;
+        const apply = () => {
+          const dy = lastY - startY + (root.scrollTop - scroll0);
+          row.style.transform = 'translateY(' + dy + 'px)';
+          const center = tops[idx0] + hts[idx0] / 2 + dy;
+          target = rows.findIndex((_, i) => center < tops[i] + hts[i] / 2);
+          if (target < 0) target = rows.length - 1;
+          rows.forEach((r, i) => {
+            if (r === row) return;
+            let shift = 0;
+            if (idx0 < target && i > idx0 && i <= target) shift = -step; else if (idx0 > target && i < idx0 && i >= target) shift = step;
+            r.style.transform = shift ? 'translateY(' + shift + 'px)' : '';
+          });
+        };
+        const edge = () => {
+          if (!dragging) return;
+          const rc = root.getBoundingClientRect();
+          if (lastY < rc.top + 28) root.scrollTop -= 8; else if (lastY > rc.bottom - 28) root.scrollTop += 8;
+          apply();
+          raf = requestAnimationFrame(edge);
+        };
+        const move = (ev) => {
+          lastY = ev.clientY;
+          if (!dragging) {
+            if (Math.abs(lastY - startY) < 6) return;
+            dragging = true; row.classList.add('dragging'); root.classList.add('reordering');
+            try { row.setPointerCapture(ev.pointerId); } catch (e2) { /* abaikan */ }
+            raf = requestAnimationFrame(edge);
+          }
+          apply();
+        };
+        const up = () => {
+          document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
+          cancelAnimationFrame(raf);
+          if (!dragging) return;
+          lastDragEnd = Date.now();
+          row.classList.remove('dragging'); root.classList.remove('reordering');
+          if (target !== idx0) {
+            // baris dipaparkan dari atas ke bawah = sumber dari lapisan atas ke bawah
+            const order = rows.map((r) => r.dataset.sid);
+            const moved = order.splice(idx0, 1)[0]; order.splice(target, 0, moved);
+            const byId = {}; sc.sources.forEach((x) => { byId[x.id] = x; });
+            sc.sources = order.slice().reverse().map((id) => byId[id]).filter(Boolean);
+            changed('sources:changed'); GS.emit('scenes:changed');
+          } else { rows.forEach((r) => { r.style.transform = ''; }); row.style.transform = ''; }
+        };
+        document.addEventListener('pointermove', move); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+      });
+    });
+  }
 
   function renderSources() {
     const root = GS.$('#sourcesBody');
@@ -563,7 +640,7 @@
     if (!sc.sources.length) root.append(h('div', { class: 'empty' }, 'Scene kosong. Tekan + untuk tambah sumber.'));
     for (let i = sc.sources.length - 1; i >= 0; i--) {
       const s = sc.sources[i];
-      root.append(h('div', { class: 'list-item' + (s.id === selectedId ? ' sel' : '') + (s.visible ? '' : ' off'), 'data-sid': s.id, tabindex: 0, role: 'button', onClick: () => S.selectSource(s.id),
+      root.append(h('div', { class: 'list-item' + (s.id === selectedId ? ' sel' : '') + (s.visible ? '' : ' off'), 'data-sid': s.id, tabindex: 0, role: 'button', onClick: () => { if (Date.now() - lastDragEnd < 250) return; S.selectSource(s.id); },
         onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.name'); S.selectSource(s.id); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && inlineRename(nm, s.name, (v) => { s.name = v.trim() || s.name; changed('sources:changed'); }) }, { label: 'Salin (Ctrl+C)', run: () => GS.keys.copy() }, { label: 'Tampal (Ctrl+V)', run: () => GS.keys.paste() }, '-', { label: s.locked ? 'Buka kunci' : 'Kunci', run: () => { s.locked = !s.locked; changed('sources:changed'); } }, { label: s.visible ? 'Sembunyi' : 'Papar', run: () => { s.visible = !s.visible; changed('sources:changed'); } }, '-', { label: 'Padam sumber', danger: true, run: () => S.removeSource(s.id) }]); },
         onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); S.selectSource(s.id); } } },
         h('span', { class: 'ico', html: icon(typeIcon(s), 15) }),
@@ -572,6 +649,7 @@
           h('button', { class: 'icon-btn sm' + (s.locked ? ' on' : ''), title: s.locked ? 'Buka kunci' : 'Kunci', onClick: (e) => { e.stopPropagation(); s.locked = !s.locked; changed('sources:changed'); }, html: icon(s.locked ? 'lock' : 'unlock', 14) }),
           h('button', { class: 'icon-btn sm', title: s.visible ? 'Sembunyi' : 'Papar', onClick: (e) => { e.stopPropagation(); s.visible = !s.visible; changed('sources:changed'); }, html: icon(s.visible ? 'eye' : 'eyeoff', 14) }))));
     }
+    bindSourceDrag(root, sc);
   }
 
   function setupSourceToolbar() {

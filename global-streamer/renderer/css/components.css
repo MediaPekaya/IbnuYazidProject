@@ -573,3 +573,12 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .lb-val.red { color: #ff4b5c; }
 .lb-val.yellow { color: #ffd24a; }
 .lb-row.gap { padding-bottom: 6px; border-bottom: 1px solid rgba(150, 158, 176, 0.45); margin-bottom: 2px; }
+
+/* label PGM / PVW: tulisan tepat di tengah bulatan, tidak melimpah */
+.list-item .tag { width: auto; min-width: 36px; height: 22px; padding: 0 7px; box-sizing: border-box; display: inline-grid; place-items: center; text-align: center; line-height: 1; letter-spacing: 0.04em; white-space: nowrap; overflow: visible; flex: none; }
+.list-item .tag:empty { min-width: 36px; }
+/* susun semula sumber dengan seret: gerakan lembut */
+#sourcesBody .list-item { touch-action: none; cursor: grab; }
+#sourcesBody .list-item.dragging { cursor: grabbing; z-index: 5; position: relative; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32); transition: box-shadow 0.25s var(--ease); }
+#sourcesBody.reordering .list-item:not(.dragging) { transition: transform 0.28s var(--ease); }
+#sourcesBody.reordering { user-select: none; }
