@@ -519,9 +519,11 @@
       h('button', { class: 'pop-item', role: 'menuitem', onClick: () => { close(); e.run(); }, html: icon(e.icon || 'plus', 16) + '<span>' + GS.escapeHtml(GS.t(e.label)) + '</span>' })));
     document.body.append(pop);
     const r = anchor.getBoundingClientRect();
+    // menu panjang (banyak sumber): hadkan tinggi mengikut skrin dan benarkan skrol, jangan terpotong di atas
+    pop.style.maxHeight = (window.innerHeight - 16) + 'px';
     const pr = pop.getBoundingClientRect();
     pop.style.left = Math.min(window.innerWidth - pr.width - 8, Math.max(8, r.left)) + 'px';
-    pop.style.top = Math.max(8, r.top - pr.height - 8) + 'px';
+    pop.style.top = Math.max(8, Math.min(r.top - pr.height - 8, window.innerHeight - pr.height - 8)) + 'px';
     requestAnimationFrame(() => pop.classList.add('in'));
     function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 200); document.removeEventListener('pointerdown', away, true); }
     function away(ev) { if (!pop.contains(ev.target)) close(); }

@@ -582,3 +582,7 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 #sourcesBody .list-item.dragging { cursor: grabbing; z-index: 5; position: relative; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32); transition: box-shadow 0.25s var(--ease); }
 #sourcesBody.reordering .list-item:not(.dragging) { transition: transform 0.28s var(--ease); }
 #sourcesBody.reordering { user-select: none; }
+
+/* menu timbul panjang boleh diskrol (cth tambah sumber): tidak terpotong dan tidak tersekat */
+.popover { max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; scrollbar-gutter: stable; }
+#scenesBody, #sourcesBody { overflow-y: auto; overscroll-behavior: contain; }
