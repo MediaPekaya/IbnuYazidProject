@@ -257,7 +257,12 @@
     C.push({ platform: ev.platform, user: ev.user, type: ev.type, text: ev.text, ts: ev.ts || Date.now(), count: ev.count, value: ev.value, noalert: true });
     if (quiet) return;
     if (ev.type === 'follow') alertNow({ title: 'Terima kasih follow', name: '@' + ev.user, sound: true });
-    else if (ev.type === 'gift') { alertNow({ title: 'Terima kasih gift', name: '@' + ev.user + (ev.text ? ' · ' + ev.text : ''), sound: true }); GS.bossHit((ev.value || ev.count || 1) * 25); }
+    else if (ev.type === 'gift') {
+      // gift: pop-up; gift mahal (nilai jumlah >= had, lalai 100 syiling) = cahaya skrin penuh
+      const total = Number(ev.value) || Number(ev.count) || 1, limit = Number(GS.state.giftBigAt) || 100;
+      GS.fx.trigger(total >= limit ? 'giftbig' : 'gift', { user: ev.user, gift: ev.gift || ev.text || 'Gift', count: ev.count || 1 });
+      GS.bossHit((ev.value || ev.count || 1) * 25);
+    }
     else if (ev.type === 'superchat') { alertNow({ title: 'Terima kasih Super Chat', name: '@' + ev.user + (ev.text ? ' · ' + ev.text.split(' · ')[0] : ''), sound: true }); GS.bossHit(Math.max(50, (ev.value || 1) * 100)); }
     else if (ev.type === 'member') alertNow({ title: 'Ahli baharu', name: '@' + ev.user, sound: true });
     GS.save();

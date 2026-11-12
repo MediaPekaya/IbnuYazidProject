@@ -137,7 +137,7 @@
     logo: null,
     sessionStart: Date.now(),
     /* data widget siaran (diedit dalam panel Game; kandungan contoh, ganti dengan data anda) */
-    status: { nowPlaying: '', likeLabel: 'LIKE GOAL', likeCur: 0, likeMax: 200, viewers: 0 },
+    status: { nowPlaying: '', likeLabel: 'HEART ME', likeCur: 0, likeMax: 200, viewers: 0 },
     boss: { enabled: true, name: 'TITAN TURTLE', level: 1, hp: 100000, max: 100000, shieldName: 'PLASMA GLOW', shield: 0, shieldMax: 500000 },
     toplike: [{ name: 'Penonton 1', n: 0 }, { name: 'Penonton 2', n: 0 }, { name: 'Penonton 3', n: 0 }],
     promo: {

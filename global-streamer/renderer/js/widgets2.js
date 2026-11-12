@@ -205,53 +205,76 @@
     ctx.stroke();
   };
 
-  /* ---------- bar status ---------- */
+  /* ---------- bar status: [LIVE] | garis | masa | lagu bergerak | HEART ME (TikTok sahaja) | penonton ---------- */
+  const musicTitle = () => {
+    const A = GS.audio;
+    const ch = A && A.channels ? A.channels.find((c) => c.kind === 'music' && c.playing && c.tracks && c.tracks[c.idx || 0]) : null;
+    return ch ? ch.tracks[ch.idx || 0].name : (GS.state.status.nowPlaying || '');
+  };
   W.statusbar = function (ctx, s, t) {
     const { x, y, w, h } = s;
     const st = GS.state.status;
-    ctx.save();
-    const bg = ctx.createLinearGradient(x, y, x + w, y);
-    bg.addColorStop(0, 'rgba(4,9,24,0.95)');
-    bg.addColorStop(1, 'rgba(26,6,22,0.95)');
-    ctx.fillStyle = bg;
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = W.holoGrad(ctx, x, y + h - 4, w, 4, t);
-    ctx.fillRect(x, y + h - 4, w, 4);
-    ctx.fillStyle = W.holoGrad(ctx, x, y, w, 2, t, 1.2);
-    ctx.globalAlpha = 0.5;
-    ctx.fillRect(x, y, w, 2);
-    ctx.globalAlpha = 1;
     const live = GS.live && GS.live.state === 'live';
-    const pulse = 0.5 + 0.5 * Math.sin(t * 0.006);
-    ctx.fillStyle = live ? 'rgba(255,59,92,' + (0.55 + 0.45 * pulse).toFixed(2) + ')' : 'rgba(150,170,200,0.5)';
-    ctx.beginPath();
-    ctx.arc(x + 22, y + h / 2 - 1, h * 0.14, 0, Math.PI * 2);
-    ctx.fill();
-    W.text(ctx, 'LIVE', x + 40, y + h * 0.66, { size: h * 0.4, weight: 800, spacing: 2, color: live ? C.red : C.muted });
-    const timer = live ? GS.fmtDur((Date.now() - GS.live.startedAt) / 1000) : '00:00:00';
-    W.text(ctx, timer, x + 40 + h * 1.5, y + h * 0.66, { size: h * 0.4, weight: 700, color: C.text });
-    // lagu / catatan
-    let cx = x + h * 4.7;
-    if (st.nowPlaying) {
-      W.glyph(ctx, 'note', cx + 8, y + h * 0.5, h * 0.2, C.cyan);
-      W.text(ctx, st.nowPlaying, cx + h * 0.5, y + h * 0.66, { size: h * 0.36, weight: 600, color: C.text, maxW: w * 0.28 });
-    }
-    // matlamat like
-    const gx = x + w * 0.56, gw = w * 0.26;
-    W.glyph(ctx, 'heart', gx - h * 0.2, y + h * 0.5, h * 0.2, C.red);
-    W.text(ctx, T(st.likeLabel || 'LIKE GOAL'), gx + 8, y + h * 0.5, { size: h * 0.28, weight: 800, spacing: 1.5, color: C.muted, baseline: 'middle', maxW: gw * 0.6 });
-    const pr = clamp((st.likeCur || 0) / Math.max(1, st.likeMax || 1), 0, 1);
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    W.rr(ctx, gx + gw * 0.52, y + h * 0.36, gw * 0.48, h * 0.26, h * 0.13);
-    ctx.fill();
-    if (pr > 0) { ctx.fillStyle = W.holoGrad(ctx, gx, y, gw, h, t); W.rr(ctx, gx + gw * 0.52, y + h * 0.36, Math.max(h * 0.26, gw * 0.48 * pr), h * 0.26, h * 0.13); ctx.fill(); }
-    W.text(ctx, (st.likeCur || 0) + '/' + (st.likeMax || 0), gx + gw + 14, y + h * 0.66, { size: h * 0.36, weight: 800, color: C.text });
-    // penonton
-    if (st.viewers > 0) {
-      W.glyph(ctx, 'eye', x + w - h * 1.5, y + h * 0.5, h * 0.2, C.cyan);
-      W.text(ctx, String(st.viewers), x + w - h * 1.15, y + h * 0.66, { size: h * 0.38, weight: 800, color: C.text });
-    }
+    const tiktok = GS.orient() === 'portrait' || !!(GS.state.platforms && GS.state.platforms.tiktok && GS.state.platforms.tiktok.enabled);
+    ctx.save();
+    ctx.beginPath(); W.rr(ctx, x, y, w, h, h / 2); ctx.clip();
+    const bg = ctx.createLinearGradient(x, y, x + w, y);
+    bg.addColorStop(0, 'rgba(4,9,24,0.94)'); bg.addColorStop(1, 'rgba(22,8,28,0.94)');
+    ctx.fillStyle = bg; ctx.fillRect(x, y, w, h);
     ctx.restore();
+    ctx.save(); W.rr(ctx, x + 1, y + 1, w - 2, h - 2, h / 2); ctx.lineWidth = 2; ctx.strokeStyle = W.holoGrad(ctx, x, y, w, h, t); ctx.stroke(); ctx.restore();
+    const pad = h * 0.14, ph = h - pad * 2, my = y + h / 2;
+    // pil LIVE
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.006);
+    ctx.save(); ctx.font = '900 ' + ph * 0.5 + 'px ' + W.FONT; if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
+    const pw = ctx.measureText('LIVE').width + ph * 1.2;
+    ctx.restore();
+    ctx.save(); W.rr(ctx, x + pad, y + pad, pw, ph, ph / 2);
+    ctx.fillStyle = live ? 'rgb(235,40,70)' : 'rgba(120,135,160,0.75)'; ctx.fill(); ctx.restore();
+    if (live) { ctx.save(); ctx.fillStyle = 'rgba(255,255,255,' + (0.55 + 0.45 * pulse).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(x + pad + ph * 0.42, my, ph * 0.12, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+    W.text(ctx, 'LIVE', x + pad + ph * (live ? 0.7 : 0.6), my + ph * 0.18, { size: ph * 0.5, weight: 900, spacing: 2, color: '#fff' });
+    // garis nipis
+    let cx = x + pad + pw + h * 0.28;
+    ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(cx, y + h * 0.28, 2, h * 0.44);
+    cx += h * 0.28;
+    // masa
+    const timer = live ? GS.fmtDur((Date.now() - GS.live.startedAt) / 1000) : '00:00:00';
+    W.text(ctx, timer, cx, my + ph * 0.18, { size: ph * 0.5, weight: 800, color: C.text });
+    ctx.save(); ctx.font = '800 ' + ph * 0.5 + 'px ' + W.FONT; cx += ctx.measureText('00:00:00').width + h * 0.3; ctx.restore();
+    // kawasan kanan: penonton dan HEART ME
+    let rx = x + w - pad - h * 0.2;
+    if (st.viewers > 0) {
+      const vs = String(st.viewers);
+      ctx.save(); ctx.font = '800 ' + ph * 0.5 + 'px ' + W.FONT; const vw = ctx.measureText(vs).width; ctx.restore();
+      W.text(ctx, vs, rx, my + ph * 0.18, { size: ph * 0.5, weight: 800, align: 'right', color: C.text });
+      W.glyph(ctx, 'eye', rx - vw - h * 0.3, my, h * 0.2, C.cyan);
+      rx -= vw + h * 0.8;
+    }
+    if (tiktok) {
+      const cur = st.likeCur || 0, max = Math.max(1, st.likeMax || 1), pr = clamp(cur / max, 0, 1);
+      const lw = Math.min(w * 0.3, h * 5.4);
+      const lx = rx - lw;
+      ctx.save(); W.rr(ctx, lx, y + pad, lw, ph, ph / 2); ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fill(); ctx.clip();
+      if (pr > 0) { ctx.fillStyle = 'rgba(255,60,110,0.85)'; ctx.fillRect(lx, y + pad, lw * pr, ph); }
+      ctx.restore();
+      W.glyph(ctx, 'heart', lx + ph * 0.55, my, ph * 0.28, '#fff');
+      W.text(ctx, T(!st.likeLabel || st.likeLabel === 'LIKE GOAL' ? 'HEART ME' : st.likeLabel), lx + ph * 1.0, my + ph * 0.17, { size: ph * 0.36, weight: 900, spacing: 0.5, color: '#fff', maxW: lw * 0.42 });
+      W.text(ctx, cur + '/' + (st.likeMax || 0), lx + lw - ph * 0.4, my + ph * 0.17, { size: ph * 0.36, weight: 800, align: 'right', color: '#fff', maxW: lw * 0.34 });
+      rx = lx - h * 0.25;
+    }
+    // tajuk lagu bergerak ke kiri dalam bar yang sama
+    const title = musicTitle();
+    const mx0 = cx, mw = rx - cx - h * 0.1;
+    if (title && mw > h * 1.5) {
+      W.glyph(ctx, 'note', mx0 + h * 0.12, my, h * 0.2, C.cyan);
+      const tx0 = mx0 + h * 0.45, tw = mw - h * 0.45;
+      ctx.save(); ctx.beginPath(); ctx.rect(tx0, y, tw, h); ctx.clip();
+      ctx.font = '700 ' + ph * 0.46 + 'px ' + W.FONT;
+      const txtw = ctx.measureText(title).width, gap = h * 1.6;
+      if (txtw <= tw) W.text(ctx, title, tx0, my + ph * 0.16, { size: ph * 0.46, weight: 700, color: C.text });
+      else { const off = ((t * 0.06) % (txtw + gap)); for (let k = 0; k < 2; k++) W.text(ctx, title, tx0 - off + k * (txtw + gap), my + ph * 0.16, { size: ph * 0.46, weight: 700, color: C.text }); }
+      ctx.restore();
+    }
   };
 
   /* ---------- boss (permainan like/gift) ---------- */

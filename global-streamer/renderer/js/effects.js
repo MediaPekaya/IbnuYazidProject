@@ -524,6 +524,62 @@
     ctx.restore();
   }
 
+  /* ================== GIFT: pop-up (biasa) dan cahaya skrin penuh (gift mahal) ================== */
+  function giftCard(ctx, e, p, now, W, H, big) {
+    const pr = e.params, inP = clamp(easeBack(p / 0.14), 0, 1.15), outP = easeOut((p - 0.84) / 0.16);
+    const w = Math.min(W - 60, big ? 860 : 700), h = big ? 190 : 130;
+    const cx = W / 2, cy = (e.params.y != null ? e.params.y : H * (big ? 0.42 : 0.3)) - outP * 120;
+    const k = (0.6 + 0.4 * inP) * (1 - outP * 0.3);
+    ctx.save();
+    ctx.globalAlpha = 1 - outP;
+    ctx.translate(cx, cy); ctx.scale(k, k);
+    const g = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+    g.addColorStop(0, e.pal.band[0]); g.addColorStop(0.5, e.pal.accent); g.addColorStop(1, e.pal.band[2]);
+    ctx.shadowColor = e.pal.accent; ctx.shadowBlur = big ? 60 : 30;
+    ctx.fillStyle = g; GS.widgets.rr(ctx, -w / 2, -h / 2, w, h, h / 2); ctx.fill();
+    ctx.shadowBlur = 0; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.stroke();
+    // bulatan hadiah
+    const r = h * 0.36, gx = -w / 2 + h * 0.62;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(gx, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = e.pal.accent; ctx.font = '900 ' + r * 1.2 + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('★', gx, 2);
+    const tx = gx + r + 22, tw = w / 2 - tx - 20 + w / 2 - 10;
+    GS.widgets.text(ctx, '@' + (pr.user || 'penonton'), tx, -h * 0.16, { size: h * 0.25, weight: 800, color: '#fff', maxW: tw - (pr.count > 1 ? h * 0.9 : 0) });
+    GS.widgets.text(ctx, GS.tov('hantar') + ' ' + (pr.gift || 'Gift'), tx, h * 0.24, { size: h * 0.26, weight: 900, color: '#fff7c2', maxW: tw - (pr.count > 1 ? h * 0.9 : 0) });
+    if (pr.count > 1) GS.widgets.text(ctx, 'x' + pr.count, w / 2 - h * 0.45, h * 0.12, { size: h * 0.5, weight: 900, align: 'center', color: '#ffe066', shadow: '#000', blur: 10 });
+    ctx.restore();
+  }
+  function drawGift(ctx, e, p, now, W, H) { giftCard(ctx, e, p, now, W, H, false); }
+  function drawGiftBig(ctx, e, p, now, W, H) {
+    const a = Math.sin(clamp(p, 0, 1) * Math.PI);
+    ctx.save();
+    // kilat cahaya skrin penuh
+    const flash = Math.max(0, 1 - p / 0.08);
+    if (flash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (0.7 * flash).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+    // alur cahaya berputar
+    ctx.globalCompositeOperation = 'lighter'; ctx.translate(W / 2, H * 0.42);
+    const R = Math.hypot(W, H);
+    for (let i = 0; i < 14; i++) {
+      const ang = now * 0.0007 + (i * Math.PI * 2) / 14;
+      ctx.save(); ctx.rotate(ang);
+      const g = ctx.createLinearGradient(0, 0, R, 0);
+      g.addColorStop(0, 'rgba(255,255,255,' + (0.38 * a).toFixed(3) + ')'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      if (i % 2) { ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(R, -R * 0.07); ctx.lineTo(R, R * 0.07); ctx.closePath(); ctx.fill(); }
+      ctx.restore();
+    }
+    ctx.restore();
+    // vinjet berwarna
+    ctx.save();
+    const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.hypot(W, H) * 0.6);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, e.pal.accent); ctx.globalAlpha = 0.5 * a; ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    // zarah emas
+    e.parts = e.parts && e.parts.length ? e.parts : Array.from({ length: 70 }, () => ({ x: Math.random() * W, y: H + Math.random() * 200, vy: 2 + Math.random() * 5, s: 3 + Math.random() * 7, ph: Math.random() * 6 }));
+    ctx.save(); ctx.fillStyle = '#ffe066';
+    e.parts.forEach((q) => { q.y -= q.vy; if (q.y < -20) q.y = H + 20; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(now * 0.01 + q.ph); ctx.beginPath(); ctx.arc(q.x, q.y, q.s, 0, Math.PI * 2); ctx.fill(); });
+    ctx.restore();
+    giftCard(ctx, e, p, now, W, H, true);
+  }
+
 
   /* ================== BOT: gelembung komik (cakap) ================== */
   /* Fon komik "Bangers" (SIL OFL, dibundel dalam app: assets/fonts) untuk gelembung bot. Jika gagal dimuat: Comic Sans / sans-serif. */
@@ -899,6 +955,8 @@
     botsay: { dur: 5000, draw: drawBotSay, sfx: 'alert' },
     itemalert: { dur: 4400, draw: drawItemAlert, sfx: 'chest' },
     tierlist: { dur: 9000, draw: drawTierList, sfx: 'alert' },
+    gift: { dur: 3600, draw: drawGift, sfx: 'alert' },
+    giftbig: { dur: 6500, draw: drawGiftBig, sfx: 'victory' },
   };
   FX.names = Object.keys(defs);
   FX.sfxName = (n) => (defs[n] ? defs[n].sfx : '');

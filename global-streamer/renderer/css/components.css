@@ -589,3 +589,8 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .cd-in { width: 100%; }
+.tier-editor{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto}
+.tier-row{display:flex;gap:8px;align-items:flex-start}
+.tier-lab{min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:#10131c;font-style:italic}
+.tier-chips{display:flex;flex-wrap:wrap;gap:4px}
+.tier-chip{padding:3px 8px;border-radius:999px;border:1px solid var(--line,#456);background:transparent;color:inherit;font-size:12px;cursor:pointer}

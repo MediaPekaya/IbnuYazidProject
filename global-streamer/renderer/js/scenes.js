@@ -481,7 +481,7 @@
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
+    tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
@@ -560,7 +560,7 @@
   /* ---------- UI: sumber ---------- */
   /* ikon berbeza untuk setiap jenis sumber (merujuk kepada sumber yang dipilih) */
   const WIDGET_ICON = { clock: 'clock', winloss: 'scale', logo: 'hex', brand: 'typeA', ticker: 'ticker', frame: 'frame', metaboard: 'barchart', matchboard: 'sword', resultsboard: 'trophy',
-    promo: 'megaphone', countdown: 'timer', bot: 'bot', queue: 'list', boss: 'skull', toplike: 'heart', statusbar: 'activity', spelltimer: 'timer', draft: 'draft', label: 'tag', tiers: 'layers' };
+    promo: 'megaphone', countdown: 'timer', tierlist: 'layers', bot: 'bot', queue: 'list', boss: 'skull', toplike: 'heart', statusbar: 'activity', spelltimer: 'timer', draft: 'draft', label: 'tag', tiers: 'layers' };
   const typeIcon = (s) => {
     if (s.type === 'video') {
       const k = s.props.kind;
@@ -678,6 +678,7 @@
       { label: 'Widget: Menang / Kalah', icon: 'widget', run: () => S.addWidget('winloss') },
       { label: 'Widget: Logo', icon: 'widget', run: () => S.addWidget('logo') },
       { label: 'Widget: Kira Detik (Sebentar Lagi)', icon: 'widget', run: () => S.addWidget('countdown') },
+      { label: 'Widget: Tier List', icon: 'widget', run: () => S.addWidget('tierlist') },
       { label: 'Widget: Bot', icon: 'widget', run: () => S.addWidget('bot') },
       { label: 'Widget: Tajuk', icon: 'widget', run: () => S.addWidget('brand') },
       { label: 'Widget: Bar Teks', icon: 'widget', run: () => S.addWidget('ticker') },
@@ -747,6 +748,7 @@
       if (w === 'ticker') {
         root.append(field('Mesej bar teks (satu baris = satu mesej)', h('textarea', { rows: 4, onInput: (e) => { GS.state.ticker.messages = e.target.value.split('\n').map((x) => x.trim()).filter(Boolean); GS.save(); } }, (GS.state.ticker.messages || []).join('\n'))));
       }
+      if (w === 'tierlist') GS.tier.props(root, s, field, renderProps);
       if (w === 'countdown') {
         const p = s.props, CD = GS.countdown;
         const num = (key, label, max) => field(label, h('input', { type: 'number', min: 0, max, value: p[key] || 0, class: 'cd-in', 'data-k': 'cd-' + key, onChange: (e) => { p[key] = GS.clamp(Number(e.target.value) || 0, 0, max); if (!CD.running(p)) { p.pausedMs = null; p.endAt = 0; } GS.save(); } }));

@@ -21,6 +21,10 @@ window.GS_CHANGELOG = {
       'Pemisah saiz panel berada di tempat yang betul apabila aplikasi dibuka.',
       'Label PGM dan PVW berada tepat di tengah bulatan.',
       'Butang BM dan EN di bar atas dibuang; bahasa ditukar dalam Tetapan. Butang Mula Live berwarna merah pepejal.',
+      'Butang kecilkan, besarkan dan tutup tetingkap berfungsi semula.',
+      'Scene Sebentar Lagi mempunyai kira detik (jam, minit, saat) dan tulisan yang boleh diedit, serta template khas Sebentar Lagi.',
+      'Gambar bot lalai ialah watak anime baharu; pengguna boleh menggantikannya dengan gambar sendiri.',
+      'Widget Tier List hero S, A, B, C dan D mengikut meta MLBB, dengan patch, season, pangkat, tarikh dan nama pengguna yang boleh diedit.',
     ],
     en: [
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
@@ -42,6 +46,10 @@ window.GS_CHANGELOG = {
       'The panel resize dividers sit in the correct place when the app opens.',
       'The PGM and PVW labels sit exactly in the centre of their circles.',
       'The BM and EN buttons on the top bar are removed; language is changed in Settings. The Go Live button is solid red.',
+      'The window minimise, resize and close buttons work again.',
+      'The Coming Soon scene has a countdown (hours, minutes, seconds) and editable text, plus dedicated Coming Soon templates.',
+      'The default bot picture is the new anime character; users can replace it with their own picture.',
+      'A Tier List widget for S, A, B, C and D heroes by MLBB meta is added, with editable patch, season, rank, date and username.',
     ],
   },
 };
