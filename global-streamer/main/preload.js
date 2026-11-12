@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('gsNative', {
   },
   win: {
     minimize: () => ipcRenderer.send('win:minimize'),
+    restore: () => ipcRenderer.invoke('app:restore'),   // dipakai rakaman untuk memulihkan app selepas dikecilkan
     maximize: () => ipcRenderer.send('win:maximize'),
     close: () => ipcRenderer.send('win:close'),
     state: () => ipcRenderer.invoke('win:state'),
@@ -56,10 +57,6 @@ contextBridge.exposeInMainWorld('gsNative', {
     onStopRequest: (cb) => ipcRenderer.on('rec:stop-request', () => cb()),
     onPauseRequest: (cb) => ipcRenderer.on('rec:pause-request', () => cb()),
     barState: (st) => ipcRenderer.send('rec:bar-state', st),
-  },
-  win: {
-    minimize: () => ipcRenderer.invoke('app:minimize'),
-    restore: () => ipcRenderer.invoke('app:restore'),
   },
   voice: {
     available: () => ipcRenderer.invoke('voice:available'),

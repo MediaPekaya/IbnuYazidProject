@@ -173,7 +173,8 @@ body.gs-popout .gutter { display: none; }
 .dock.dragging { opacity: 1; outline: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); z-index: 5; }
 
 /* ---------- bingkai tetingkap gaya MacBook (app Windows): kawalan di sebelah kanan ---------- */
-#titlebar { position: fixed; top: 0; left: 0; right: 0; height: 34px; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 0 14px; background: var(--panel-2, rgba(16, 32, 62, 0.62)); border-bottom: 1px solid var(--line); -webkit-app-region: drag; user-select: none; backdrop-filter: blur(18px); }
+#titlebar { position: fixed; top: 0; left: 0; right: 0; height: 34px; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 0 14px; background: var(--panel-2, rgba(16, 32, 62, 0.62)); border-bottom: 1px solid var(--line); -webkit-app-region: no-drag; user-select: none; backdrop-filter: blur(18px); }
+.tb-drag { position: absolute; left: 0; top: 0; bottom: 0; right: 120px; -webkit-app-region: drag; }   /* kawasan seret TIDAK meliputi butang kawalan di kanan */
 #titlebar[hidden] { display: none; }
 .tb-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--muted); pointer-events: none; }
 .tb-title img { border-radius: 4px; }
@@ -198,11 +199,13 @@ body.native-frame #app { height: calc(100vh - 34px); }
 body.native-frame .bg-fx { top: 34px; }
 
 /* animasi tetingkap gaya macOS: buka (zum masuk), tutup (zum keluar), kecilkan (mengecil ke bawah), pulih, besarkan */
-html.win-open body.native-frame { animation: macOpen 0.6s var(--ease) both; }
-html.win-restore body.native-frame { animation: macRestore 0.5s var(--ease) both; }
-html.win-closing body.native-frame { animation: macClose 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; }
-html.win-min body.native-frame { animation: macMin 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; transform-origin: 50% 100%; }
-html.win-zoom body.native-frame #app { animation: macZoom 0.5s var(--ease); }
+/* animasi dikenakan pada #app sahaja (bukan body/bar tajuk) supaya kawasan butang tetingkap tidak beralih dan butang sentiasa boleh diklik */
+html.win-open #app { animation: macOpen 0.6s var(--ease) both; }
+html.win-restore #app { animation: macRestore 0.5s var(--ease) both; }
+html.win-closing #app { animation: macClose 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; }
+html.win-min #app { animation: macMin 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; transform-origin: 50% 100%; }
+html.win-zoom #app { animation: macZoom 0.5s var(--ease); }
+html.win-open .gutter, html.win-restore .gutter, html.win-closing .gutter, html.win-min .gutter { opacity: 0; }
 @keyframes macOpen { from { opacity: 0; transform: scale(0.93); } to { opacity: 1; transform: none; } }
 @keyframes macRestore { from { opacity: 0; transform: scale(0.8) translateY(8%); } to { opacity: 1; transform: none; } }
 @keyframes macClose { to { opacity: 0; transform: scale(0.92); } }
