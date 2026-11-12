@@ -54,9 +54,13 @@
       h('div', { class: 'gd-sec' }, h('h4', null, 'Ajar skrin keputusan'),
         h('p', { class: 'muted note' }, 'Jika Victory/Defeat pada game anda tidak dikesan, klik butang sebaik sahaja skrin itu dipaparkan supaya sistem mengingati rupanya (disimpan pada PC ini).'),
         h('div', { class: 'btn-row' },
-          h('button', { class: 'btn ghost', onClick: () => GS.toast(E.learnResult('victory') ? GS.t('Skrin Victory diajar.') : GS.t('Tiada bingkai untuk diajar.'), 'ok') }, 'Ajar: ini skrin VICTORY'),
-          h('button', { class: 'btn ghost', onClick: () => GS.toast(E.learnResult('defeat') ? GS.t('Skrin Defeat diajar.') : GS.t('Tiada bingkai untuk diajar.'), 'ok') }, 'Ajar: ini skrin DEFEAT'),
-          h('button', { class: 'btn tiny ghost', onClick: () => { E.clearLearnedResults(); GS.toast(GS.t('Pembelajaran keputusan dipadam.'), 'ok'); } }, 'Padam pembelajaran')),
+          ['victory', 'defeat'].map((k) => h('button', { type: 'button', class: 'btn ghost', id: 'btnLearn' + k, onClick: (ev) => {
+            const ok = E.learnResult(k);
+            GS.toast(ok ? GS.t(k === 'victory' ? 'Skrin Victory diajar.' : 'Skrin Defeat diajar.') + ' (' + E.learnedCount(k) + ')' : GS.t('Tiada bingkai untuk diajar.'), ok ? 'ok' : 'warn');
+            ev.currentTarget.textContent = GS.t(k === 'victory' ? 'Ajar: ini skrin VICTORY' : 'Ajar: ini skrin DEFEAT') + ' (' + E.learnedCount(k) + ')';
+            draw();
+          } }, GS.t(k === 'victory' ? 'Ajar: ini skrin VICTORY' : 'Ajar: ini skrin DEFEAT') + ' (' + E.learnedCount(k) + ')')),
+          h('button', { class: 'btn tiny ghost', onClick: () => { E.clearLearnedResults(); GS.toast(GS.t('Pembelajaran keputusan dipadam.'), 'ok'); draw(); } }, 'Padam pembelajaran')),
         calib),
       h('p', { class: 'muted note' }, 'Cetus manual untuk ujian: tab Kawalan. Pengesan memicu efek yang sama (Kill, Mati, Victory, Defeat, Beli Item, Item Penuh), dan kiraan W/L bertambah secara automatik apabila Victory/Defeat dikesan.'));
 

@@ -129,10 +129,12 @@
   };
 
   /* ---------- tetapan ---------- */
-  const DEF = { enabled: false, kills: true, items: true, results: true, interval: 500, window: 10, sensitivity: 0.5, adjHud: { dx: 0, dy: 0, s: 1 }, adjToast: { dx: 0, dy: 0, s: 1 } };
+  const DEF = { enabled: true, kills: true, items: true, results: true, interval: 500, window: 10, sensitivity: 0.5, adjHud: { dx: 0, dy: 0, s: 1 }, adjToast: { dx: 0, dy: 0, s: 1 } };
   E.settings = function () {
     const st = GS.state.events || (GS.state.events = {});
     Object.keys(DEF).forEach((k) => { if (!(k in st)) st[k] = JSON.parse(JSON.stringify(DEF[k])); });
+    // versi automatik penuh: pengesan hidup sendiri tanpa perlu menekan apa-apa (sekali sahaja untuk simpanan lama)
+    if (!st.autoV2) { st.autoV2 = true; st.enabled = true; st.kills = st.items = st.results = true; }
     return st;
   };
   // ROI toast pembelian item (ikon bulat di bawah $ emas, kanan atas). Diukur daripada rakaman 1280x720.
@@ -192,6 +194,7 @@
     loadResultTemplates(); E.loadLearnedResults();
     return true;
   };
+  E.learnedCount = function (kind) { try { return ((JSON.parse(localStorage.getItem(LRKEY) || '{}'))[kind] || []).length; } catch (e) { return 0; } };
   E.clearLearnedResults = function () { try { localStorage.removeItem(LRKEY); } catch (e) { /* abaikan */ } if (resT) E.loadLearnedResults(); };
   const inter = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.min(a[i], b[i]); return s; };
   E.resultScores = function (src) {
@@ -288,7 +291,7 @@
       let label = LABELS[Math.min(M.chain.length, 5) - 1];
       if (M.chain.length === 1 && M.streak === 3) label = 'KILLING SPREE';
       E.emit('kill', { label, chain: M.chain.length, streak: M.streak });
-      GS.fx.trigger('kill', { label });
+      GS.fx.trigger(label === 'KILL' ? 'slain' : 'kill', { label });
     }
   }
   function onDeath() {

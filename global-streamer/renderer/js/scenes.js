@@ -280,7 +280,8 @@
     const W = GS.design.w, H = GS.design.h;
     const bars = (sc ? sc.sources : []).filter((x) => x.type === 'widget' && (x.props.widget === 'ticker' || x.props.widget === 'promo'));
     if (bars.length) { const b = bars.sort((a, c) => c.y - a.y)[0]; return [b.x, b.y, b.w, b.h]; }
-    return [40, H - 210, W - 80, 170];
+    // saiz footer rujukan: lebar penuh, tinggi 0.45 x lebar (potret 1080 x 488 piksel)
+    return W < H ? [0, H - Math.round(W * 0.452), W, Math.round(W * 0.452)] : [40, H - 210, W - 80, 170];
   };
   S.footerRect = footerRect;
   /** Tambah banner / video sendiri (imej, GIF animasi, video WebM/MP4) sebagai sumber, lalai di kedudukan footer. */
@@ -307,7 +308,7 @@
       src.name = 'Footer Video'; src.fit = 'cover'; src.props.footerVideo = true; src.props.loop = true;
       S.setBarsHidden(S.editTarget(), true); // bar teks diganti video; boleh dipaparkan semula melalui kotak "Sembunyikan bar teks"
       changed('props:changed'); renderProps();
-      GS.toast(GS.t('Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.'), 'ok', 6000);
+      GS.toast(GS.t('Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.') + ' ' + GS.t('Saiz video yang sesuai:') + ' ' + (GS.design.w < GS.design.h ? '1080 x 488' : '1840 x 170') + ' px.', 'ok', 8000);
     });
     document.body.append(inp);
     inp.click();

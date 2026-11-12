@@ -25,6 +25,11 @@ window.GS_CHANGELOG = {
       'Scene Sebentar Lagi mempunyai kira detik (jam, minit, saat) dan tulisan yang boleh diedit, serta template khas Sebentar Lagi.',
       'Gambar bot lalai ialah watak anime baharu; pengguna boleh menggantikannya dengan gambar sendiri.',
       'Widget Tier List hero S, A, B, C dan D mengikut meta MLBB, dengan patch, season, pangkat, tarikh dan nama pengguna yang boleh diedit.',
+      'Bar LIVE direka semula: penanda LIVE, garis nipis dan masa dalam satu bar, dengan tajuk lagu bergerak ke kiri dan HEART ME hanya untuk mod TikTok.',
+      'Gift yang diterima memaparkan pop-up, dan gift mahal memaparkan cahaya skrin penuh.',
+      'Footer mengikut saiz rujukan (1080 x 488 piksel pada potret), dan video sendiri boleh dipasang di footer.',
+      'Butang Ajar skrin DEFEAT dan VICTORY memaparkan bilangan contoh yang telah diajar.',
+      'Pengesan kill, mati, item, item penuh, victory dan defeat hidup sendiri tanpa menekan sebarang kekunci.',
     ],
     en: [
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
@@ -50,6 +55,11 @@ window.GS_CHANGELOG = {
       'The Coming Soon scene has a countdown (hours, minutes, seconds) and editable text, plus dedicated Coming Soon templates.',
       'The default bot picture is the new anime character; users can replace it with their own picture.',
       'A Tier List widget for S, A, B, C and D heroes by MLBB meta is added, with editable patch, season, rank, date and username.',
+      'The LIVE bar is redesigned: LIVE marker, a thin line and the time in one bar, with the song title scrolling left and HEART ME only in TikTok mode.',
+      'Received gifts show a pop-up, and expensive gifts show full-screen lighting.',
+      'The footer follows the reference size (1080 x 488 pixels in portrait), and your own video can be placed in the footer.',
+      'The Learn DEFEAT and VICTORY buttons show how many samples have been learned.',
+      'The kill, death, item, full item, victory and defeat detectors start by themselves without pressing any key.',
     ],
   },
 };
