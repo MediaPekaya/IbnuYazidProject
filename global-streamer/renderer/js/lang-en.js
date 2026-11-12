@@ -743,6 +743,7 @@
     'Menukar PowerPoint kepada PDF… tunggu sebentar.': 'Converting PowerPoint to PDF… please wait.', 'Tidak dapat menukar PowerPoint. Pasang Microsoft PowerPoint atau LibreOffice, atau simpan fail sebagai PDF.': 'PowerPoint could not be converted. Install Microsoft PowerPoint or LibreOffice, or save the file as PDF.',
     'Tidak dapat membaca fail yang ditukar.': 'The converted file could not be read.',
     'Gaming': 'Gaming', 'Formal': 'Formal', 'Template "{0}" digunakan. Tekan Ctrl+Z untuk undur.': 'Template "{0}" applied. Press Ctrl+Z to undo.',
+    'Mod "{0}" digunakan dan disimpan.': 'Mode "{0}" applied and saved.', 'AUTO SLIDE': 'AUTO SLIDE', 'Kawalan tetingkap': 'Window controls', 'Kecilkan': 'Minimise', 'Besarkan / pulihkan': 'Maximise / restore', 'Besarkan': 'Maximise', 'Jenis template': 'Template type',
     'Resume rakaman': 'Resume recording', 'Pause rakaman': 'Pause recording', 'Simpan rakaman': 'Save recording',
     'Sambung merakam dari tempat anda berhenti.': 'Continue recording from where you stopped.',
     'Hentikan rakaman buat seketika, sambung bila-bila masa.': 'Stop recording for a moment and continue any time.',
