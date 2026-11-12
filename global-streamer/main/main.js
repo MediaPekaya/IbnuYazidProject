@@ -118,6 +118,11 @@ let recBar = null;
 let recBarHidden = false;
 const BAR_W = 450, BAR_H = 56, PILL_W = 34, PILL_H = 34;
 /* tukar antara bar penuh dan pil merah REC: kedudukan semasa (yang diseret pengguna) dikekalkan, hanya saiz berubah di sekitar titik tengah atasnya */
+/* bar REC kekal kelihatan di skrin tetapi TIDAK masuk dalam rakaman / siaran: dikecualikan daripada tangkapan skrin (Windows). Dipasang semula setiap kali tetingkap dipaparkan atau berubah supaya tidak hilang. */
+function recBarProtect() {
+  if (!recBar || recBar.isDestroyed()) return;
+  try { recBar.setContentProtection(true); } catch (e) { /* tidak disokong */ }
+}
 function recBarPlace(hidden) {
   if (!recBar || recBar.isDestroyed()) return;
   const { screen } = require('electron');
@@ -128,6 +133,7 @@ function recBarPlace(hidden) {
   const x = Math.max(wa.x, Math.min(wa.x + wa.width - w, Math.round(cx - w / 2)));
   const y = Math.max(wa.y, Math.min(wa.y + wa.height - h, b.y + (hidden ? Math.round((BAR_H - PILL_H) / 2) : -Math.round((BAR_H - PILL_H) / 2))));
   recBar.setBounds({ x, y, width: w, height: h });
+  recBarProtect();
   recBarHidden = hidden;
   recBar.webContents.send('rec:bar-collapsed', hidden);
 }
@@ -151,7 +157,7 @@ function showRecBar(on) {
   recBar.webContents.on('will-navigate', (e) => e.preventDefault());
   recBar.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   recBar.loadFile(path.join(__dirname, 'recbar.html'));
-  recBar.once('ready-to-show', () => recBar && !recBar.isDestroyed() && recBar.showInactive());
+  recBar.once('ready-to-show', () => { if (recBar && !recBar.isDestroyed()) { recBar.showInactive(); recBarProtect(); setTimeout(recBarProtect, 400); } });
   try { globalShortcut.register('CommandOrControl+Alt+H', () => recBarPlace(!recBarHidden)); } catch (e) { /* pintasan sudah digunakan */ }
 }
 ipcMain.handle('rec:bar', (_e, on) => { showRecBar(!!on); return true; });
