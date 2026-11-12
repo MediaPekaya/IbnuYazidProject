@@ -37,6 +37,14 @@
     { id: 'flat-charcoal', name: '2D Arang', flat: true, g: ['#f43f5e', '#f43f5e', '#fb7185'], light: '#fb7185', gold: '#fbbf24', panel: ['35,38,46', '28,31,38'], bgBase: '#17191f', rscale: 0.45, mode: 'solid', line: 2, text: '#f1f3f7', muted: '#a0a8b6' },
     { id: 'flat-sky', name: '2D Langit Cerah', flat: true, g: ['#0ea5e9', '#0ea5e9', '#f59e0b'], light: '#0284c7', gold: '#b45309', panel: ['255,255,255', '240,248,255'], bgBase: '#d9eefb', rscale: 0.8, mode: 'solid', line: 2, text: '#0f2a3d', muted: '#4a6b82' },
     { id: 'flat-sun', name: '2D Matahari', flat: true, g: ['#f59e0b', '#f59e0b', '#ef4444'], light: '#d97706', gold: '#b45309', panel: ['255,255,255', '255,248,232'], bgBase: '#fdf0cf', rscale: 0.8, mode: 'solid', line: 2, text: '#3a2a08', muted: '#7a6430' },
+    { id: 'flat-teal', name: '2D Teal', flat: true, g: ['#2dd4bf', '#2dd4bf', '#5eead4'], light: '#5eead4', gold: '#fde68a', panel: ['17,66,72', '13,54,60'], bgBase: '#0b2b30', rscale: 0.6, mode: 'solid', line: 2, text: '#ecfeff', muted: '#9cd6d6' },
+    { id: 'flat-indigo', name: '2D Indigo', flat: true, g: ['#818cf8', '#818cf8', '#a5b4fc'], light: '#a5b4fc', gold: '#fde68a', panel: ['38,42,92', '30,34,76'], bgBase: '#161a3a', rscale: 0.7, mode: 'solid', line: 2, text: '#eef2ff', muted: '#aab3e6' },
+    { id: 'flat-slate', name: '2D Slate', flat: true, g: ['#38bdf8', '#38bdf8', '#7dd3fc'], light: '#7dd3fc', gold: '#fbbf24', panel: ['51,65,85', '41,53,72'], bgBase: '#1e293b', rscale: 0.45, mode: 'solid', line: 2, text: '#f1f5f9', muted: '#a3b1c6' },
+    { id: 'flat-coffee', name: '2D Kopi', flat: true, g: ['#f59e0b', '#f59e0b', '#fbbf24'], light: '#fbbf24', gold: '#fde68a', panel: ['70,48,36', '58,39,29'], bgBase: '#2b1d16', rscale: 0.7, mode: 'solid', line: 2, text: '#fff7ed', muted: '#d4b8a0' },
+    { id: 'flat-gold', name: '2D Hitam Emas', flat: true, g: ['#e5b84b', '#e5b84b', '#f5d98a'], light: '#f5d98a', gold: '#f5d98a', panel: ['32,29,22', '24,22,16'], bgBase: '#0d0c09', rscale: 0.35, mode: 'solid', line: 2, text: '#fbf5e4', muted: '#bfb393' },
+    { id: 'flat-ocean', name: '2D Lautan', flat: true, g: ['#22d3ee', '#22d3ee', '#67e8f9'], light: '#67e8f9', gold: '#fde68a', panel: ['12,84,122', '9,70,104'], bgBase: '#0a3d62', rscale: 0.8, mode: 'solid', line: 2, text: '#f0fbff', muted: '#a8d8ea' },
+    { id: 'flat-rose', name: '2D Mawar', flat: true, g: ['#e11d74', '#e11d74', '#7c3aed'], light: '#be185d', gold: '#a16207', panel: ['255,255,255', '255,240,246'], bgBase: '#fbd5e5', rscale: 0.9, mode: 'solid', line: 2, text: '#3b0a22', muted: '#8a4a64' },
+    { id: 'flat-mint', name: '2D Pudina', flat: true, g: ['#10b981', '#10b981', '#0ea5e9'], light: '#047857', gold: '#a16207', panel: ['255,255,255', '236,253,245'], bgBase: '#c9f2e1', rscale: 0.8, mode: 'solid', line: 2, text: '#073b2c', muted: '#3f7a66' },
   ];
 
   const T = (GS.theme = { list: defs, cur: null });

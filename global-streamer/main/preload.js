@@ -25,6 +25,16 @@ contextBridge.exposeInMainWorld('gsNative', {
     enableUpdate: (on) => ipcRenderer.invoke('update:enable', on),
     onUpdate: (cb) => ipcRenderer.on('update:event', (_e, d) => cb(d)),
   },
+  win: {
+    minimize: () => ipcRenderer.send('win:minimize'),
+    maximize: () => ipcRenderer.send('win:maximize'),
+    close: () => ipcRenderer.send('win:close'),
+    state: () => ipcRenderer.invoke('win:state'),
+    onState: (cb) => ipcRenderer.on('win:state', (_e, s) => cb(s)),
+    onClosing: (cb) => ipcRenderer.on('win:closing', () => cb()),
+    onClosingCancel: (cb) => ipcRenderer.on('win:closing-cancel', () => cb()),
+    onRestored: (cb) => ipcRenderer.on('win:restored', () => cb()),
+  },
   deck: {
     read: (file) => ipcRenderer.invoke('deck:read', file),
     convert: (file) => ipcRenderer.invoke('deck:convert', file),

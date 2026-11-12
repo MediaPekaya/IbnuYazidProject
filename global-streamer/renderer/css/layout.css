@@ -171,3 +171,41 @@ body.gs-popout .gutter { display: none; }
 .dock .tpl-card canvas { background: #07101f; }
 .dock input, .dock select, .dock textarea { background: #0b1a33; border: 1px solid var(--line); box-shadow: none; }
 .dock.dragging { opacity: 1; outline: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); z-index: 5; }
+
+/* ---------- bingkai tetingkap gaya MacBook (app Windows): kawalan di sebelah kanan ---------- */
+#titlebar { position: fixed; top: 0; left: 0; right: 0; height: 34px; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 0 14px; background: var(--panel-2, rgba(16, 32, 62, 0.62)); border-bottom: 1px solid var(--line); -webkit-app-region: drag; user-select: none; backdrop-filter: blur(18px); }
+#titlebar[hidden] { display: none; }
+.tb-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--muted); pointer-events: none; }
+.tb-title img { border-radius: 4px; }
+.tb-ctl { position: absolute; right: 12px; top: 0; bottom: 0; display: flex; align-items: center; gap: 8px; -webkit-app-region: no-drag; }
+.tb-btn { position: relative; width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; transition: transform 0.25s var(--ease), filter 0.2s, opacity 0.25s; -webkit-app-region: no-drag; }
+.tb-btn.min { background: #febc2e; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18); }
+.tb-btn.max { background: #28c840; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18); }
+.tb-btn.close { background: #ff5f57; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18); }
+.tb-btn i { position: absolute; inset: 0; display: block; opacity: 0; transition: opacity 0.18s; color: rgba(60, 20, 10, 0.78); }
+.tb-ctl:hover .tb-btn i { opacity: 1; }
+.tb-btn:hover { filter: brightness(1.08); }
+.tb-btn:active { transform: scale(0.88); }
+/* simbol (muncul bila tetikus di atas kumpulan butang, seperti macOS) */
+.tb-btn.min i::before { content: ''; position: absolute; left: 3.5px; right: 3.5px; top: 6.5px; height: 1.6px; border-radius: 1px; background: currentColor; }
+.tb-btn.close i::before, .tb-btn.close i::after { content: ''; position: absolute; left: 3px; right: 3px; top: 6.2px; height: 1.6px; border-radius: 1px; background: currentColor; transform: rotate(45deg); }
+.tb-btn.close i::after { transform: rotate(-45deg); }
+.tb-btn.max i::before { content: ''; position: absolute; left: 3.2px; top: 3.2px; width: 7px; height: 7px; border: 1.5px solid currentColor; border-radius: 1.5px; box-sizing: border-box; }
+body.win-max .tb-btn.max i::before { width: 6px; height: 6px; left: 4px; top: 4px; }
+body.win-blur .tb-btn { filter: grayscale(1) opacity(0.55); }
+body.native-frame { padding-top: 34px; }
+body.native-frame #app { height: calc(100vh - 34px); }
+body.native-frame .bg-fx { top: 34px; }
+
+/* animasi tetingkap gaya macOS: buka (zum masuk), tutup (zum keluar), kecilkan (mengecil ke bawah), pulih, besarkan */
+html.win-open body.native-frame { animation: macOpen 0.6s var(--ease) both; }
+html.win-restore body.native-frame { animation: macRestore 0.5s var(--ease) both; }
+html.win-closing body.native-frame { animation: macClose 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; }
+html.win-min body.native-frame { animation: macMin 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; transform-origin: 50% 100%; }
+html.win-zoom body.native-frame #app { animation: macZoom 0.5s var(--ease); }
+@keyframes macOpen { from { opacity: 0; transform: scale(0.93); } to { opacity: 1; transform: none; } }
+@keyframes macRestore { from { opacity: 0; transform: scale(0.8) translateY(8%); } to { opacity: 1; transform: none; } }
+@keyframes macClose { to { opacity: 0; transform: scale(0.92); } }
+@keyframes macMin { to { opacity: 0; transform: scale(0.55) translateY(40%); } }
+@keyframes macZoom { 0% { transform: scale(0.985); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { html.win-open body, html.win-restore body { animation-duration: 0.01ms !important; } }

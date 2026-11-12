@@ -167,9 +167,208 @@
     }),
   ];
 
+
+  /* ---- set kedua: lebih banyak warna dan susun atur (bukan putih sahaja) ---- */
+  const portrait2 = [
+    P({
+      id: '2d-teal-jualan', theme: 'flat-teal', fxStyle: 'flat-teal', name: '2D Teal · Jualan',
+      desc: 'Untuk live jualan: kamera di atas, banner promosi dan hadiah besar di bawah, giliran dan jam.',
+      build: () => [
+        video('Kamera', 'camera', 0, 0, 1080, 760),
+        widget('Logo', 'logo', 24, 24, 112, 100),
+        widget('Tajuk', 'brand', 152, 28, 600, 96, { text: 'LIVE JUALAN' }),
+        widget('Banner Promosi', 'promo', 0, 790, 1080, 140, { style: 'info' }),
+        widget('Banner Hadiah', 'promo', 20, 960, 1040, 76, { style: 'gift' }),
+        widget('Giliran Mabar', 'queue', 20, 1070, 520, 184),
+        widget('Jam & Masa Main', 'clock', 560, 1070, 500, 118),
+        widget('Menang / Kalah', 'winloss', 560, 1204, 500, 118),
+        widget('Bar Teks', 'ticker', 20, 1360, 1040, 96),
+      ],
+    }),
+    P({
+      id: '2d-indigo-kuiz', theme: 'flat-indigo', fxStyle: 'flat-indigo', name: '2D Indigo · Kuiz',
+      desc: 'Tajuk besar di atas, kamera dan game berturutan. Sesuai untuk kuiz, kelas dan komentar.',
+      build: () => [
+        widget('Tajuk', 'brand', 40, 40, 1000, 130, { text: 'KUIZ LIVE' }),
+        video('Kamera', 'camera', 40, 190, 1000, 562),
+        ...game(40, 780, 1000, 562),
+        widget('Jam & Masa Main', 'clock', 40, 1370, 500, 118),
+        widget('Menang / Kalah', 'winloss', 560, 1370, 480, 118),
+        widget('Bar Teks', 'ticker', 40, 1520, 1000, 96),
+      ],
+    }),
+    P({
+      id: '2d-slate-pro', theme: 'flat-slate', fxStyle: 'flat-slate', name: '2D Slate · Pro',
+      desc: 'Game besar di atas, kamera kecil di penjuru. Draft, Meta dan bar status untuk siaran profesional.',
+      build: () => [
+        ...game(0, 0, 1080, 700),
+        video('Kamera', 'camera', 720, 520, 320, 320),
+        widget('Logo', 'logo', 944, 24, 112, 100),
+        widget('Bar Status', 'statusbar', 0, 700, 1080, 56),
+        widget('Meta Tournament', 'metaboard', 40, 780, 640, 300),
+        widget('Draft', 'draft', 20, 1110, 1040, 340),
+        widget('Pemasa Spell', 'spelltimer', 40, 1480, 340, 200),
+        widget('Menang / Kalah', 'winloss', 400, 1480, 640, 122),
+      ],
+    }),
+    P({
+      id: '2d-kopi-santai', theme: 'flat-coffee', fxStyle: 'flat-coffee', name: '2D Kopi · Bual',
+      desc: 'Rekaan hangat untuk sembang: kamera di tengah, jam dan top like, bar teks di bawah.',
+      build: () => [
+        widget('Tajuk', 'brand', 60, 50, 960, 110, { text: 'BUAL SANTAI' }),
+        video('Kamera', 'camera', 60, 190, 960, 1100),
+        widget('Top Like', 'toplike', 80, 210, 400, 170),
+        widget('Jam & Masa Main', 'clock', 60, 1320, 480, 118),
+        widget('Logo', 'logo', 880, 1330, 140, 110),
+        widget('Banner Hadiah', 'promo', 20, 1480, 1040, 76, { style: 'gift' }),
+        widget('Bar Teks', 'ticker', 60, 1600, 960, 96),
+      ],
+    }),
+    P({
+      id: '2d-emas-mewah', theme: 'flat-gold', fxStyle: 'flat-gold', name: '2D Hitam Emas · Mewah',
+      desc: 'Latar hitam dengan penanda emas. Kamera besar di atas dan game di bawah, kemas dan mewah.',
+      build: () => [
+        video('Kamera', 'camera', 0, 0, 1080, 900),
+        widget('Logo', 'logo', 24, 24, 112, 100),
+        widget('Boss', 'boss', 24, 140, 400, 200),
+        widget('Top Like', 'toplike', 656, 24, 400, 170),
+        widget('Bar Status', 'statusbar', 0, 900, 1080, 56),
+        ...game(40, 980, 1000, 562),
+        widget('Menang / Kalah', 'winloss', 40, 1570, 480, 118),
+        widget('Jam & Masa Main', 'clock', 560, 1570, 480, 118),
+        widget('Banner Hadiah', 'promo', 20, 1720, 1040, 76, { style: 'gift' }),
+        widget('Bar Teks', 'ticker', 40, 1820, 1000, 80),
+      ],
+    }),
+    P({
+      id: '2d-lautan-duet', theme: 'flat-ocean', fxStyle: 'flat-ocean', name: '2D Lautan · Duet',
+      desc: 'Dua kamera bersusun (streamer dan tetamu atau game) dengan giliran mabar dan menang/kalah.',
+      build: () => [
+        video('Kamera', 'camera', 40, 40, 1000, 700),
+        widget('Logo', 'logo', 928, 56, 100, 90),
+        video('Kamera Tetamu', 'camera', 40, 780, 1000, 700),
+        widget('Giliran Mabar', 'queue', 40, 1510, 520, 184),
+        widget('Menang / Kalah', 'winloss', 580, 1510, 460, 122),
+        widget('Label Peranti', 'label', 580, 1650, 460, 52, { bind: 'device' }),
+        widget('Bar Teks', 'ticker', 40, 1740, 1000, 96),
+      ],
+    }),
+    P({
+      id: '2d-mawar-comel', theme: 'flat-rose', fxStyle: 'flat-rose', name: '2D Mawar · Comel',
+      desc: 'Latar merah jambu lembut dengan panel putih. Sesuai untuk live santai, jualan dan kecantikan.',
+      build: () => [
+        widget('Tajuk', 'brand', 40, 40, 1000, 120, { text: 'LIVE HARI INI' }),
+        video('Kamera', 'camera', 40, 190, 1000, 1000),
+        widget('Logo', 'logo', 900, 1210, 140, 110),
+        widget('Jam & Masa Main', 'clock', 40, 1220, 500, 118),
+        widget('Banner Promosi', 'promo', 0, 1380, 1080, 140, { style: 'info' }),
+        widget('Giliran Mabar', 'queue', 40, 1560, 520, 184),
+        widget('Bar Teks', 'ticker', 40, 1790, 1000, 96),
+      ],
+    }),
+  ];
+
+  const landscape2 = [
+    L({
+      id: '2d-teal-pentas', theme: 'flat-teal', fxStyle: 'flat-teal', name: '2D Teal · Pentas',
+      desc: 'Kamera besar di kiri, game dan giliran mabar di kanan, banner promosi di bawah.',
+      build: () => [
+        video('Kamera', 'camera', 40, 40, 1160, 653),
+        ...game(1240, 40, 640, 360),
+        widget('Giliran Mabar', 'queue', 1240, 430, 560, 184),
+        widget('Menang / Kalah', 'winloss', 1240, 640, 640, 118),
+        widget('Logo', 'logo', 40, 720, 170, 116),
+        widget('Tajuk', 'brand', 230, 720, 600, 116),
+        widget('Banner Promosi', 'promo', 40, 880, 1840, 140, { style: 'info' }),
+      ],
+    }),
+    L({
+      id: '2d-indigo-kuiz-ls', theme: 'flat-indigo', fxStyle: 'flat-indigo', name: '2D Indigo · Kuiz',
+      desc: 'Game di tengah dengan jam dan menang/kalah di kiri, giliran dan logo di kanan. Sesuai untuk kuiz dan kelas.',
+      build: () => [
+        widget('Tajuk', 'brand', 40, 16, 800, 70, { text: 'KUIZ LIVE' }),
+        ...game(360, 100, 1200, 675),
+        widget('Jam & Masa Main', 'clock', 40, 140, 300, 118),
+        widget('Menang / Kalah', 'winloss', 40, 280, 300, 118),
+        video('Kamera', 'camera', 40, 430, 300, 169),
+        widget('Giliran Mabar', 'queue', 1580, 140, 300, 184),
+        widget('Logo', 'logo', 1580, 350, 170, 116),
+        widget('Bar Teks', 'ticker', 40, 820, 1840, 96),
+      ],
+    }),
+    L({
+      id: '2d-slate-meta', theme: 'flat-slate', fxStyle: 'flat-slate', name: '2D Slate · Meta',
+      desc: 'Game di kiri, statistik Meta dan Draft di kanan, kamera kecil dan bar teks di bawah.',
+      build: () => [
+        ...game(40, 40, 1100, 619),
+        widget('Meta Tournament', 'metaboard', 1180, 40, 700, 370),
+        widget('Draft', 'draft', 1180, 430, 700, 300),
+        video('Kamera', 'camera', 40, 690, 400, 225),
+        widget('Menang / Kalah', 'winloss', 470, 690, 400, 118),
+        widget('Jam & Masa Main', 'clock', 470, 830, 400, 118),
+        widget('Bar Teks', 'ticker', 900, 780, 980, 96),
+      ],
+    }),
+    L({
+      id: '2d-kopi-bual', theme: 'flat-coffee', fxStyle: 'flat-coffee', name: '2D Kopi · Bual',
+      desc: 'Kamera di tengah untuk sembang: jam dan top like di kiri, menang/kalah di kanan, hadiah di bawah.',
+      build: () => [
+        widget('Tajuk', 'brand', 40, 16, 800, 70, { text: 'BUAL SANTAI' }),
+        video('Kamera', 'camera', 360, 100, 1200, 675),
+        widget('Jam & Masa Main', 'clock', 40, 140, 300, 118),
+        widget('Top Like', 'toplike', 40, 280, 300, 170),
+        widget('Menang / Kalah', 'winloss', 1580, 140, 300, 118),
+        widget('Logo', 'logo', 1580, 280, 170, 116),
+        widget('Banner Hadiah', 'promo', 40, 830, 1840, 76, { style: 'gift' }),
+        widget('Bar Teks', 'ticker', 40, 950, 1840, 90),
+      ],
+    }),
+    L({
+      id: '2d-emas-mewah-ls', theme: 'flat-gold', fxStyle: 'flat-gold', name: '2D Hitam Emas · Mewah',
+      desc: 'Game memenuhi skrin dengan kamera kecil di sudut. Boss, jam dan menang/kalah berpenanda emas.',
+      build: () => [
+        video('Game (Capture Card)', 'capture', 0, 0, 1920, 1080),
+        video('Kamera', 'camera', 1500, 640, 380, 214),
+        widget('Bingkai Kamera', 'frame', 1500, 640, 380, 214, { label: 'LIVE' }),
+        widget('Boss', 'boss', 24, 24, 400, 200),
+        widget('Logo', 'logo', 1760, 24, 120, 100),
+        widget('Jam & Masa Main', 'clock', 24, 950, 360, 100),
+        widget('Menang / Kalah', 'winloss', 408, 950, 360, 100),
+        widget('Bar Teks', 'ticker', 792, 960, 1088, 84),
+      ],
+    }),
+    L({
+      id: '2d-lautan-studio', theme: 'flat-ocean', fxStyle: 'flat-ocean', name: '2D Lautan · Studio',
+      desc: 'Dua kamera bersebelahan untuk temu bual atau duet, dengan jam, menang/kalah dan bar teks.',
+      build: () => [
+        widget('Tajuk', 'brand', 40, 16, 800, 70, { text: 'TEMU BUAL' }),
+        video('Kamera', 'camera', 40, 100, 920, 518),
+        video('Kamera Tetamu', 'camera', 980, 100, 900, 506),
+        widget('Jam & Masa Main', 'clock', 40, 650, 440, 118),
+        widget('Menang / Kalah', 'winloss', 500, 650, 440, 118),
+        widget('Giliran Mabar', 'queue', 980, 640, 520, 168),
+        widget('Bar Teks', 'ticker', 40, 880, 1840, 96),
+      ],
+    }),
+    L({
+      id: '2d-pudina-segar', theme: 'flat-mint', fxStyle: 'flat-mint', name: '2D Pudina · Segar',
+      desc: 'Latar hijau pudina yang segar: kamera dan game bersebelahan dengan banner promosi di bawah.',
+      build: () => [
+        widget('Logo', 'logo', 40, 8, 130, 76),
+        widget('Tajuk', 'brand', 190, 16, 700, 64),
+        video('Kamera', 'camera', 40, 100, 900, 506),
+        ...game(980, 100, 900, 506),
+        widget('Menang / Kalah', 'winloss', 40, 640, 440, 118),
+        widget('Jam & Masa Main', 'clock', 500, 640, 440, 118),
+        widget('Banner Promosi', 'promo', 40, 800, 1840, 140, { style: 'info' }),
+        widget('Bar Teks', 'ticker', 40, 960, 1840, 90),
+      ],
+    }),
+  ];
+
   // bot kecil banner promosi ialah sumber berasingan ('Bot') seperti template lain
   const botFor = (p) => widget(p.props.style === 'gift' ? 'Bot Hadiah' : 'Bot', 'bot', p.x, p.y - Math.round(p.h * 0.06), Math.round(p.h * 1.24), Math.round(p.h * 1.12), { tone: p.props.style === 'gift' ? 'gold' : 'blue' });
-  const all = portrait.concat(landscape);
+  const all = portrait.concat(landscape, portrait2, landscape2);
   all.forEach((t) => {
     const b = t.build;
     t.build = () => { const out = []; b().forEach((s) => { out.push(s); if (s.type === 'widget' && s.props.widget === 'promo') out.push(botFor(s)); }); return out; };

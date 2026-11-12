@@ -193,10 +193,17 @@ ipcMain.handle('stream:start', (_e, cfg) => engine.start(cfg));
 ipcMain.on('stream:chunk', (_e, buf) => engine.write(buf));
 ipcMain.handle('stream:stop', () => engine.stop());
 
+/* kawalan tetingkap (hanya tetingkap utama) */
+ipcMain.on('win:minimize', () => { if (win && !win.isDestroyed()) win.minimize(); });
+ipcMain.on('win:maximize', () => { if (win && !win.isDestroyed()) { if (win.isMaximized()) win.unmaximize(); else win.maximize(); } });
+ipcMain.on('win:close', () => { if (win && !win.isDestroyed()) win.close(); });
+ipcMain.handle('win:state', () => ({ maximized: !!(win && !win.isDestroyed() && win.isMaximized()), focused: !!(win && !win.isDestroyed() && win.isFocused()) }));
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1600, height: 960, minWidth: 1100, minHeight: 660,
     backgroundColor: '#04070f', title: 'Global Streamer', icon: path.join(__dirname, '..', 'renderer', 'assets', 'logo-512.png'), show: false, autoHideMenuBar: true,
+    frame: false,   // bingkai gaya MacBook dilukis oleh app; butang kecilkan / besarkan / tutup di sebelah kanan
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, nodeIntegration: false, sandbox: true,
@@ -204,6 +211,23 @@ function createWindow() {
     },
   });
   win.once('ready-to-show', () => win.show());
+  /* tutup dengan animasi: beri masa kepada animasi (gaya macOS) sebelum tetingkap benar-benar ditutup */
+  let closingOK = false;
+  win.on('close', (e) => {
+    if (closingOK || !win || win.isDestroyed()) return;
+    e.preventDefault();
+    win.webContents.send('win:closing');
+    setTimeout(() => {
+      if (!win || win.isDestroyed()) return;
+      closingOK = true;
+      win.close();
+      // jika penutupan dibatalkan (cth siaran sedang berjalan), pulihkan paparan
+      setTimeout(() => { closingOK = false; if (win && !win.isDestroyed()) win.webContents.send('win:closing-cancel'); }, 400);
+    }, 300);
+  });
+  const sendState = () => { if (win && !win.isDestroyed()) win.webContents.send('win:state', { maximized: win.isMaximized(), focused: win.isFocused() }); };
+  ['maximize', 'unmaximize', 'focus', 'blur'].forEach((ev) => win.on(ev, sendState));
+  win.on('restore', () => { if (win && !win.isDestroyed()) win.webContents.send('win:restored'); });
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   // pautan luaran dibuka dalam pelayar, bukan dalam app
   // tetingkap panel (chat dikeluarkan ke skrin kedua): hanya about:blank bernama gs-panel; semua pautan lain dibuka dalam Chrome

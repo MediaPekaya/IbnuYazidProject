@@ -22,7 +22,7 @@
 html[data-appmode^="formal"] .bg-fx { display: none; }
 html[data-appmode^="formal"] body { background: var(--bg0); }
 html[data-appmode^="formal"] { --grad: linear-gradient(var(--accent), var(--accent)); --grad-loop: linear-gradient(var(--accent), var(--accent)); --violet: var(--accent); }
-html[data-appmode^="formal"] *, html[data-appmode^="formal"] *::before, html[data-appmode^="formal"] *::after { animation: none !important; }
+html[data-appmode^="formal"] *:not(body):not(#app), html[data-appmode^="formal"] *::before, html[data-appmode^="formal"] *::after { animation: none !important; }   /* tetingkap (body, #app) masih beranimasi buka/tutup */
 html[data-appmode^="formal"] #topbar::after { display: none; }
 html[data-appmode^="formal"] #topbar, html[data-appmode^="formal"] #stage, html[data-appmode^="formal"] #right { backdrop-filter: none; box-shadow: none; }
 html[data-appmode^="formal"] .grad-text, html[data-appmode^="formal"] .brand-name { background: none; -webkit-text-fill-color: currentColor; color: var(--text); }
