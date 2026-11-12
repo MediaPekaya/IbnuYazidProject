@@ -113,7 +113,7 @@
       render();
       if (native() && mode !== 'program' && window.gsNative.rec) {
         window.gsNative.rec.bar(true);                                  // bar REC sentiasa di atas (tidak dirakam)
-        if (GS.state.settings.recMinimize && window.gsNative.win) setTimeout(() => window.gsNative.win.minimize(), 700);
+        if (window.gsNative.win) setTimeout(() => window.gsNative.win.minimize(), 700);
       }
       GS.toast(GS.t('Merakam: {0}', GS.t(R.modes[mode])) + (R.size ? ' · ' + R.size : ''), 'ok', 3500);
       return true;
@@ -185,18 +185,17 @@
     pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain turut masuk ke dalam rakaman. Pakai fon kepala supaya tiada dengung.', !!st.recSystemAudio, () => { st.recSystemAudio = true; GS.save(); }, '', true));
     pop.append(item('Tanpa bunyi komputer', 'Rakaman hanya membawa suara mikrofon dan campuran bunyi dalam app ini.', !st.recSystemAudio, () => { st.recSystemAudio = false; GS.save(); }, '', true));
     pop.append(h('hr'));
-    pop.append(item('Kecilkan Global Streamer semasa merakam', 'Tetingkap app diturunkan supaya skrin anda bersih. Guna bar REC di atas untuk Pause, Hide dan Simpan rakaman.', !!st.recMinimize, () => { st.recMinimize = !st.recMinimize; GS.save(); }, '', true));
     document.body.append(pop);
     const anchor = GS.$('#btnRecMode'), r = anchor.getBoundingClientRect(), pr = pop.getBoundingClientRect();
     pop.style.left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.right - pr.width)) + 'px';
     pop.style.top = (r.bottom + 8) + 'px';
     requestAnimationFrame(() => requestAnimationFrame(() => pop.classList.add('in')));
-    // kemas kini tanda ✓ tanpa menutup menu (3 item terakhir: bunyi komputer, tanpa bunyi, kecilkan)
+    // kemas kini tanda ✓ tanpa menutup menu (2 item terakhir: bunyi komputer, tanpa bunyi)
     function sync() {
-      const on = [!!st.recSystemAudio, !st.recSystemAudio, !!st.recMinimize];
+      const on = [!!st.recSystemAudio, !st.recSystemAudio];
       const all = pop.querySelectorAll('.pop-item');
       const n = all.length;
-      on.forEach((v, k) => { const el = all[n - 3 + k]; el.classList.toggle('on', v); el.setAttribute('aria-checked', v ? 'true' : 'false'); });
+      on.forEach((v, k) => { const el = all[n - 2 + k]; el.classList.toggle('on', v); el.setAttribute('aria-checked', v ? 'true' : 'false'); });
     }
     pop._close = () => close();
     function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 320); document.removeEventListener('pointerdown', away, true); }

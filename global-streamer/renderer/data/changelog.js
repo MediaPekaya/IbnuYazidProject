@@ -30,6 +30,7 @@ window.GS_CHANGELOG = {
       'Footer mengikut saiz rujukan (1080 x 488 piksel pada potret), dan video sendiri boleh dipasang di footer.',
       'Butang Ajar skrin DEFEAT dan VICTORY memaparkan bilangan contoh yang telah diajar.',
       'Pengesan kill, mati, item, item penuh, victory dan defeat hidup sendiri tanpa menekan sebarang kekunci.',
+      'Semasa merakam, tetingkap app dikecilkan secara automatik; pilihan tick di menu REC dibuang.',
     ],
     en: [
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
@@ -60,6 +61,7 @@ window.GS_CHANGELOG = {
       'The footer follows the reference size (1080 x 488 pixels in portrait), and your own video can be placed in the footer.',
       'The Learn DEFEAT and VICTORY buttons show how many samples have been learned.',
       'The kill, death, item, full item, victory and defeat detectors start by themselves without pressing any key.',
+      'While recording, the app window is minimised automatically; the tick option in the REC menu is removed.',
     ],
   },
 };
