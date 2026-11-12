@@ -230,28 +230,6 @@
     setTimeout(() => inp.remove(), 60000);
   };
 
-  /** Pilih imej bot / karakter daripada peranti (PNG lutsinar dikekalkan) dan serahkan data URL kepada `cb`. */
-  function pickCharacter(cb) {
-    const inp = h('input', { type: 'file', accept: 'image/png,image/webp,image/jpeg,image/*', style: { display: 'none' } });
-    inp.addEventListener('change', async () => {
-      const f = inp.files[0];
-      if (!f) return;
-      try { cb(await GS.media.downscale(await GS.media.readFile(f), 1024, true), f); } catch (e) { GS.toast(GS.t('Imej tidak dapat dibaca. Cuba fail PNG atau JPG lain.'), 'warn'); }
-    });
-    document.body.append(inp);
-    inp.click();
-    setTimeout(() => inp.remove(), 60000);
-  }
-  /** Sumber baharu: bot / karakter sendiri (boleh dalam mana-mana template, termasuk YouTube). */
-  S.addCharacter = function () {
-    pickCharacter((url, f) => {
-      const dh = GS.design.h;
-      const src = mk('image', 'Bot / Karakter', 40, Math.round(dh - 380), 300, 300, { src: url, bob: true, character: true });
-      src.fit = 'contain';
-      addSource(src);
-    });
-  };
-
   /** Kedudukan bar bawah (footer): bar teks / banner promosi pada scene, jika tiada jalur bawah kanvas. */
   const footerRect = (sc) => {
     const W = GS.design.w, H = GS.design.h;
@@ -410,7 +388,7 @@
   };
   /** Sembunyikan/papar bar teks (INFO ... WELCOME) dan banner promosi (FOLLOW & SHARE) pada scene supaya banner sendiri menggantikannya. */
   S.setBarsHidden = function (sc, hide) {
-    (sc ? sc.sources : []).forEach((x) => { if (x.type === 'widget' && (x.props.widget === 'ticker' || x.props.widget === 'promo')) x.visible = !hide; });
+    (sc ? sc.sources : []).forEach((x) => { if (x.type === 'widget' && (x.props.widget === 'ticker' || x.props.widget === 'promo' || x.props.widget === 'bot')) x.visible = !hide; });
     changed('sources:changed');
   };
 
@@ -434,11 +412,30 @@
     if (added) changed(); else GS.save();
   };
 
+  /** Scene sedia ada: asingkan bot kecil banner promosi menjadi sumber 'Bot' (sekali sahaja; padam oleh pengguna kekal padam). */
+  S.seedBots = function () {
+    const st = GS.state;
+    if (st.botSeeded) return;
+    let added = false;
+    st.scenes.forEach((sc) => {
+      sc.sources.filter((s) => s.type === 'widget' && s.props.widget === 'promo').forEach((p) => {
+        const gift = p.props.style === 'gift';
+        if (sc.sources.some((s) => s.type === 'widget' && s.props.widget === 'bot' && Math.abs(s.x - p.x) < p.h && Math.abs(s.y - p.y) < p.h)) return;
+        const b = mk('widget', gift ? 'Bot Hadiah' : 'Bot', p.x, p.y - Math.round(p.h * 0.06), Math.round(p.h * 1.24), Math.round(p.h * 1.12), { widget: 'bot', tone: gift ? 'gold' : 'blue' });
+        b.visible = p.visible !== false;
+        sc.sources.splice(sc.sources.indexOf(p) + 1, 0, b);
+        added = true;
+      });
+    });
+    st.botSeeded = 1;
+    if (added) changed(); else GS.save();
+  };
+
   S.addText = () => addSource(mk('text', 'Teks', 100, 100, 900, 90, { text: 'Teks baharu', size: 64, color: '#eaf4ff', weight: 800 }));
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
+    bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
@@ -550,13 +547,13 @@
       '-',
       { label: 'Footer Video (video bergerak di bar bawah)', icon: 'image', run: S.addFooterVideo },
       { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'image', run: S.addClip },
-      { label: 'Bot / Karakter sendiri (PNG lutsinar)', icon: 'image', run: S.addCharacter },
       { label: 'Imej', icon: 'image', run: S.addImage },
       { label: 'Teks', icon: 'text', run: S.addText },
       '-',
       { label: 'Widget: Jam & Masa Main', icon: 'widget', run: () => S.addWidget('clock') },
       { label: 'Widget: Menang / Kalah', icon: 'widget', run: () => S.addWidget('winloss') },
       { label: 'Widget: Logo', icon: 'widget', run: () => S.addWidget('logo') },
+      { label: 'Widget: Bot', icon: 'widget', run: () => S.addWidget('bot') },
       { label: 'Widget: Tajuk', icon: 'widget', run: () => S.addWidget('brand') },
       { label: 'Widget: Bar Teks', icon: 'widget', run: () => S.addWidget('ticker') },
       { label: 'Widget: Bingkai', icon: 'widget', run: () => S.addWidget('frame') },
@@ -584,11 +581,6 @@
     if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); return; }
     root.append(
       h('div', { class: 'grid4' }, field('X', numInput(s, 'x')), field('Y', numInput(s, 'y')), field('Lebar', numInput(s, 'w')), field('Tinggi', numInput(s, 'h'))));
-    if (s.type === 'image' && s.props.character) {
-      root.append(h('div', { class: 'btn-row' },
-        h('button', { class: 'btn primary', id: 'btnCharReplace', onClick: () => pickCharacter((url) => { s.props.src = url; changed('props:changed'); renderProps(); }) }, 'Tukar bot / karakter')));
-      root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'chkCharBob', checked: s.props.bob !== false, onChange: (e) => { s.props.bob = e.target.checked; GS.save(); } }), h('span', null, 'Gerak naik-turun perlahan')));
-    }
     if (s.type === 'video' || s.type === 'image' || s.type === 'clip') {
       const sel = h('select', { onChange: (e) => { s.fit = e.target.value; changed('props:changed'); } },
         [['cover', 'Penuhi (potong)'], ['contain', 'Muat (tanpa potong)'], ['stretch', 'Regang']].map(([v, l]) => h('option', { value: v, selected: s.fit === v }, l)));
@@ -628,12 +620,6 @@
       const w = s.props.widget;
       if (w === 'ticker') {
         root.append(field('Mesej bar teks (satu baris = satu mesej)', h('textarea', { rows: 4, onInput: (e) => { GS.state.ticker.messages = e.target.value.split('\n').map((x) => x.trim()).filter(Boolean); GS.save(); } }, (GS.state.ticker.messages || []).join('\n'))));
-      }
-      if (w === 'promo') {
-        root.append(h('div', { class: 'btn-row' },
-          h('button', { class: 'btn', id: 'btnMascotPick', title: GS.t('Gantikan bot kecil dengan bot atau karakter anda sendiri'), onClick: () => pickCharacter((url) => { s.props.mascot = url; changed('props:changed'); renderProps(); }) }, 'Bot / karakter sendiri'),
-          s.props.mascot ? h('button', { class: 'btn ghost', id: 'btnMascotReset', onClick: () => { delete s.props.mascot; changed('props:changed'); renderProps(); } }, 'Guna bot asal') : null));
-        root.append(h('p', { class: 'muted note' }, 'Guna PNG lutsinar (tanpa latar) supaya bot nampak kemas di dalam banner.'));
       }
       if (w === 'brand') root.append(field('Tajuk', h('input', { type: 'text', value: s.props.text || '', placeholder: 'GLOBAL STREAMER', onInput: (e) => { s.props.text = e.target.value; GS.save(); } })));
       if (w === 'frame') root.append(field('Label bingkai', h('input', { type: 'text', value: s.props.label || '', onInput: (e) => { s.props.label = e.target.value.toUpperCase(); GS.save(); } })));

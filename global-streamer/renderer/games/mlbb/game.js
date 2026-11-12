@@ -303,6 +303,13 @@
     { id: 'hok', name: 'Honor of Kings', ready: false },
   ];
 
+  /* bot kecil di sebelah banner promosi ialah sumber berasingan ('Bot') dalam semua template */
+  const botFor = (p) => widget(p.props.style === 'gift' ? 'Bot Hadiah' : 'Bot', 'bot', p.x, p.y - Math.round(p.h * 0.06), Math.round(p.h * 1.24), Math.round(p.h * 1.12), { tone: p.props.style === 'gift' ? 'gold' : 'blue' });
+  templates.forEach((t) => {
+    const b = t.build;
+    t.build = () => { const out = []; b().forEach((s) => { out.push(s); if (s.type === 'widget' && s.props.widget === 'promo') out.push(botFor(s)); }); return out; };
+  });
+
   GS.games.mlbb = {
     id: 'mlbb',
     name: 'Mobile Legends: Bang Bang',

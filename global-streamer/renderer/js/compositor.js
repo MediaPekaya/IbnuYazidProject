@@ -140,7 +140,6 @@
         }
         case 'image': {
           const im = GS.media.image(s.props.src);
-          if (im && s.props.bob) ctx.translate(0, Math.sin(now * 0.004) * s.h * 0.025);   // bot / karakter: gerak naik-turun perlahan
           if (im) this.drawFit(ctx, im, im.naturalWidth, im.naturalHeight, s);
           else this.placeholder(ctx, s, now);
           break;

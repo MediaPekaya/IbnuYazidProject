@@ -322,14 +322,7 @@
     const items = (gift ? GS.state.promo.gift : GS.state.promo.items) || [];
     W.panel(ctx, x, y, w, h, t, { phase: gift ? 4.2 : 3.6, r: Math.min(22, h * 0.3) });
     const tone = gift ? 'gold' : 'blue';
-    // bot / karakter sendiri (PNG lutsinar) menggantikan GS-Bot asal; bergerak naik-turun perlahan seperti bot asal
-    const own = s.props.mascot && GS.media.image(s.props.mascot);
-    if (own && own.naturalWidth) {
-      const box = h * 1.1, bob = Math.sin(t * 0.004) * h * 0.02;
-      const r = Math.min(box / own.naturalWidth, box / own.naturalHeight);
-      const dw = own.naturalWidth * r, dh = own.naturalHeight * r;
-      ctx.drawImage(own, x + h * 0.62 - dw / 2, y + h * 0.56 - dh / 2 + bob, dw, dh);
-    } else W.mascot(ctx, x + h * 0.62, y + h * 0.56, h * 0.62, t, tone);
+    // bot kecil kini sumber berasingan ('Bot' dalam senarai Sumber) supaya boleh dialih, disembunyi atau diganti dengan imej sendiri
     if (!items.length) return;
     const period = 4600;
     const idx = Math.floor(t / period) % items.length;
@@ -355,6 +348,12 @@
     W.text(ctx, T(it.title || '').toUpperCase(), tx, y + h * 0.48 + off, { size: h * 0.3, weight: 800, color: C.text, maxW: x + w - tx - 24, shadow: 'rgba(80,170,255,.6)', blur: 10 });
     W.text(ctx, T(it.sub || ''), tx, y + h * 0.78 + off, { size: h * 0.19, weight: 600, color: gift ? C.gold : C.cyan, maxW: x + w - tx - 24 });
     ctx.restore();
+  };
+
+  /* ---------- bot kecil (sumber berasingan di sebelah banner promosi) ---------- */
+  W.bot = function (ctx, s, t) {
+    const size = Math.min(s.w / 1.24, s.h / 1.12) * 0.62;
+    W.mascot(ctx, s.x + s.w / 2, s.y + s.h / 2, size, t, s.props.tone === 'gold' ? 'gold' : 'blue');
   };
 
   /* ---------- giliran mabar ---------- */

@@ -159,6 +159,7 @@
     // panel tambahan: kegagalan di sini tidak boleh menghalang app bermula (cth. index.html lama dalam cache pelayar)
     try { const mb = GS.$('#metaBody'); if (mb) GS.gamedock.metaPage(mb); } catch (e) { console.error(e); }
     try { GS.scenes.seedMetaBoard(); } catch (e) { console.error(e); }
+    try { GS.scenes.seedBots(); } catch (e) { console.error(e); }
     GS.live.render();
     A.setMode(GS.state.mode);
     bindHotkeys();
