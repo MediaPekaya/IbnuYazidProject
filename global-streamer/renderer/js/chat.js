@@ -45,9 +45,12 @@
     const empty = list.querySelector('.empty');
     if (empty) empty.remove();
     const near = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
-    list.append(msgEl(m));
+    const el = msgEl(m);
+    el.classList.add('pop-in'); // masuk dengan animasi lembut gaya iOS
+    el.addEventListener('animationend', () => el.classList.remove('pop-in'), { once: true });
+    list.append(el);
     while (list.children.length > MAX) list.firstChild.remove();
-    if (near) list.scrollTop = list.scrollHeight;
+    if (near) list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
   }
 
   function renderList() {

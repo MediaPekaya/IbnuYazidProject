@@ -440,6 +440,18 @@
     W.text(ctx, title, x + w / 2, y + h * 0.2, { size: Math.min(h * 0.14, w * 0.075), weight: 900, align: 'center', color: C.text, spacing: 6, maxW: w * 0.9, shadow: noPanel ? '#000' : C.cyan, blur: 18 });
     const units = show3 ? [[pt.h, 'JAM'], [pt.m, 'MINIT'], [pt.s, 'SAAT']] : [[pt.m + pt.h * 60, 'MINIT'], [pt.s, 'SAAT']];
     const n = units.length, gap = w * 0.03, tw = (w * 0.86 - gap * (n - 1)) / n, th = h * 0.42, ty = y + h * 0.3, tx0 = x + (w - (tw * n + gap * (n - 1))) / 2;
+    const tiles = style === 'box' || style === 'flip';
+    // tanpa kotak: ukur lebar nombor sebenar (fon berbeza lebar berbeza) supaya nombor dan titik bertindih tidak berlaku
+    let dsize = Math.min(th * 0.78, tw * 0.62), dcx = null;
+    if (!tiles) {
+      const meas = (str, sz) => { ctx.save(); ctx.font = '900 ' + sz + 'px ' + W.FONT; if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'; const m = ctx.measureText(str).width; ctx.restore(); return m; };
+      const colonOf = (sz) => sz * 0.5;
+      const total = (sz) => units.reduce((a2, u) => a2 + Math.max(meas(String(u[0]).padStart(2, '0'), sz), meas('00', sz)), 0) + (n - 1) * (colonOf(sz) + sz * 0.16);
+      dsize = Math.min(th * 0.8, h * 0.36);
+      if (total(dsize) > w * 0.9) dsize *= (w * 0.9) / total(dsize);
+      let cx0 = x + (w - total(dsize)) / 2; dcx = [];
+      units.forEach((u) => { const wd = Math.max(meas(String(u[0]).padStart(2, '0'), dsize), meas('00', dsize)); dcx.push([cx0 + wd / 2, wd]); cx0 += wd + colonOf(dsize) + dsize * 0.16; });
+    }
     units.forEach(([v, lab], i) => {
       const tx = tx0 + i * (tw + gap), vs = String(v).padStart(2, '0');
       if (style === 'box' || style === 'flip') {
@@ -447,9 +459,10 @@
         if (style === 'flip') { ctx.fillStyle = 'rgba(255,255,255,0.08)'; W.rr(ctx, tx, ty, tw, th / 2, th * 0.14); ctx.fill(); ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(tx, ty + th / 2 - 2, tw, 4); }
         ctx.restore();
       }
-      drawDigits(ctx, vs, tx + tw / 2, ty + th / 2, Math.min(th * 0.78, tw * 0.62), style === 'box' || style === 'flip' ? 'box' : style, t);
-      if (!(style === 'box' || style === 'flip') && i < n - 1) W.text(ctx, ':', tx + tw + gap / 2, ty + th * 0.66, { size: th * 0.6, weight: 900, align: 'center', color: 'rgba(255,255,255,0.8)' });
-      W.text(ctx, GS.tov ? GS.tov(lab) : lab, tx + tw / 2, ty + th + h * 0.075, { size: Math.min(h * 0.055, tw * 0.13), weight: 800, align: 'center', color: noPanel ? '#fff' : C.muted, spacing: 3, shadow: noPanel ? '#000' : undefined, blur: 8 });
+      const cxn = tiles ? tx + tw / 2 : dcx[i][0];
+      drawDigits(ctx, vs, cxn, ty + th / 2, tiles ? Math.min(th * 0.78, tw * 0.62) : dsize, tiles ? 'box' : style, t);
+      if (!tiles && i < n - 1) W.text(ctx, ':', dcx[i][0] + dcx[i][1] / 2 + (dsize * 0.66) / 2, ty + th / 2 + dsize * 0.3, { size: dsize * 0.8, weight: 900, align: 'center', color: 'rgba(255,255,255,0.85)' });
+      W.text(ctx, GS.tov ? GS.tov(lab) : lab, cxn, ty + th + h * 0.075, { size: Math.min(h * 0.055, tw * 0.13), weight: 800, align: 'center', color: noPanel ? '#fff' : C.muted, spacing: 3, shadow: noPanel ? '#000' : undefined, blur: 8 });
     });
     W.text(ctx, p.subtitle || 'MOBILE LEGENDS', x + w / 2, y + h * 0.93, { size: Math.min(h * 0.075, w * 0.045), weight: 800, align: 'center', color: noPanel ? '#fff' : C.cyan, spacing: 4, maxW: w * 0.9, shadow: noPanel ? '#000' : undefined, blur: 10 });
   };

@@ -604,3 +604,9 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .prog-cd h4 { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red, #ff3b5c); }
 .prog-cd-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; }
 .prog-cd-state { font-variant-numeric: tabular-nums; font-weight: 800; }
+
+/* mesej chat baharu: naik dan membesar dengan spring lembut gaya iOS */
+@keyframes chatPop { 0% { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.92); filter: blur(5px); } 55% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); } }
+.chat-msg.pop-in { animation: chatPop 0.62s cubic-bezier(0.32, 0.72, 0, 1) both; will-change: transform, opacity; backface-visibility: hidden; transform-origin: 20% 100%; }
+#chatList { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { .chat-msg.pop-in { animation: none; } }

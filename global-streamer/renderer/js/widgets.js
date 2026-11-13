@@ -156,13 +156,18 @@
     const now = new Date();
     const hm = GS.pad(now.getHours()) + ':' + GS.pad(now.getMinutes());
     const sec = GS.pad(now.getSeconds());
-    const big = h * 0.5;
-    W.text(ctx, hm, x + w * 0.06, y + h * 0.62, { size: big, weight: 700, color: C.text, shadow: 'rgba(80,170,255,.8)', blur: 18 });
-    const tw = (() => { ctx.save(); ctx.font = '700 ' + big + 'px ' + W.FONT; const m = ctx.measureText(hm).width; ctx.restore(); return m; })();
-    W.text(ctx, sec, x + w * 0.06 + tw + 6, y + h * 0.62, { size: big * 0.42, weight: 600, color: C.cyan });
-    const rx = x + w * 0.62;
-    W.text(ctx, GS.tov('MASA MAIN'), rx, y + h * 0.36, { size: Math.max(11, h * 0.14), weight: 700, spacing: 2.5, color: C.muted });
-    W.text(ctx, GS.fmtDur((Date.now() - GS.state.sessionStart) / 1000), rx, y + h * 0.68, { size: h * 0.3, weight: 700, color: C.gold, maxW: w * 0.34 });
+    const meas = (str, size, wt) => { ctx.save(); ctx.font = wt + ' ' + size + 'px ' + W.FONT; const m = ctx.measureText(str).width; ctx.restore(); return m; };
+    // kiri: jam + saat muat dalam 54% lebar; kanan: masa main dilaras kanan supaya tidak bertindih walau fon lebar
+    let big = h * 0.5;
+    const leftMax = w * 0.46;
+    const need = (b) => meas(hm, b, 700) + 6 + meas(sec, b * 0.42, 600);
+    if (need(big) > leftMax) big *= leftMax / need(big);
+    W.text(ctx, hm, x + w * 0.05, y + h * 0.62, { size: big, weight: 700, color: C.text, shadow: 'rgba(80,170,255,.8)', blur: 18 });
+    const tw = meas(hm, big, 700);
+    W.text(ctx, sec, x + w * 0.05 + tw + 6, y + h * 0.62, { size: big * 0.42, weight: 600, color: C.cyan });
+    const rxr = x + w * 0.95, rzone = w * 0.34;
+    W.text(ctx, GS.tov('MASA MAIN'), rxr, y + h * 0.36, { size: Math.max(11, h * 0.14), weight: 700, spacing: 2.5, color: C.muted, align: 'right', maxW: rzone });
+    W.text(ctx, GS.fmtDur((Date.now() - GS.state.sessionStart) / 1000), rxr, y + h * 0.68, { size: h * 0.3, weight: 700, color: C.gold, maxW: rzone, align: 'right' });
   };
 
   /* ---------- widget: menang / kalah ---------- */
@@ -172,16 +177,20 @@
     const wl = GS.state.winloss;
     const total = wl.win + wl.loss;
     const wr = total ? Math.round((wl.win / total) * 100) : 0;
-    const num = h * 0.5;
+    let num = h * 0.5;
+    const measW = (str, size) => { ctx.save(); ctx.font = '800 ' + size + 'px ' + W.FONT; const m = ctx.measureText(String(str)).width; ctx.restore(); return m; };
+    const widest = Math.max(measW(wl.win, num), measW(wl.loss, num));
+    if (widest > w * 0.24) num *= (w * 0.24) / widest;
     W.text(ctx, 'WIN', x + w * 0.08, y + h * 0.3, { size: Math.max(11, h * 0.15), weight: 800, spacing: 3, color: C.cyan });
     W.text(ctx, wl.win, x + w * 0.08, y + h * 0.78, { size: num, weight: 800, color: C.text, shadow: 'rgba(80,190,255,.9)', blur: 18 });
     W.text(ctx, 'LOSE', x + w * 0.92, y + h * 0.3, { size: Math.max(11, h * 0.15), weight: 800, spacing: 3, color: C.red, align: 'right' });
     W.text(ctx, wl.loss, x + w * 0.92, y + h * 0.78, { size: num, weight: 800, color: C.text, align: 'right', shadow: 'rgba(255,60,100,.9)', blur: 18 });
     // tengah: WR + streak
-    W.text(ctx, 'WR ' + wr + '%', x + w / 2, y + h * 0.44, { size: Math.max(12, h * 0.19), weight: 800, align: 'center', color: wr >= 50 ? C.gold : C.muted });
+    const midW = Math.max(30, w - 2 * (w * 0.08 + Math.max(measW(wl.win, num), measW(wl.loss, num)) + 10));
+    W.text(ctx, 'WR ' + wr + '%', x + w / 2, y + h * 0.44, { size: Math.max(12, h * 0.19), weight: 800, align: 'center', color: wr >= 50 ? C.gold : C.muted, maxW: midW });
     const st = wl.streak;
     const stTxt = st > 0 ? GS.tov('MENANG ×{0}', st) : st < 0 ? GS.tov('KALAH ×{0}', Math.abs(st)) : '—';
-    W.text(ctx, stTxt, x + w / 2, y + h * 0.74, { size: Math.max(10, h * 0.13), weight: 700, spacing: 1.5, align: 'center', color: st < 0 ? C.red : C.muted });
+    W.text(ctx, stTxt, x + w / 2, y + h * 0.74, { size: Math.max(10, h * 0.13), weight: 700, spacing: 1.5, align: 'center', color: st < 0 ? C.red : C.muted, maxW: midW });
     // bar WR
     const bx = x + w * 0.3, bw = w * 0.4, by = y + h * 0.86;
     ctx.save();
