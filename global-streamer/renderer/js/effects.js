@@ -581,6 +581,49 @@
   }
 
 
+
+  /* ================== DRAFT: popup pick ally/enemy dan papan ringkasan ================== */
+  function heroCircle(ctx, name, cx, cy, r, ring) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = '#10182e'; ctx.fill();
+    const img = GS.heroImg && GS.heroImg(name);
+    if (img) { ctx.save(); ctx.clip(); ctx.drawImage(img, cx - r, cy - r, r * 2, r * 2); ctx.restore(); }
+    else GS.widgets.text(ctx, (name || '?').slice(0, 2).toUpperCase(), cx, cy + r * 0.28, { size: r * 0.8, weight: 800, align: 'center', color: '#9fb4d6' });
+    ctx.lineWidth = Math.max(3, r * 0.08); ctx.strokeStyle = ring; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+  function drawDraftPick(ctx, e, p, now, W, H) {
+    const side = e.params.side === 'enemy' ? 'enemy' : 'ally', col = side === 'enemy' ? '#ff4d5e' : '#2ea8ff', col2 = side === 'enemy' ? '#7a1020' : '#0a2f66';
+    const inP = easeBack(p / 0.14), outP = easeOut((p - 0.86) / 0.14);
+    const bw = Math.min(W - 60, 760), bh = 150, y = (GS.scenes.program() && GS.scenes.program().alertY != null ? GS.scenes.program().alertY : H * 0.25) - 40;
+    const dir = side === 'enemy' ? 1 : -1, off = (1 - clamp(inP, 0, 1)) * (W * 0.6) * dir + outP * W * 0.6 * dir, x = (W - bw) / 2 + off;
+    ctx.save();
+    const g = ctx.createLinearGradient(x, 0, x + bw, 0); g.addColorStop(0, col2); g.addColorStop(1, 'rgba(8,14,34,0.95)');
+    ctx.fillStyle = g; GS.widgets.rr(ctx, x, y, bw, bh, 28); ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 24; ctx.stroke(); ctx.shadowBlur = 0;
+    heroCircle(ctx, e.params.hero, x + 92, y + bh / 2, 58, col);
+    GS.widgets.text(ctx, GS.tov(side === 'enemy' ? 'ENEMY PICK' : 'ALLY PICK'), x + 180, y + 56, { size: 28, weight: 900, spacing: 5, color: col });
+    GS.widgets.text(ctx, String(e.params.hero || '').toUpperCase(), x + 180, y + 112, { size: 50, weight: 900, color: '#ffffff', maxW: bw - 210 });
+    ctx.restore();
+  }
+  function drawDraftBoard(ctx, e, p, now, W, H) {
+    const a = Math.min(easeOut(p / 0.08), 1 - easeOut((p - 0.92) / 0.08));
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(4,8,20,0.82)'; ctx.fillRect(0, 0, W, H);
+    GS.widgets.text(ctx, GS.tov('DRAFT COMPLETE'), W / 2, H * 0.17, { size: Math.min(W * 0.08, 90), weight: 900, spacing: 8, align: 'center', color: '#ffffff', shadow: '#2ea8ff', blur: 30 });
+    const por = H > W, cols = por ? 1 : 2, rowH = por ? Math.min(H * 0.066, 124) : Math.min(H * 0.12, 120), r = rowH * 0.42, top = por ? H * 0.2 : H * 0.26;
+    [['ally', e.params.ally || [], '#2ea8ff', 'ALLY'], ['enemy', e.params.enemy || [], '#ff4d5e', 'ENEMY']].forEach(([side, list, col, lab], si) => {
+      const bx = por ? W * 0.12 : (si === 0 ? W * 0.07 : W * 0.55), by = por ? top + si * (rowH * 5 + 84) : top, bw = por ? W * 0.76 : W * 0.38;
+      GS.widgets.text(ctx, GS.tov(lab), bx, by - 16, { size: 34, weight: 900, spacing: 6, color: col });
+      for (let i = 0; i < 5; i++) {
+        const ry = by + i * rowH, k = clamp((p - 0.1 - i * 0.04 - si * 0.05) / 0.12, 0, 1), off = (1 - easeOut(k)) * 80 * (si === 0 ? -1 : 1);
+        ctx.globalAlpha = a * k; ctx.fillStyle = 'rgba(16,26,52,0.92)'; GS.widgets.rr(ctx, bx + off, ry + 6, bw, rowH - 12, 18); ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.stroke();
+        heroCircle(ctx, list[i], bx + off + r + 14, ry + rowH / 2, r, col);
+        GS.widgets.text(ctx, String(list[i] || '-').toUpperCase(), bx + off + r * 2 + 34, ry + rowH / 2 + 12, { size: 34, weight: 800, color: '#fff', maxW: bw - r * 2 - 50 });
+      }
+    });
+    ctx.restore();
+  }
+
   /* ================== BOT: gelembung komik (cakap) ================== */
   /* Fon komik "Bangers" (SIL OFL, dibundel dalam app: assets/fonts) untuk gelembung bot. Jika gagal dimuat: Comic Sans / sans-serif. */
   const COMIC = '"GSComic","Comic Sans MS","Comic Neue","Chalkboard SE","Segoe Print","Segoe UI",system-ui,sans-serif';
@@ -956,6 +999,8 @@
     itemalert: { dur: 4400, draw: drawItemAlert, sfx: 'chest' },
     tierlist: { dur: 9000, draw: drawTierList, sfx: 'alert' },
     gift: { dur: 3600, draw: drawGift, sfx: 'alert' },
+    draftpick: { dur: 3800, draw: drawDraftPick, sfx: 'alert' },
+    draftboard: { dur: 9000, draw: drawDraftBoard, sfx: 'alert' },
     giftbig: { dur: 6500, draw: drawGiftBig, sfx: 'victory' },
   };
   FX.names = Object.keys(defs);

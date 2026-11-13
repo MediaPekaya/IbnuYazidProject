@@ -4,7 +4,7 @@
   'use strict';
   const W = GS.widgets;
   const TAU = Math.PI * 2;
-  const STYLES = [['school', 'Sekolah (papan hitam)'], ['university', 'Universiti'], ['corporate', 'Korporat'], ['floral', 'Bunga'], ['notebook', 'Buku nota'], ['science', 'Sains']];
+  const STYLES = [['corporate', 'Korporat'], ['floral', 'Bunga'], ['notebook', 'Buku nota'], ['science', 'Sains']];
   const lin = (ctx, x0, y0, x1, y1, stops) => { const g = ctx.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, c]) => g.addColorStop(o, c)); return g; };
   const rr = (ctx, x, y, w, h, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
   const flower = (ctx, x, y, r, petal, center) => { ctx.save(); ctx.translate(x, y); ctx.fillStyle = petal; for (let i = 0; i < 6; i++) { ctx.rotate(TAU / 6); ctx.beginPath(); ctx.ellipse(r * 0.55, 0, r * 0.5, r * 0.28, 0, 0, TAU); ctx.fill(); } ctx.fillStyle = center; ctx.beginPath(); ctx.arc(0, 0, r * 0.28, 0, TAU); ctx.fill(); ctx.restore(); };
@@ -15,22 +15,6 @@
   const pencil = (ctx, x, y, len, ang, u) => { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.fillStyle = '#f4c542'; ctx.fillRect(0, -9 * u, len, 18 * u); ctx.fillStyle = '#e8a33d'; ctx.fillRect(0, -9 * u, len, 5 * u); ctx.fillStyle = '#f2d2a8'; ctx.beginPath(); ctx.moveTo(len, -9 * u); ctx.lineTo(len + 30 * u, 0); ctx.lineTo(len, 9 * u); ctx.fill(); ctx.fillStyle = '#333'; ctx.beginPath(); ctx.moveTo(len + 22 * u, -3 * u); ctx.lineTo(len + 30 * u, 0); ctx.lineTo(len + 22 * u, 3 * u); ctx.fill(); ctx.fillStyle = '#e66'; ctx.fillRect(-18 * u, -9 * u, 18 * u, 18 * u); ctx.restore(); };
 
   const DRAW = {
-    school(ctx, x, y, w, h, u) {
-      ctx.fillStyle = lin(ctx, 0, y, 0, y + h, [[0, '#2c5a44'], [1, '#1d4030']]); ctx.fillRect(x, y, w, h);
-      for (let i = 0; i < 90; i++) { ctx.fillStyle = 'rgba(255,255,255,' + (0.012 + (i % 5) * 0.004) + ')'; ctx.beginPath(); ctx.ellipse(x + ((i * 193) % 1000) / 1000 * w, y + ((i * 337) % 1000) / 1000 * h, 90 * u, 20 * u, i, 0, TAU); ctx.fill(); }
-      const f = 26 * u; ctx.strokeStyle = lin(ctx, 0, y, 0, y + h, [[0, '#a9743f'], [1, '#7a4a22']]); ctx.lineWidth = f * 2; ctx.strokeRect(x, y, w, h);
-      ctx.fillStyle = '#8c5a2b'; ctx.fillRect(x + f, y + h - 54 * u, w - 2 * f, 28 * u); ctx.fillStyle = '#f4f4ef'; rr(ctx, x + w * 0.62, y + h - 60 * u, 80 * u, 14 * u, 6 * u); ctx.fill(); ctx.fillStyle = '#f7c948'; rr(ctx, x + w * 0.62 + 100 * u, y + h - 58 * u, 50 * u, 12 * u, 5 * u); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '700 ' + 46 * u + 'px "Segoe Print","Comic Sans MS",cursive'; ctx.textAlign = 'left';
-      ctx.fillText('A B C', x + 52 * u, y + 90 * u); ctx.fillText('1 + 1 = 2', x + w - 330 * u, y + 90 * u); ctx.font = '700 ' + 34 * u + 'px "Segoe Print","Comic Sans MS",cursive'; ctx.fillText('a² + b² = c²', x + 52 * u, y + h - 84 * u);
-      ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 3 * u; ctx.beginPath(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * TAU * 0.4; const px = x + w - 120 * u + Math.cos(a) * 30 * u, py = y + h - 130 * u + Math.sin(a) * 30 * u; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.closePath(); ctx.stroke();
-      ctx.fillStyle = '#e24b4b'; ctx.beginPath(); ctx.arc(x + w - 70 * u, y + h - 78 * u, 22 * u, 0, TAU); ctx.fill(); leaf(ctx, x + w - 70 * u, y + h - 98 * u, 22 * u, -0.8, '#4caf50');
-    },
-    university(ctx, x, y, w, h, u) {
-      ctx.fillStyle = lin(ctx, 0, y, 0, y + h, [[0, '#183560'], [1, '#0f2445']]); ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = '#d8b25a'; ctx.lineWidth = 4 * u; ctx.strokeRect(x + 14 * u, y + 14 * u, w - 28 * u, h - 28 * u); ctx.lineWidth = 1.5 * u; ctx.strokeRect(x + 24 * u, y + 24 * u, w - 48 * u, h - 48 * u);
-      [x + 40 * u, x + w - 100 * u].forEach((px) => { ctx.fillStyle = lin(ctx, px, 0, px + 60 * u, 0, [[0, '#e9dcc0'], [0.5, '#fbf3df'], [1, '#d2c3a2']]); ctx.fillRect(px, y + 90 * u, 60 * u, h - 190 * u); ctx.fillStyle = '#d8b25a'; ctx.fillRect(px - 8 * u, y + 76 * u, 76 * u, 16 * u); ctx.fillRect(px - 8 * u, y + h - 100 * u, 76 * u, 16 * u); ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 2 * u; for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(px + i * 15 * u, y + 92 * u); ctx.lineTo(px + i * 15 * u, y + h - 100 * u); ctx.stroke(); } });
-      cap(ctx, x + w / 2, y + 62 * u, 1.1 * u, '#d8b25a', '#fff'); ctx.fillStyle = 'rgba(216,178,90,0.9)'; ctx.font = '700 ' + 24 * u + 'px "Georgia",serif'; ctx.textAlign = 'center'; ctx.fillText('★  ★  ★', x + w / 2, y + h - 44 * u);
-    },
     corporate(ctx, x, y, w, h, u) {
       ctx.fillStyle = '#f5f7fb'; ctx.fillRect(x, y, w, h);
       ctx.fillStyle = lin(ctx, x + w, y, x + w - 400 * u, y + 300 * u, [[0, '#1d4fd8'], [1, '#4f86ff']]); ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x + w - 420 * u, y); ctx.lineTo(x + w, y + 300 * u); ctx.fill();

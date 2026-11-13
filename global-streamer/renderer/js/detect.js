@@ -249,10 +249,11 @@
   D.clearLearned = function () { try { localStorage.removeItem(LKEY); } catch (e) { /* abaikan */ } D.loadLearned(); };
 
   /* ---------- tetapan ---------- */
-  const DEFAULTS = { enabled: false, sensitivity: 0.5, interval: 1000, autoShow: true, autoPredict: true, autoPhase: true, lockManual: true, sourceId: 'auto' };
+  const DEFAULTS = { enabled: true, autoPopup: true, sensitivity: 0.5, interval: 1000, autoShow: true, autoPredict: true, autoPhase: true, lockManual: true, sourceId: 'auto' };
   D.settings = function () {
     const st = GS.state.detect || (GS.state.detect = {});
     Object.keys(DEFAULTS).forEach((k) => { if (!(k in st)) st[k] = DEFAULTS[k]; });
+    if (!st.autoV2) { st.autoV2 = true; st.enabled = true; st.autoShow = true; st.autoPopup = true; }   // versi automatik: pengesan draft hidup sendiri
     if (!st.locks) st.locks = {};
     if (!st.bans) st.bans = { banAlly: [], banEnemy: [] };
     D.cfg();
@@ -296,7 +297,7 @@
   D.unlockAll = function () { const st = D.settings(); st.locks = {}; GS.save(); };
   D.resetDraft = function () {
     const st = D.settings(), d = GS.state.draft;
-    d.ally = ['', '', '', '', '']; d.enemy = ['', '', '', '', '']; d.banAlly = ''; d.banEnemy = '';
+    d.ally = ['', '', '', '', '']; d.enemy = ['', '', '', '', '']; d.banAlly = ''; d.banEnemy = ''; D.state.boardShown = false;
     st.bans = { banAlly: [], banEnemy: [] };
     st.locks = {};
     Object.keys(pend).forEach((k) => delete pend[k]);
@@ -367,6 +368,7 @@
     if (!S.active) { S.status = 'idle'; Object.keys(pend).forEach((k) => delete pend[k]); return S; }
     S.status = 'draft';
     let committed = 0;
+    const newPicks = [];
     Object.keys(r.slots).forEach((k) => {
       if (isLocked(k)) return;
       const acc = accepted[k];
@@ -381,6 +383,7 @@
       ['ally0', 'ally1', 'ally2', 'ally3', 'ally4', 'enemy0', 'enemy1', 'enemy2', 'enemy3', 'enemy4'].concat(['banAlly0', 'banAlly1', 'banAlly2', 'banAlly3', 'banAlly4', 'banEnemy0', 'banEnemy1', 'banEnemy2', 'banEnemy3', 'banEnemy4'])
         .forEach((o) => { if (o !== k && !isLocked(o) && current(o) === acc.name) write(o, ''); });
       write(k, acc.name);
+      if (groupOf(k) === 'ally' || groupOf(k) === 'enemy') newPicks.push({ side: groupOf(k), hero: acc.name });
       delete pend[k];
       committed++;
     });
@@ -396,6 +399,12 @@
       }
       GS.save();
       GS.emit('detect:changed', S);
+      // popup automatik pada paparan game: setiap hero yang dipilih ally / enemy, dan ringkasan semua hero apabila pilihan lengkap
+      if (st.autoPopup !== false && GS.fx) {
+        newPicks.forEach((n, i) => setTimeout(() => GS.fx.trigger('draftpick', { side: n.side, hero: n.hero }), i * 700));
+        if (na + ne >= 10 && !S.boardShown) { S.boardShown = true; setTimeout(() => GS.fx.trigger('draftboard', { ally: d.ally.slice(), enemy: d.enemy.slice() }), newPicks.length * 700 + 3200); }
+        if (na + ne < 10) S.boardShown = false;
+      }
     }
     return S;
   };

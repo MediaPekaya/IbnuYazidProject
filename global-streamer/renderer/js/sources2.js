@@ -295,6 +295,21 @@
     DK.go(s, (s.props.page || 1) + (e.key === 'PageDown' ? 1 : -1));
   });
 
+  // Spasi = slaid seterusnya, Ctrl + Spasi = slaid sebelumnya. Mengawal slaid di PROGRAM (apa yang penonton nampak); jika Program tiada pembentangan, guna yang dipilih di Pratonton.
+  DK.programDecks = () => { const sc = GS.scenes.program(); return sc ? sc.sources.filter((x) => x.type === 'deck' && x.visible !== false) : []; };
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' && e.key !== ' ') return;
+    const t = e.target, tag = (t.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || t.isContentEditable || e.altKey || e.metaKey) return;
+    let decks = DK.programDecks();
+    if (!decks.length) { const s = GS.scenes.selectedSource(); decks = s && s.type === 'deck' ? [s] : []; }
+    if (!decks.length) return;
+    e.preventDefault();
+    const dir = e.ctrlKey ? -1 : 1;
+    decks.forEach((s) => DK.go(s, (s.props.page || 1) + dir));
+    GS.emit('props:changed');
+  });
+
   /* panel sifat untuk kedua-dua jenis sumber */
   GS.sources2 = {
     props(root, s, renderProps) {

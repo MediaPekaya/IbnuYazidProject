@@ -205,13 +205,15 @@
     // Peralihan: draf menjadi scene sebenar (id sumber dikekalkan supaya kamera/capture tidak terputus)
     const dropped = target.sources.filter((o) => !draft.sources.some((n) => n.id === o.id));
     target.sources = draft.sources;
-    dropped.forEach((o) => { if (!st().scenes.some((x) => x.sources.some((y) => y.id === o.id))) { GS.media.close(o.id); if (o.type === 'clip') GS.media.removeClip(o.id); } });
+    if (!same) dropped.forEach((o) => { if (!st().scenes.some((x) => x.sources.some((y) => y.id === o.id))) { GS.media.close(o.id); if (o.type === 'clip') GS.media.removeClip(o.id); } });
     ['name', 'theme', 'fxStyle', 'fxAnchor', 'alertY', 'templateId'].forEach((k) => { if (draft[k] !== undefined) target[k] = draft[k]; });
     delete drafts[target.id];
     const oldProgramId = pg.id;
     if (same) {
       const stg = st().settings, prog = GS.app && GS.app.programComp;
       if (prog && stg.transition !== 'cut') prog.startTransition(before, target, stg.transition, stg.transitionMs);
+      // tukar tempat seperti OBS: apa yang tadi di Program kini di Pratonton, dan yang disunting kini di Program
+      drafts[target.id] = Object.assign({}, before, { sources: GS.clone(before.sources) });
     } else {
       S.setProgram(target.id);
       // tukar tempat seperti OBS: scene yang tadi dilihat penonton kini di Pratonton (kiri), scene baharu di Program (kanan)
@@ -297,7 +299,7 @@
     inp.click();
     setTimeout(() => inp.remove(), 60000);
   };
-  /** Footer video: pengguna memilih video pendek siap (cth 5-10 saat) yang bergerak/berulang di bar bawah menggantikan bar teks. */
+  /** Footer video: pengguna memilih video (tiada had tempoh; dimainkan sehingga habis, kemudian berulang) di bar bawah menggantikan bar teks. */
   S.addFooterVideo = function () {
     const inp = h('input', { type: 'file', accept: 'video/*,.webm,.mp4,.mov,.m4v', style: { display: 'none' } });
     inp.addEventListener('change', async () => {
@@ -752,10 +754,29 @@
     });
     return box;
   }
+  /* kotak PROGRAM untuk pembentangan: guru mengawal slaid yang ditayangkan kepada penonton walaupun Pratonton sedang dipilih (Studio) */
+  function programDeckBox() {
+    if (st().mode !== 'studio') return null;
+    const prog = S.program(); if (!prog) return null;
+    const decks = prog.sources.filter((x) => x.type === 'deck');
+    if (!decks.length) return null;
+    const DK = GS.deck, box = h('div', { class: 'prog-cd prog-deck', id: 'progDeck' }, h('h4', null, 'PROGRAM · Slaid'));
+    decks.forEach((src, i) => {
+      const lab = h('span', { class: 'prog-cd-state' }, '');
+      const upd = () => { const n = DK.pageCount(src); lab.textContent = n ? (src.props.page || 1) + ' / ' + n : '-'; };
+      upd();
+      const go = (d) => { DK.go(src, (src.props.page || 1) + d); upd(); };
+      box.append(h('div', { class: 'prog-cd-row' }, h('b', null, (src.props.name || src.name || 'Presentation') + (decks.length > 1 ? ' ' + (i + 1) : '')), lab),
+        h('div', { class: 'btn-row' }, h('button', { class: 'btn', id: 'btnProgDeckPrev' + i, onClick: () => go(-1) }, '◀ ' + GS.t('Sebelum')), h('button', { class: 'btn primary', id: 'btnProgDeckNext' + i, onClick: () => go(1) }, GS.t('Seterusnya') + ' ▶')));
+    });
+    box.append(h('p', { class: 'muted note' }, GS.t('Spasi = slaid seterusnya, Ctrl + Spasi = slaid sebelumnya.')));
+    return box;
+  }
   function renderProps() {
     renderPropsBase();
     const root = GS.$('#propsBody');
     if (root && S.selectedSource()) { const pb = programCountdownBox(); if (pb) root.append(pb); }
+    if (root) { const pd = programDeckBox(); if (pd) root.append(pd); }
   }
   function renderPropsBase() {
     const root = GS.$('#propsBody');

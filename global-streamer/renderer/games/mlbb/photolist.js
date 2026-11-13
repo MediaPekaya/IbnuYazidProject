@@ -10,14 +10,6 @@ GS.PHOTO_LIST = [
   "credit": "Foto: Havelock Island, Sandy lagoon, Andaman Islands - Vyacheslav Argenberg, CC0 (Wikimedia Commons)"
  },
  {
-  "id": "library",
-  "file": "library.jpg",
-  "ms": "Rak Buku Perpustakaan",
-  "en": "Library Bookshelves",
-  "tone": "dark",
-  "credit": "Foto: Long Room Interior, Trinity College Dublin, Ireland - Diliff - Diliff, CC0 (Wikimedia Commons)"
- },
- {
   "id": "mountains",
   "file": "mountains.jpg",
   "ms": "Gunung",

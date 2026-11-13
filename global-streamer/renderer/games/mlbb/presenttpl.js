@@ -9,8 +9,8 @@
   const cam = (x, y, w, h) => mk('video', 'Kamera', x, y, w, h, { kind: 'camera', deviceId: '' });
   const slot = (x, y, w, h) => wid('Kawasan Perbentangan', 'frame', x, y, w, h, { label: '', slot: 'present' });
   const FONTS = ['montserrat', 'poppins', 'playfair', 'oswald', 'lora', 'raleway'];
-  const T16 = [['flat-navy', 'Navy'], ['flat-white', 'Putih'], ['flat-forest', 'Hutan'], ['flat-wine', 'Anggur'], ['flat-violet', 'Ungu'], ['flat-teal', 'Teal']];
-  const TA4 = [['flat-white', 'Putih'], ['flat-sky', 'Langit'], ['flat-slate', 'Slate'], ['flat-coffee', 'Kopi'], ['flat-mint', 'Pudina'], ['flat-rose', 'Mawar']];
+  const T16 = [['flat-navy', 'Navy'], ['flat-white', 'Putih'], ['flat-forest', 'Hutan'], ['flat-wine', 'Anggur'], ['flat-teal', 'Teal']];
+  const TA4 = [['flat-white', 'Putih'], ['flat-sky', 'Langit'], ['flat-slate', 'Slate'], ['flat-mint', 'Pudina'], ['flat-rose', 'Mawar']];
   const out = [];
   let n = 0;
   const COLORS = { Navy: 'Navy', Putih: 'White', Hutan: 'Forest', Anggur: 'Wine', Ungu: 'Violet', Teal: 'Teal', Langit: 'Sky', Slate: 'Slate', Kopi: 'Coffee', Pudina: 'Mint', Mawar: 'Rose' };
@@ -52,7 +52,7 @@
   ];
   TA4.forEach(([theme, label], i) => add({ id: 'pr-a4-p-' + theme, orientation: 'portrait', theme, fxStyle: theme, label, name: '', desc: 'Masukkan PDF saiz A4: ia diletak di tengah kawasan kertas; guru boleh melaraskan saiznya.' }, PA4[i % PA4.length]));
   // ---- reka bentuk berhias (sekolah, perpustakaan, universiti, korporat, bunga, buku nota, sains, kanak-kanak, geometri) ----
-  const DEC = [['school', 'Sekolah', 'School', 'flat-forest'], ['university', 'Universiti', 'University', 'flat-navy'], ['corporate', 'Korporat', 'Corporate', 'flat-white'],
+  const DEC = [['corporate', 'Korporat', 'Corporate', 'flat-white'],
     ['floral', 'Bunga', 'Floral', 'flat-rose'], ['notebook', 'Buku Nota', 'Notebook', 'flat-sun'], ['science', 'Sains', 'Science', 'flat-sky']];
   const layouts = { 'l-16': [L16, 1920, 1080, 'landscape', '16:9'], 'l-a4': [LA4, 1920, 1080, 'landscape', 'A4'], 'p-16': [P16, 1080, 1920, 'portrait', '16:9'], 'p-a4': [PA4, 1080, 1920, 'portrait', 'A4'] };
   Object.keys(layouts).forEach((lk) => {

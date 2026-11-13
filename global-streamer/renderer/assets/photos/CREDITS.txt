@@ -6,12 +6,6 @@ beach.jpg
   License: CC0
   Source: https://commons.wikimedia.org/wiki/File:Havelock_Island%2C_Sandy_lagoon%2C_Andaman_Islands.jpg
 
-library.jpg
-  Long Room Interior, Trinity College Dublin, Ireland - Diliff.jpg
-  Author: Diliff
-  License: CC0
-  Source: https://commons.wikimedia.org/wiki/File:Long_Room_Interior%2C_Trinity_College_Dublin%2C_Ireland_-_Diliff.jpg
-
 mountains.jpg
   Blue Lake in Mount Cook National Park.jpg
   Author: Krzysztof Golik
@@ -73,7 +67,4 @@ cove.jpg
   Source: https://commons.wikimedia.org/wiki/File:Navagio%2C_Zante_02.jpg
 
 library2.jpg
-  George-peabody-library.jpg
-  Author: Matthew Petroff
-  License: CC0
-  Source: https://commons.wikimedia.org/wiki/File:George-peabody-library.jpg
+  George-peabody-

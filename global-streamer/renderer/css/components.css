@@ -630,3 +630,6 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .music-prog { display: flex; flex-direction: column; gap: 2px; }
 .music-seek { width: 100%; accent-color: var(--blue, #2ea8ff); height: 14px; }
 .music-time { font-size: 10px; font-variant-numeric: tabular-nums; color: var(--muted); text-align: center; }
+/* penanda PGM / PVW pada senarai scene: petak bersudut membulat (bukan bujur) */
+.list-item .tag { border-radius: 7px; min-width: 38px; height: 30px; padding: 0 4px; }
+.list-item .tag:empty { min-width: 38px; }
