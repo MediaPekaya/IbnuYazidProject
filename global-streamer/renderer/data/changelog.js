@@ -46,6 +46,7 @@ window.GS_CHANGELOG = {
       'Gaya nombor kira detik: kotak, flip, neon, api, garis dan biasa.',
       'Latar bergerak (api, kilat, peti harta, anime, neon, bintang) ditambah sebagai sumber dan dalam template Sebentar Lagi serta Gaming.',
       'Template dipaparkan dalam grid tanpa skrol ke tepi: 3 lajur untuk YouTube dan Facebook, 5 lajur untuk TikTok, dengan skrol ke bawah.',
+      'Tulisan GLOBAL STREAMER di bar atas menggunakan semi bold dengan gradien yang bergerak ke tepi.',
     ],
     en: [
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
@@ -92,6 +93,7 @@ window.GS_CHANGELOG = {
       'Countdown number styles: box, flip, neon, fire, outline and plain.',
       'Moving backgrounds (fire, lightning, treasure chest, anime, neon, stars) are added as a source and in the Coming Soon and Gaming templates.',
       'Templates are shown in a grid with no sideways scrolling: 3 columns for YouTube and Facebook, 5 columns for TikTok, scrolling downwards.',
+      'The GLOBAL STREAMER title on the top bar uses semi bold with a gradient that moves sideways.',
     ],
   },
 };
