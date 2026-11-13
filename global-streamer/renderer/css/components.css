@@ -314,7 +314,7 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .kv.col > div { flex: 0 0 auto; min-width: 0; }
 .kv.col b { text-align: left; font-weight: 500; color: var(--text); }
 .kv .talent { font-size: 11.5px; }
-.lb-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 12px; }
+.lb-row { display: grid; grid-template-columns: 14px minmax(92px, 1fr) auto auto; gap: 5px; align-items: center; font-size: 12px; }
 .lb-rank { color: var(--dim); font-weight: 800; }
 .lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-bar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
@@ -616,3 +616,13 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .lb-build { display: inline-flex; align-items: center; gap: 2px; }
 .lb-build .lb-item { width: 16px; height: 16px; border-radius: 4px; object-fit: cover; background: rgba(255,255,255,0.06); }
 .lb-build .lb-emb { width: 18px; height: 18px; margin-left: 3px; object-fit: contain; }
+
+.lb-build .lb-sep { display: inline-block; width: 2px; height: 18px; margin: 0 4px; border-radius: 2px; background: #ffffff; opacity: 0.95; }
+.lb-build .lb-tal { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.08); }
+
+.lb-build { gap: 1px; }
+.lb-build .lb-item { width: 13px; height: 13px; }
+.lb-build .lb-emb { width: 15px; height: 15px; margin-left: 2px; }
+.lb-build .lb-tal { width: 13px; height: 13px; }
+.lb-build .lb-sep { height: 15px; margin: 0 3px; }
+.lb-name { gap: 5px; }

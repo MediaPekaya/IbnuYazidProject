@@ -135,8 +135,13 @@
   function buildEl(name) {
     const b = buildOf(name);
     if (!b) return h('span');
-    return h('span', { class: 'lb-build', title: b.role + ': ' + b.items.map((i) => i.name).join(', ') + (b.emb ? ' · ' + b.emb.name : '') },
-      b.items.map((i) => imgOf(i.img, 16, 'lb-item')), b.emb ? imgOf(b.emb.img, 18, 'lb-emb') : null);
+    // emblem: set utama di depan, kemudian 3 talent tambahan (2 standard + 1 core) mengikut data emblem
+    const talents = b.emb ? [].concat(...(b.emb.standard || []), (b.emb.core || []).slice(0, 1)).filter((t) => t && t.img).slice(0, 3) : [];
+    return h('span', { class: 'lb-build', title: b.role + ': ' + b.items.map((i) => i.name).join(', ') + (b.emb ? ' · ' + b.emb.name + ' · ' + talents.map((t) => t.name).join(', ') : '') },
+      b.items.map((i) => imgOf(i.img, 16, 'lb-item')),
+      h('i', { class: 'lb-sep' }),
+      b.emb ? imgOf(b.emb.img, 18, 'lb-emb') : null,
+      talents.map((t) => imgOf(t.img, 16, 'lb-tal')));
   }
   function meta(root) {
     const body = h('div', { class: 'meta-body' });
