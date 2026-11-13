@@ -166,6 +166,7 @@
           break;
         case 'slides': GS.slides.draw(ctx, s, now); break;
         case 'deck': GS.deck.draw(ctx, s, now); break;
+        case 'browser': GS.browser.draw(this, ctx, s, now); break;
         case 'color':
           ctx.fillStyle = s.props.color || '#000';
           ctx.fillRect(s.x, s.y, s.w, s.h);

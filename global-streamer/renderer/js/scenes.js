@@ -483,11 +483,16 @@
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    bgfx: ['Latar bergerak', 1080, 1920], tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
+    decor: ['Latar hiasan', 1080, 1920], bgfx: ['Latar bergerak', 1080, 1920], tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
     if (!d) return;
+    if (type === 'decor') {
+      const sc = S.editTarget(); if (!sc) return;
+      const src = mk('widget', d[0], 0, 0, GS.design.w, GS.design.h, { widget: 'decor', style: 'school' });
+      sc.sources.unshift(src); selectedId = src.id; changed('sources:changed'); GS.emit('scenes:changed'); return;
+    }
     if (type === 'bgfx') { // latar bergerak: penuh kanvas dan di belakang semua sumber
       const sc = S.editTarget(); if (!sc) return;
       const src = mk('widget', d[0], 0, 0, GS.design.w, GS.design.h, { widget: 'bgfx', style: 'fire' });
@@ -502,6 +507,7 @@
     if (!s) return;
     // sumber yang sama mungkin masih dipakai scene sebenar (Program) apabila dipadam dalam draf Pratonton: jangan tutup medianya
     const stillUsed = st().scenes.some((o) => o !== sc && o.sources.some((x) => x.id === id));
+    if (!stillUsed && s.type === 'browser') GS.browser.close(s.id);
     if (!stillUsed) { GS.media.close(s.id); if (s.type === 'clip') GS.media.removeClip(s.id); }
     sc.sources = sc.sources.filter((x) => x.id !== id);
     if (selectedId === id) selectedId = null;
@@ -585,6 +591,7 @@
     if (s.type === 'clip') return 'film';
     if (s.type === 'slides') return 'images';
     if (s.type === 'deck') return 'deck';
+    if (s.type === 'browser') return 'link';
     if (s.type === 'text') return 'text';
     return WIDGET_ICON[s.props && s.props.widget] || 'widget';
   };
@@ -678,6 +685,7 @@
       { label: 'Display Capture (skrin atau tetingkap: game, Google, Steam, Edge)', icon: 'cast', run: () => S.addVideo('display') },
       { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'bolt', run: () => S.addVideo('gamepc') },
       { label: 'Skrin penuh', icon: 'popout', run: () => S.addVideo('screen') },
+      { label: 'Browser (YouTube, Instagram, mana-mana link)', icon: 'link', run: () => GS.browser.add() },
       '-',
       { label: 'Footer Video (video bergerak di bar bawah)', icon: 'film', run: S.addFooterVideo },
       { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'megaphone', run: S.addClip },
@@ -698,6 +706,7 @@
       { label: 'Widget: Perlawanan Tournament', icon: 'sword', run: () => S.addWidget('matchboard') },
       { label: 'Widget: Keputusan Tournament', icon: 'trophy', run: () => S.addWidget('resultsboard') },
       { label: 'Latar bergerak (api, kilat, peti, anime)', icon: 'flame', run: () => S.addWidget('bgfx') },
+      { label: 'Latar hiasan (sekolah, buku, bunga, universiti)', icon: 'images', run: () => S.addWidget('decor') },
       '-',
       { heading: 'Sebentar Lagi' },
       { label: 'Kira Detik (jam, minit, saat)', icon: 'timer', run: () => S.addWidget('countdown') },
@@ -749,7 +758,7 @@
     if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); const pb0 = programCountdownBox(); if (pb0) root.append(pb0); return; }
     root.append(
       h('div', { class: 'grid4' }, field('X', numInput(s, 'x')), field('Y', numInput(s, 'y')), field('Lebar', numInput(s, 'w')), field('Tinggi', numInput(s, 'h'))));
-    if (s.type === 'widget' && s.props.widget !== 'bgfx' && GS.fonts) {
+    if (s.type === 'widget' && s.props.widget !== 'bgfx' && s.props.widget !== 'decor' && GS.fonts) {
       const fsel = h('select', { id: 'selFont', onChange: (e) => { s.props.font = e.target.value || undefined; changed('props:changed'); } },
         h('option', { value: '' }, GS.t('Fon asal')),
         Object.keys(GS.fonts.groups).map((g) => h('optgroup', { label: GS.t(GS.fonts.groups[g]) }, GS.fonts.list.filter((f) => f.group === g).map((f) => h('option', { value: f.key, selected: s.props.font === f.key }, f.name)))));
@@ -785,6 +794,7 @@
         rec ? h('button', { class: 'btn ghost', onClick: () => { GS.media.close(s.id); s.props.deviceId = ''; changed('props:changed'); renderProps(); } }, 'Lepaskan') : null));
     }
     if (s.type === 'slides' || s.type === 'deck') GS.sources2.props(root, s, renderProps);
+    if (s.type === 'browser') GS.browser.props(root, s, renderProps);
     if (s.type === 'text') {
       root.append(field('Teks', h('textarea', { rows: 2, onInput: (e) => { s.props.text = e.target.value; GS.save(); } }, s.props.text || '')));
       root.append(h('div', { class: 'grid2' },
@@ -805,6 +815,10 @@
         root.append(field('Saiz tulisan (%)', h('input', { type: 'range', min: 50, max: 160, value: p.textScale || 100, onInput: (e) => { p.textScale = Number(e.target.value); GS.save(); } })));
       }
       if (w === 'tierlist') GS.tier.props(root, s, field, renderProps);
+      if (w === 'decor') {
+        const p = s.props;
+        root.append(field('Gaya latar', h('select', { onChange: (e) => { p.style = e.target.value; GS.save(); } }, GS.decor.styles.map(([v, l]) => h('option', { value: v, selected: (p.style || 'school') === v }, GS.t(l))))));
+      }
       if (w === 'bgfx') {
         const p = s.props;
         root.append(field('Gaya latar', h('select', { onChange: (e) => { p.style = e.target.value; GS.save(); } }, GS.bgfx.styles.map(([v, l]) => h('option', { value: v, selected: (p.style || 'fire') === v }, GS.t(l))))));
