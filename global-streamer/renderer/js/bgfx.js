@@ -5,7 +5,7 @@
   const W = GS.widgets;
   const TAU = Math.PI * 2;
   const rnd = (i, k) => { const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); };
-  const STYLES = [['fire', 'Api'], ['lightning', 'Kilat'], ['chest', 'Peti harta'], ['anime', 'Anime'], ['neon', 'Neon grid'], ['stars', 'Bintang']];
+  const STYLES = [['fire', 'Api'], ['storm', 'Hujan ribut kilat'], ['lightning', 'Kilat'], ['chest', 'Peti harta'], ['anime', 'Anime'], ['neon', 'Neon grid'], ['stars', 'Bintang']];
 
   function fireFallback(ctx, x, y, w, h, t) {
     const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#0a0206'); g.addColorStop(0.6, '#2a0608'); g.addColorStop(1, '#5a1004');
@@ -32,47 +32,94 @@
   }
 
   /* api sebenar: shader WebGL (hingar fbm) dengan warna api hitam -> merah -> jingga -> kuning -> putih, bukan bentuk vektor */
-  let GL = null, glc = null, glProg = null, glU = {};
+  let GL = null, glc = null;
+  const progs = {};
+  const NOISE = 'float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }' +
+    'float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(h(i), h(i + vec2(1., 0.)), f.x), mix(h(i + vec2(0., 1.)), h(i + vec2(1., 1.)), f.x), f.y); }' +
+    'float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 5; i++) { v += a * n(p); p = p * 2.02 + vec2(1.7, 9.2); a *= .5; } return v; }';
+  const FIRE = 'void main(){ vec2 uv = gl_FragCoord.xy / R; float asp = R.x / R.y; vec2 p = vec2(uv.x * asp, uv.y); float t = T;' +
+    ' vec2 q = p * vec2(2.6, 2.0); q.y -= t * 1.1; float w = fbm(q + vec2(0., t * .12));' +
+    ' vec2 q2 = vec2(p.x * 4.2 + w * 2.2, p.y * 2.6 - t * 2.1); float f = fbm(q2);' +
+    ' float base = pow(1. - uv.y, 1.5);' +
+    ' float it = f * 1.15 * base * 1.55 - uv.y * .26 + .03;' +
+    ' it += (fbm(vec2(p.x * 1.8, t * .45)) - .5) * .5 * (1. - uv.y);' +
+    ' it = clamp(it, 0., 1.5);' +
+    ' vec3 c = mix(vec3(.015, 0., 0.), vec3(.5, .035, 0.), smoothstep(.06, .34, it));' +
+    ' c = mix(c, vec3(1., .33, .02), smoothstep(.28, .58, it));' +
+    ' c = mix(c, vec3(1., .74, .14), smoothstep(.52, .84, it));' +
+    ' c = mix(c, vec3(1., .95, .7), smoothstep(.95, 1.5, it));' +
+    ' c += vec3(.22, .04, 0.) * pow(1. - uv.y, 3.) * .7;' +
+    ' gl_FragColor = vec4(c, 1.); }';
+  /* hujan ribut: awan ribut berlapis (fbm), hujan berlapis dengan serong angin, kilat dan petir bercabang yang menerangi awan */
+  const STORM = 'float seg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float k = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * k); }' +
+    'void main(){ vec2 uv = gl_FragCoord.xy / R; float asp = R.x / R.y; vec2 p = vec2(uv.x * asp, uv.y); float t = T;' +
+    ' float per = 3.4, k = floor(t / per), ph = (t - k * per);' +
+    ' float flash = exp(-ph * 5.5) * step(ph, 1.0) + .65 * exp(-max(ph - .22, 0.) * 8.) * step(.22, ph) * step(ph, 1.0) + .015 * (n(vec2(t * 9., 1.)) - .5);' +
+    ' flash = max(flash, 0.);' +
+    ' float bx = .22 + .56 * h(vec2(k, 1.3));' +
+    ' vec2 cq = vec2(p.x * 1.4 - t * .05, uv.y * 1.1 + t * .02);' +
+    ' float cl = fbm(cq * 2.2 + fbm(cq * 3.1 + t * .04));' +
+    ' float cl2 = fbm(cq * 4.0 - vec2(t * .08, 0.));' +
+    ' vec3 col = mix(vec3(.02, .025, .045), vec3(.15, .18, .26), cl) * (.45 + .75 * uv.y);' +
+    ' col = mix(col, col * .55, smoothstep(.2, .7, cl2) * (1. - uv.y) * .6);' +
+    ' col += vec3(.5, .56, .85) * flash * (.25 + cl * 1.1) * (.35 + uv.y);' +
+    // petir bercabang
+    ' float d = 1e3, d2 = 1e3; vec2 prev = vec2(bx * asp, 1.06), pb = prev; float fl = ph < 1.0 ? 1. : 0.;' +
+    ' for (int i = 1; i <= 16; i++) { float fi = float(i) / 16.; vec2 nx = vec2((bx + (h(vec2(k, float(i))) - .5) * .20 * (1. - fi * .3)) * asp, 1.06 - fi * 1.0); d = min(d, seg(p, prev, nx));' +
+    '   if (i == 6) pb = nx; prev = nx; }' +
+    ' vec2 pr = pb; for (int i = 1; i <= 8; i++) { float fi = float(i) / 8.; vec2 nx = pb + vec2((.12 + .1 * h(vec2(k, 40.))) * asp * fi * (h(vec2(k, 50.)) > .5 ? 1. : -1.) + (h(vec2(k, float(i) + 60.)) - .5) * .06 * asp, -fi * .38); d2 = min(d2, seg(p, pr, nx)); pr = nx; }' +
+    ' float bolt = (.0028 / (d + .0016) + .0016 / (d2 + .0018) * .7) * flash * fl;' +
+    ' col += vec3(.75, .82, 1.) * bolt + vec3(.9, .93, 1.) * smoothstep(.0035, 0., d) * flash * fl;' +
+    // hujan
+    ' float rain = 0.;' +
+    ' for (int L = 0; L < 3; L++) { float lf = float(L); float N = 70. + lf * 55.; float S = 1.3 + lf * .6; float sp = 1.9 + lf * 1.1;' +
+    '   vec2 r = vec2(p.x + p.y * .3, p.y); float cx = floor(r.x * N), fx = fract(r.x * N); float off = h(vec2(cx, lf));' +
+    '   float yy = fract(r.y * S + t * sp * (.8 + off * .4) + off * 7.);' +
+    '   float line = smoothstep(.07 - lf * .015, 0., abs(fx - .5));' +
+    '   float streak = smoothstep(0., .1, yy) * (1. - smoothstep(.1, .42, yy));' +
+    '   rain += line * streak * (.45 + .55 * off) * (.62 - lf * .12); }' +
+    ' col += vec3(.68, .78, .95) * rain * (.5 + flash * 1.4);' +
+    ' col += vec3(.1, .12, .18) * fbm(vec2(p.x * 2. - t * .1, uv.y * 3.)) * pow(1. - uv.y, 2.5) * .8;' +
+    ' gl_FragColor = vec4(col, 1.); }';
+  const SRC = { fire: FIRE, storm: STORM };
   function initGL() {
     if (GL !== null) return GL;
     try {
       glc = document.createElement('canvas'); glc.width = 360; glc.height = 360;
       GL = glc.getContext('webgl', { preserveDrawingBuffer: true, antialias: false });
-      if (!GL) { GL = false; return GL; }
-      const vs = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0., 1.); }';
-      const fs = 'precision highp float; uniform vec2 R; uniform float T;' +
-        'float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }' +
-        'float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(h(i), h(i + vec2(1., 0.)), f.x), mix(h(i + vec2(0., 1.)), h(i + vec2(1., 1.)), f.x), f.y); }' +
-        'float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 5; i++) { v += a * n(p); p = p * 2.02 + vec2(1.7, 9.2); a *= .5; } return v; }' +
-        'void main(){ vec2 uv = gl_FragCoord.xy / R; float asp = R.x / R.y; vec2 p = vec2(uv.x * asp, uv.y); float t = T;' +
-        ' vec2 q = p * vec2(2.6, 2.0); q.y -= t * 1.1; float w = fbm(q + vec2(0., t * .12));' +
-        ' vec2 q2 = vec2(p.x * 4.2 + w * 2.2, p.y * 2.6 - t * 2.1); float f = fbm(q2);' +
-        ' float base = pow(1. - uv.y, 1.5);' +
-        ' float it = f * 1.15 * base * 1.55 - uv.y * .26 + .03;' +
-        ' it += (fbm(vec2(p.x * 1.8, t * .45)) - .5) * .5 * (1. - uv.y);' +
-        ' it = clamp(it, 0., 1.5);' +
-        ' vec3 c = mix(vec3(.015, 0., 0.), vec3(.5, .035, 0.), smoothstep(.06, .34, it));' +
-        ' c = mix(c, vec3(1., .33, .02), smoothstep(.28, .58, it));' +
-        ' c = mix(c, vec3(1., .74, .14), smoothstep(.52, .84, it));' +
-        ' c = mix(c, vec3(1., .95, .7), smoothstep(.95, 1.5, it));' +
-        ' c += vec3(.22, .04, 0.) * pow(1. - uv.y, 3.) * .7;' +
-        ' gl_FragColor = vec4(c, 1.); }';
-      const sh = (type, src) => { const o = GL.createShader(type); GL.shaderSource(o, src); GL.compileShader(o); if (!GL.getShaderParameter(o, GL.COMPILE_STATUS)) throw new Error(GL.getShaderInfoLog(o)); return o; };
-      glProg = GL.createProgram(); GL.attachShader(glProg, sh(GL.VERTEX_SHADER, vs)); GL.attachShader(glProg, sh(GL.FRAGMENT_SHADER, fs)); GL.linkProgram(glProg);
-      if (!GL.getProgramParameter(glProg, GL.LINK_STATUS)) throw new Error('link');
-      GL.useProgram(glProg);
-      const buf = GL.createBuffer(); GL.bindBuffer(GL.ARRAY_BUFFER, buf); GL.bufferData(GL.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), GL.STATIC_DRAW);
-      const a = GL.getAttribLocation(glProg, 'a'); GL.enableVertexAttribArray(a); GL.vertexAttribPointer(a, 2, GL.FLOAT, false, 0, 0);
-      glU = { R: GL.getUniformLocation(glProg, 'R'), T: GL.getUniformLocation(glProg, 'T') };
-    } catch (e) { console.warn('[GS] WebGL api tidak tersedia, guna lukisan sandaran', e); GL = false; }
+      if (!GL) GL = false;
+    } catch (e) { GL = false; }
     return GL;
   }
-  function fire(ctx, x, y, w, h, t) {
-    if (!initGL()) { fireFallback(ctx, x, y, w, h, t); return; }
+  function program(key) {
+    if (progs[key] !== undefined) return progs[key];
+    try {
+      const vs = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0., 1.); }';
+      const fs = 'precision highp float; uniform vec2 R; uniform float T;' + NOISE + SRC[key];
+      const sh = (type, src) => { const o = GL.createShader(type); GL.shaderSource(o, src); GL.compileShader(o); if (!GL.getShaderParameter(o, GL.COMPILE_STATUS)) throw new Error(GL.getShaderInfoLog(o)); return o; };
+      const pg = GL.createProgram(); GL.attachShader(pg, sh(GL.VERTEX_SHADER, vs)); GL.attachShader(pg, sh(GL.FRAGMENT_SHADER, fs)); GL.linkProgram(pg);
+      if (!GL.getProgramParameter(pg, GL.LINK_STATUS)) throw new Error('link');
+      GL.useProgram(pg);
+      const buf = GL.createBuffer(); GL.bindBuffer(GL.ARRAY_BUFFER, buf); GL.bufferData(GL.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), GL.STATIC_DRAW);
+      const a = GL.getAttribLocation(pg, 'a'); GL.enableVertexAttribArray(a); GL.vertexAttribPointer(a, 2, GL.FLOAT, false, 0, 0);
+      progs[key] = { pg, R: GL.getUniformLocation(pg, 'R'), T: GL.getUniformLocation(pg, 'T'), buf, a };
+    } catch (e) { console.warn('[GS] shader ' + key + ' gagal, guna lukisan sandaran', e); progs[key] = false; }
+    return progs[key];
+  }
+  /** lukis shader pada kawasan; pulangkan false jika WebGL tidak tersedia */
+  function glDraw(key, ctx, x, y, w, h, t) {
+    if (!initGL()) return false;
+    const P = program(key);
+    if (!P) return false;
     const k = Math.min(1, 480 / Math.max(w, h)), pw = Math.max(64, Math.round(w * k)), ph = Math.max(64, Math.round(h * k));
     if (glc.width !== pw || glc.height !== ph) { glc.width = pw; glc.height = ph; }
-    GL.viewport(0, 0, pw, ph); GL.uniform2f(glU.R, pw, ph); GL.uniform1f(glU.T, t * 0.001); GL.drawArrays(GL.TRIANGLE_STRIP, 0, 4);
+    GL.useProgram(P.pg); GL.bindBuffer(GL.ARRAY_BUFFER, P.buf); GL.enableVertexAttribArray(P.a); GL.vertexAttribPointer(P.a, 2, GL.FLOAT, false, 0, 0);
+    GL.viewport(0, 0, pw, ph); GL.uniform2f(P.R, pw, ph); GL.uniform1f(P.T, t * 0.001); GL.drawArrays(GL.TRIANGLE_STRIP, 0, 4);
     ctx.drawImage(glc, x, y, w, h);
+    return true;
+  }
+  function fire(ctx, x, y, w, h, t) {
+    if (!glDraw('fire', ctx, x, y, w, h, t)) { fireFallback(ctx, x, y, w, h, t); return; }
     // bunga api kecil yang naik
     ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 38; i++) {
@@ -80,6 +127,9 @@
       ctx.fillStyle = 'rgba(255,' + Math.round(140 + rnd(i, 5) * 90) + ',50,' + (a * 0.95).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(px, py, r, 0, TAU); ctx.fill();
     }
     ctx.restore();
+  }
+  function storm(ctx, x, y, w, h, t) {
+    if (!glDraw('storm', ctx, x, y, w, h, t)) lightning(ctx, x, y, w, h, t);
   }
   function lightning(ctx, x, y, w, h, t) {
     const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#05061a'); g.addColorStop(1, '#1a0b3a'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
@@ -145,7 +195,7 @@
     const g = ctx.createRadialGradient(x + w / 2, y + h / 2, 10, x + w / 2, y + h / 2, Math.max(w, h) * 0.7); g.addColorStop(0, '#16224a'); g.addColorStop(1, '#03040c'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
     for (let i = 0; i < 90; i++) { const px = x + rnd(i, 1) * w, py = y + ((rnd(i, 2) * h + t * (0.01 + rnd(i, 3) * 0.03)) % h), r = 0.8 + rnd(i, 4) * 2.4; ctx.fillStyle = 'rgba(255,255,255,' + (0.4 + 0.6 * Math.abs(Math.sin(t * 0.004 + i))).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(px, py, r, 0, TAU); ctx.fill(); }
   }
-  const DRAW = { fire, lightning, chest, anime, neon, stars };
+  const DRAW = { fire, storm, lightning, chest, anime, neon, stars };
   W.bgfx = function (ctx, s, t) {
     const p = s.props || {}, fn = DRAW[p.style] || fire;
     ctx.save();

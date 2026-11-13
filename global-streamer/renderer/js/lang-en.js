@@ -755,7 +755,7 @@
     'Gaya nombor': 'Number style', 'Kotak': 'Box', 'Flip': 'Flip', 'Neon': 'Neon', 'Garis': 'Outline', 'Biasa': 'Plain', 'Tanpa kotak latar': 'No background box',
     'Tetapkan masa di sini. Kira detik dimulakan dari kotak PROGRAM di bawah selepas scene ini berada di Program.': 'Set the time here. Start the countdown from the PROGRAM box below once this scene is in Program.',
     'PROGRAM · Start countdown now': 'PROGRAM · Start countdown now', 'Mula sekarang': 'Start now',
-    'hantar': 'sent', 'Fon tulisan': 'Text font', 'Fon asal': 'Default font', 'Seret untuk laras saiz': 'Drag to resize',
+    'hantar': 'sent', 'Hujan ribut kilat': 'Thunderstorm', 'Fon tulisan': 'Text font', 'Fon asal': 'Default font', 'Seret untuk laras saiz': 'Drag to resize',
     'Kedudukan tulisan': 'Text position', 'Kiri': 'Left', 'Tengah': 'Center', 'Kanan': 'Right', 'Butang INFO': 'INFO button', 'Sembunyi': 'Hide',
     'Tulisan: geser kiri/kanan': 'Text: move left/right', 'Tulisan: geser atas/bawah': 'Text: move up/down', 'INFO: geser kiri/kanan': 'INFO: move left/right', 'INFO: geser atas/bawah': 'INFO: move up/down', 'Saiz tulisan (%)': 'Text size (%)', 'Saiz video yang sesuai:': 'Best video size:', 'Tier List': 'Tier List', 'Widget: Tier List': 'Widget: Tier List', 'Sunting Tier List': 'Edit Tier List', 'Sunting tier hero': 'Edit hero tiers', 'Pulihkan lalai': 'Restore default', 'Kira semula daripada meta': 'Recalculate from meta',
     'Tier dikira semula daripada data meta.': 'Tiers recalculated from meta data.', 'Siap': 'Done', 'Pangkat': 'Rank', 'Tarikh data': 'Data date', 'Nama pengguna (hujung kanan)': 'Username (right end)', 'Nama anda': 'Your name',

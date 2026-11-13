@@ -68,10 +68,14 @@
     SLd({ id: 'sl-bintang-l', theme: 'holo', fxStyle: 'holo', name: 'Bintang · Sebentar Lagi', desc: 'Logo besar di kiri, kiraan flip di kanan, latar bintang.',
       build: withBg(() => [logo(120, 200, 560, 420), brand(60, 660, 700, 120), cdw(860, 180, 1000, 640, { numStyle: 'flip' }), tick(40, 900, 1840, 110)], 'stars', false) }),
   ];
+  soonNew.push(SP({ id: 'sl-ribut-p', theme: 'galaxy', fxStyle: 'galaxy', name: 'Hujan Ribut · Sebentar Lagi', desc: 'Hujan lebat dan petir sebenar di atas awan ribut, nombor neon di tengah.',
+    build: withBg(() => [logo(440, 160, 200, 170), cdw(40, 560, 1000, 560, { numStyle: 'neon', noPanel: true, subtitle: 'RIBUT AKAN TIBA' }), brand(140, 1240, 800, 130), tick(40, 1700, 1000, 100)], 'storm', true) }));
+  soonNewL.push(SLd({ id: 'sl-ribut-l', theme: 'galaxy', fxStyle: 'galaxy', name: 'Hujan Ribut · Sebentar Lagi', desc: 'Hujan lebat dan petir sebenar di atas awan ribut.',
+    build: withBg(() => [logo(60, 40, 170, 130), cdw(260, 180, 1400, 600, { numStyle: 'neon', noPanel: true, subtitle: 'RIBUT AKAN TIBA' }), tick(40, 880, 1840, 110)], 'storm', false) }));
   G.templates.push(...soonNew, ...soonNewL);
 
   /* ---------- template gaming dengan latar api, kilat, peti harta dan anime ---------- */
-  const BG = [['fire', 'Api', 'crimson'], ['lightning', 'Kilat', 'galaxy'], ['chest', 'Peti Harta', 'gold'], ['anime', 'Anime', 'neon']];
+  const BG = [['fire', 'Api', 'crimson'], ['storm', 'Hujan Ribut', 'galaxy'], ['lightning', 'Kilat', 'galaxy'], ['chest', 'Peti Harta', 'gold'], ['anime', 'Anime', 'neon']];
   ['holo-portrait', 'portrait-game', 'mono-bersih', 'holo-pro', 'cam-besar', 'galaxy-kamera'].forEach((id) => {
     const t = G.templates.find((x) => x.id === id); if (!t) return;
     BG.forEach(([style, label, fx]) => {
@@ -79,7 +83,7 @@
       clones.push(Object.assign({}, t, { id: id + '-' + style, fxStyle: fx, theme: undefined, category: 'gaming', name: label + ' · ' + t.name, desc: 'Latar ' + label.toLowerCase() + ' bergerak di belakang susun atur. ' + (t.desc || ''), build: withBg(t.build, style, por) }));
     });
   });
-  G.templates.push(...clones.slice(-24));
+  G.templates.push(...clones.slice(-30));
 
   /* ---------- penormal susun atur ---------- */
   function normPortrait(t, items) {
