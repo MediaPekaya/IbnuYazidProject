@@ -96,7 +96,7 @@
       const name = h('b', null, '');
       const sug = h('div', { class: 'det-sug' });
       const bar = h('i', { class: 'det-bar' });
-      cards[k] = { el: h('div', { class: 'det-card' }, h('span', { class: 'det-k' }, short(k)), cv, name, bar, sug), cv, name, sug, bar };
+      cards[k] = { el: h('div', { class: 'det-card' }, h('span', { class: 'det-k ' + (/^(ally|banAlly)/.test(k) ? 'side-ally' : 'side-enemy') }, short(k)), cv, name, bar, sug), cv, name, sug, bar };
       grid.append(cards[k].el);
     });
 

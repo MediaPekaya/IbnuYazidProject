@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Label Ally (hijau) dan Enemy (merah) pada borang draft dan kad pengesan kini berwarna dan tebal: hijau/merah cerah pada mod gelap, hijau tua/maroon pada mod cerah. Termasuk Ban Ally dan Ban Enemy.',
       'Garisan (stroke) kamera dinipiskan supaya halus dan bingkai kamera kelihatan lebih besar.',
       'Setiap kamera dalam template kini ada garisan (stroke) sendiri sebagai sebahagian daripada bingkai kamera: putih untuk template gelap, hitam untuk template cerah. Boleh ditukar pada sifat kamera.',
       'Peralihan gaya iOS: penanda tab meluncur lembut dan kandungan masuk dengan licin pada tab Template, Game (Kawalan, Stream, Draft, Tier, Hero, Meta...), Tetapan dan panel kanan.',
@@ -91,6 +92,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Ally (green) and Enemy (red) labels on the draft form and detector cards are now coloured and bold: bright green/red in dark modes, dark green/maroon in light modes. Includes Ban Ally and Ban Enemy.',
       'The camera stroke was made thinner so it is subtle and the camera frame looks larger.',
       'Every camera in a template now has its own stroke as part of the camera frame: white on dark templates, black on light templates. It can be changed in the camera properties.',
       'iOS-style transitions: tab indicators glide and content eases in on the Template, Game (Controls, Stream, Draft, Tier, Hero, Meta...), Settings and right-hand panel tabs.',

@@ -6,7 +6,8 @@
   const D = GS.gamedock;
 
   /* ---------- pembantu borang ---------- */
-  const field = (label, input, cls) => h('label', { class: 'field' + (cls ? ' ' + cls : '') }, h('span', null, label), input);
+  const side = (l) => (/^(ban )?ally/i.test(l) ? ' side-ally' : /^(ban )?enemy/i.test(l) ? ' side-enemy' : '');
+  const field = (label, input, cls) => h('label', { class: 'field' + side(label) + (cls ? ' ' + cls : '') }, h('span', null, label), input);
   const num = (obj, key, opts = {}) => h('input', { type: 'number', min: opts.min != null ? opts.min : 0, max: opts.max, step: opts.step || 1, value: obj[key], onInput: (e) => { obj[key] = Number(e.target.value) || 0; GS.save(); if (opts.after) opts.after(); } });
   const text = (obj, key, ph) => h('input', { type: 'text', value: obj[key] || '', placeholder: ph || '', onInput: (e) => { obj[key] = e.target.value; GS.save(); } });
   const check = (obj, key, label, after) => h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!obj[key], onChange: (e) => { obj[key] = e.target.checked; GS.save(); if (after) after(); } }), label);

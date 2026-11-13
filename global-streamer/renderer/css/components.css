@@ -651,3 +651,11 @@ html[data-appmode^="formal"] .set-tabs .ios-pill, html[data-appmode^="formal"] .
 .set-pane { animation: iosIn 0.5s var(--ease) both; }
 .rpanel.on { animation: iosIn 0.5s var(--ease) both; }
 @media (prefers-reduced-motion: reduce) { .ios-pill, .ios-in, .set-pane, .rpanel.on { transition: none !important; animation: none !important; } }
+
+/* ally = hijau, enemy = merah (cerah pada mod gelap; hijau tua dan maroon pada mod cerah) */
+.field.side-ally > span, .det-k.side-ally { color: #4ade80; font-weight: 900; }
+.field.side-enemy > span, .det-k.side-enemy { color: #ff5a6e; font-weight: 900; }
+html[data-appmode="formal-white"] .field.side-ally > span, html[data-appmode="formal-gray"] .field.side-ally > span,
+html[data-appmode="formal-white"] .det-k.side-ally, html[data-appmode="formal-gray"] .det-k.side-ally { color: #14632e; }
+html[data-appmode="formal-white"] .field.side-enemy > span, html[data-appmode="formal-gray"] .field.side-enemy > span,
+html[data-appmode="formal-white"] .det-k.side-enemy, html[data-appmode="formal-gray"] .det-k.side-enemy { color: #800020; }

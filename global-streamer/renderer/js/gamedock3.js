@@ -21,7 +21,8 @@
   };
   const pct = (x) => (x * 100).toFixed(1).replace(/\.0$/, '') + '%';
   const sec = (title, ...kids) => h('div', { class: 'gd-sec' }, h('h4', null, title), ...kids);
-  const field = (label, input) => h('label', { class: 'field' }, h('span', null, label), input);
+  const side = (l) => (/^(ban )?ally/i.test(l) ? ' side-ally' : /^(ban )?enemy/i.test(l) ? ' side-enemy' : '');
+  const field = (label, input) => h('label', { class: 'field' + side(label) }, h('span', null, label), input);
   const chipRow = (opts, cur, onPick) => {
     const row = h('div', { class: 'subtabs wrap' });
     opts.forEach(([v, label]) => row.append(h('button', { class: 'subtab' + (v === cur ? ' on' : ''), dataset: { v }, onClick: (e) => { GS.$$('.subtab', row).forEach((b) => b.classList.toggle('on', b === e.currentTarget)); onPick(v); } }, label)));
