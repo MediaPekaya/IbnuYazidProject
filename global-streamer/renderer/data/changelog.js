@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Setiap kamera dalam template kini ada garisan (stroke) sendiri sebagai sebahagian daripada bingkai kamera: putih untuk template gelap, hitam untuk template cerah. Boleh ditukar pada sifat kamera.',
       'Peralihan gaya iOS: penanda tab meluncur lembut dan kandungan masuk dengan licin pada tab Template, Game (Kawalan, Stream, Draft, Tier, Hero, Meta...), Tetapan dan panel kanan.',
       'Menekan tab template tidak lagi tersangkut: gambar kecil template dilukis sedikit demi sedikit dan disimpan.',
       'Tab jenis template dan format (TikTok/YouTube) disusun supaya tidak terpotong. Nama Countdown Timer dipendekkan kepada Countdown.',
@@ -89,6 +90,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Every camera in a template now has its own stroke as part of the camera frame: white on dark templates, black on light templates. It can be changed in the camera properties.',
       'iOS-style transitions: tab indicators glide and content eases in on the Template, Game (Controls, Stream, Draft, Tier, Hero, Meta...), Settings and right-hand panel tabs.',
       'Tapping template tabs no longer lags: template thumbnails are drawn gradually and cached.',
       'The template type tabs and format (TikTok/YouTube) tabs are arranged so nothing is cut off. Countdown Timer was shortened to Countdown.',

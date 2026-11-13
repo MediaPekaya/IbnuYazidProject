@@ -847,6 +847,7 @@
       const info = rec ? (rec.label || GS.t('Peranti')) + ' · ' + (rec.video.videoWidth || '?') + '×' + (rec.video.videoHeight || '?') : 'Tiada isyarat';
       root.append(h('div', { class: 'prop-info' }, info));
       if (s.props.kind === 'camera') root.append(h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'chkCamMirror', checked: s.props.mirror !== false, onChange: (e) => { s.props.mirror = e.target.checked; changed('props:changed'); } }), 'Cermin kamera (gambar ikut arah pergerakan anda)'));
+      if (s.props.kind === 'camera') root.append(field('Garisan kamera (stroke)', h('select', { id: 'selCamStroke', onChange: (e) => { s.props.stroke = e.target.value; changed('props:changed'); } }, [['auto', 'Auto (putih pada template gelap, hitam pada template cerah)'], ['white', 'Putih'], ['black', 'Hitam'], ['off', 'Tiada']].map(([v, l]) => h('option', { value: v, selected: (s.props.stroke || 'auto') === v }, l)))));
       root.append(h('div', { class: 'btn-row' },
         h('button', { class: 'btn', onClick: async () => { if (await GS.media.pick(s)) S.afterPick(s); renderProps(); } }, s.props.mode === 'window' ? 'Pilih tetingkap' : s.props.mode === 'display' ? 'Pilih paparan / tetingkap' : s.props.kind === 'screen' ? 'Kongsi skrin' : 'Pilih peranti'),
         rec ? h('button', { class: 'btn ghost', onClick: () => { GS.media.close(s.id); s.props.deviceId = ''; changed('props:changed'); renderProps(); } }, 'Lepaskan') : null));

@@ -587,6 +587,7 @@
     'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.': 'Drag the dividers between panels (Scenes, Sources, Properties, Audio Mixer, Templates, right panel) to resize them, and drag a panel title to move it. Panels stay inside the app and cannot be removed or hidden. Double-click a divider for the default.',
     'Tetapkan semula susun atur panel': 'Reset the panel layout',
     'Ad Block': 'Ad Block',
+    'Garisan kamera (stroke)': 'Camera stroke', 'Auto (putih pada template gelap, hitam pada template cerah)': 'Auto (white on dark templates, black on light templates)', 'Putih': 'White', 'Hitam': 'Black', 'Tiada': 'None',
     'Cermin kamera (gambar ikut arah pergerakan anda)': 'Mirror camera (picture follows your movement direction)',
     'Formal Hijau': 'Formal Green', 'Hijau hutan tua rata tanpa cahaya (2D).': 'Flat deep forest green, no glow (2D).',
     'Formal Ungu': 'Formal Purple', 'Ungu tua rata tanpa cahaya (2D).': 'Flat deep purple, no glow (2D).',

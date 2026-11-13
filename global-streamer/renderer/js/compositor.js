@@ -143,13 +143,17 @@
       switch (s.type) {
         case 'video': {
           const r = GS.media.videos[s.id];
+          const cam = s.props && s.props.kind === 'camera';
           if (r && r.video.readyState >= 2 && r.video.videoWidth) {
             // kamera: pantulan cermin (lalai hidup) - bila anda ke kanan, gambar ikut ke kanan; ke kiri, ikut ke kiri
-            const mir = s.props && s.props.kind === 'camera' && s.props.mirror !== false;
-            if (mir) { ctx.save(); const cx = s.x + s.w / 2; ctx.translate(cx, 0); ctx.scale(-1, 1); ctx.translate(-cx, 0); }
+            const mir = cam && s.props.mirror !== false;
+            ctx.save();
+            if (cam) this.camClip(ctx, s);
+            if (mir) { const cx = s.x + s.w / 2; ctx.translate(cx, 0); ctx.scale(-1, 1); ctx.translate(-cx, 0); }
             this.drawFit(ctx, r.video, r.video.videoWidth, r.video.videoHeight, s);
-            if (mir) ctx.restore();
-          } else this.placeholder(ctx, s, now);
+            ctx.restore();
+          } else { if (cam) this.camClip(ctx, s); this.placeholder(ctx, s, now); }
+          if (cam) this.camStroke(ctx, s);
           break;
         }
         case 'clip': {
@@ -182,6 +186,26 @@
         default:
           break;
       }
+    }
+
+    /** Bingkai kamera: sudut sedikit bulat; garisan (stroke) sebahagian daripada bingkai kamera itu sendiri. */
+    camGeom(s) { const m = Math.min(s.w, s.h); return { r: Math.max(6, m * 0.035), lw: Math.max(3, m * 0.014) }; }
+    camClip(ctx, s) { const g = this.camGeom(s); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(s.x, s.y, s.w, s.h, g.r); else ctx.rect(s.x, s.y, s.w, s.h); ctx.clip(); }
+    camLight() {
+      const th = (GS.theme && GS.theme.cur) || {}; const hex = String(th.bgBase || '#000').replace('#', '');
+      const n = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex.padEnd(6, '0');
+      const L = (0.299 * parseInt(n.slice(0, 2), 16) + 0.587 * parseInt(n.slice(2, 4), 16) + 0.114 * parseInt(n.slice(4, 6), 16)) / 255;
+      return L > 0.6;
+    }
+    /** Garisan putih untuk template gelap, hitam untuk template cerah (boleh ditukar pada sifat kamera). */
+    camStroke(ctx, s) {
+      const mode = (s.props && s.props.stroke) || 'auto';
+      if (mode === 'off') return;
+      const g = this.camGeom(s), col = mode === 'white' ? '#ffffff' : mode === 'black' ? '#000000' : (this.camLight() ? '#000000' : '#ffffff');
+      ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = g.lw; ctx.beginPath();
+      const x = s.x + g.lw / 2, y = s.y + g.lw / 2, w = s.w - g.lw, h = s.h - g.lw;
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, Math.max(0, g.r - g.lw / 2)); else ctx.rect(x, y, w, h);
+      ctx.stroke(); ctx.restore();
     }
 
     drawFit(ctx, el, sw, sh, s) {
