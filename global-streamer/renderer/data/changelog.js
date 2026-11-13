@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Ikon jantung HEART ME pada bar LIVE kini berdenyut seperti jantung, dengan gelombang cahaya setiap kali penonton menekan like.',
       'Nama lagu pada bar LIVE sentiasa bergerak perlahan ke kiri dengan hujung kiri dan kanan yang kabur (pudar).',
       'Perkataan Coming Soon ditukar kepada Countdown Timer pada template, tambah sumber dan scene.',
       'Butang Tetapan dibaiki supaya boleh ditekan semula.',
@@ -84,6 +85,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'The HEART ME icon on the LIVE bar now beats like a heart, with a glow ripple each time a viewer likes.',
       'The song name on the LIVE bar now always scrolls slowly to the left, with soft faded edges on the left and right.',
       'The words Coming Soon were changed to Countdown Timer in templates, add source and scenes.',
       'The Settings button was fixed so it can be clicked again.',

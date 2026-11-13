@@ -211,6 +211,7 @@
     const ch = A && A.channels ? A.channels.find((c) => c.kind === 'music' && c.playing && c.tracks && c.tracks[c.idx || 0]) : null;
     return ch ? ch.tracks[ch.idx || 0].name : (GS.state.status.nowPlaying || '');
   };
+  const HB = { last: null, kick: null };
   W.statusbar = function (ctx, s, t) {
     const { x, y, w, h } = s;
     const st = GS.state.status;
@@ -258,8 +259,15 @@
       const gw = Math.max(h * 0.9, Math.min(w * 0.08, h * 2)), tot = h * 0.7 + lbw + h * 0.2 + nw + h * 0.2 + gw;
       const lx = rx - tot;
       // ikon hati merah bulat
-      ctx.fillStyle = '#ff4d5e'; ctx.beginPath(); ctx.arc(lx + h * 0.3, my, h * 0.27, 0, Math.PI * 2); ctx.fill();
-      W.glyph(ctx, 'heart', lx + h * 0.3, my, h * 0.15, '#fff');
+      // denyut jantung (lub-dub) sentiasa; lebih kuat dengan gelombang bila ada like baharu daripada penonton
+      const hb = (t % 1100) / 1100, beat = Math.max(0, Math.sin(Math.min(1, hb / 0.18) * Math.PI)) * 0.16 + Math.max(0, Math.sin(Math.min(1, Math.max(0, hb - 0.24) / 0.18) * Math.PI)) * 0.1;
+      if (HB.last !== cur) { if (HB.last != null && cur > HB.last) HB.kick = t; HB.last = cur; }
+      const kick = HB.kick != null ? Math.max(0, 1 - (t - HB.kick) / 700) : 0;
+      const hx = lx + h * 0.3, sc = 1 + beat + kick * 0.28;
+      if (kick > 0) { ctx.save(); ctx.strokeStyle = 'rgba(255,77,94,' + (kick * 0.8).toFixed(2) + ')'; ctx.lineWidth = Math.max(2, h * 0.05); ctx.beginPath(); ctx.arc(hx, my, h * (0.27 + (1 - kick) * 0.4), 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+      ctx.save(); ctx.shadowColor = 'rgba(255,77,94,0.9)'; ctx.shadowBlur = h * (0.15 + beat * 1.2 + kick * 0.8);
+      ctx.fillStyle = '#ff4d5e'; ctx.beginPath(); ctx.arc(hx, my, h * 0.27 * sc, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      W.glyph(ctx, 'heart', hx, my, h * 0.15 * sc, '#fff');
       W.text(ctx, label, lx + h * 0.7, my + fs * 0.25, { size: fs * 0.62, weight: 800, spacing: 2, color: '#cfd8f5' });
       W.text(ctx, nums, lx + h * 0.7 + lbw + h * 0.2, my + fs * 0.3, { size: fs * 0.85, weight: 900, color: '#fff' });
       const gx = lx + h * 0.7 + lbw + h * 0.2 + nw + h * 0.2;
