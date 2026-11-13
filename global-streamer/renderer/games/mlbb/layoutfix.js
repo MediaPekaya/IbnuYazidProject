@@ -193,4 +193,12 @@
   const fancy = G.templates.filter((t) => fancyIds.has(t.id));
   G.templates.splice(0, G.templates.length, ...G.templates.filter((t) => !fancyIds.has(t.id)));
   G.templates.unshift(...fancy);
+  // fon berbeza untuk setiap template: Gaming, Formal dan Sebentar Lagi (countdown)
+  const FONT_SETS = { gaming: ['rajdhani', 'orbitron', 'teko', 'russo', 'chakra', 'audiowide'], formal: ['montserrat', 'poppins', 'playfair', 'oswald', 'lora', 'raleway'], soon: ['bebas', 'anton', 'righteous', 'blackops', 'staatliches', 'bungee', 'orbitron', 'audiowide'] };
+  const counters = { gaming: 0, formal: 0, soon: 0 };
+  G.templates.forEach((t) => {
+    const cat = t.category || 'gaming', set = FONT_SETS[cat] || FONT_SETS.gaming, font = set[(counters[cat]++) % set.length];
+    const b = t.build;
+    t.build = () => { const out = b(); out.forEach((s) => { if (s.type === 'widget' && s.props && !s.props.font && !['bgfx', 'logo', 'bot', 'frame'].includes(s.props.widget)) s.props.font = font; }); return out; };
+  });
 })();

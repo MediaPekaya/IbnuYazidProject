@@ -1,9 +1,10 @@
 /* Global Streamer - widget yang dilukis pada kanvas (masuk dalam siaran) */
 (function () {
   'use strict';
-  const FONT = '"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif';
+  const BASE_FONT = '"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif';
   const C = (GS.colors = { blue: '#2ea8ff', cyan: '#6be6ff', violet: '#7a5cff', red: '#ff3b5c', ink: '#050a18', panel: 'rgba(8,18,40,0.80)', text: '#eaf4ff', muted: '#8aa2c4', gold: '#ffd36b' });
-  const W = (GS.widgets = { FONT });
+  const W = (GS.widgets = {});
+  Object.defineProperty(W, 'FONT', { get: () => W._cur || BASE_FONT, enumerable: true });
 
   /* ---------- helper lukisan ---------- */
   const rr = (W.rr = function (ctx, x, y, w, h, r) {
@@ -34,7 +35,7 @@
   W.text = function (ctx, str, x, y, o = {}) {
     const size = o.size || 24;
     ctx.save();
-    ctx.font = (o.weight || 600) + ' ' + size + 'px ' + FONT;
+    ctx.font = (o.weight || 600) + ' ' + size + 'px ' + W.FONT;
     ctx.textAlign = o.align || 'left';
     ctx.textBaseline = o.baseline || 'alphabetic';
     if ('letterSpacing' in ctx) ctx.letterSpacing = (o.spacing || 0) + 'px';
@@ -46,7 +47,7 @@
       while (ctx.measureText(s).width > o.maxW && ctx.font && guard++ < 40) {
         const px = parseFloat(ctx.font.match(/(\d+(\.\d+)?)px/)[1]) - 1;
         if (px < 8) break;
-        ctx.font = (o.weight || 600) + ' ' + px + 'px ' + FONT;
+        ctx.font = (o.weight || 600) + ' ' + px + 'px ' + W.FONT;
       }
     }
     ctx.fillText(s, x, y);
@@ -157,7 +158,7 @@
     const sec = GS.pad(now.getSeconds());
     const big = h * 0.5;
     W.text(ctx, hm, x + w * 0.06, y + h * 0.62, { size: big, weight: 700, color: C.text, shadow: 'rgba(80,170,255,.8)', blur: 18 });
-    const tw = (() => { ctx.save(); ctx.font = '700 ' + big + 'px ' + FONT; const m = ctx.measureText(hm).width; ctx.restore(); return m; })();
+    const tw = (() => { ctx.save(); ctx.font = '700 ' + big + 'px ' + W.FONT; const m = ctx.measureText(hm).width; ctx.restore(); return m; })();
     W.text(ctx, sec, x + w * 0.06 + tw + 6, y + h * 0.62, { size: big * 0.42, weight: 600, color: C.cyan });
     const rx = x + w * 0.62;
     W.text(ctx, GS.tov('MASA MAIN'), rx, y + h * 0.36, { size: Math.max(11, h * 0.14), weight: 700, spacing: 2.5, color: C.muted });
@@ -262,6 +263,9 @@
   /* dispatcher */
   W.draw = function (ctx, s, t) {
     const fn = W[s.props.widget];
-    if (typeof fn === 'function' && fn !== W.draw) fn(ctx, s, t);
+    if (typeof fn === 'function' && fn !== W.draw) {
+      W._cur = s.props.font && GS.fonts ? GS.fonts.css(s.props.font) : null;
+      try { fn(ctx, s, t); } finally { W._cur = null; }
+    }
   };
 })();

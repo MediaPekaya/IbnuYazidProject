@@ -749,6 +749,12 @@
     if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); const pb0 = programCountdownBox(); if (pb0) root.append(pb0); return; }
     root.append(
       h('div', { class: 'grid4' }, field('X', numInput(s, 'x')), field('Y', numInput(s, 'y')), field('Lebar', numInput(s, 'w')), field('Tinggi', numInput(s, 'h'))));
+    if (s.type === 'widget' && s.props.widget !== 'bgfx' && GS.fonts) {
+      const fsel = h('select', { id: 'selFont', onChange: (e) => { s.props.font = e.target.value || undefined; changed('props:changed'); } },
+        h('option', { value: '' }, GS.t('Fon asal')),
+        Object.keys(GS.fonts.groups).map((g) => h('optgroup', { label: GS.t(GS.fonts.groups[g]) }, GS.fonts.list.filter((f) => f.group === g).map((f) => h('option', { value: f.key, selected: s.props.font === f.key }, f.name)))));
+      root.append(field('Fon tulisan', fsel));
+    }
     if (s.type === 'video' || s.type === 'image' || s.type === 'clip') {
       const sel = h('select', { onChange: (e) => { s.fit = e.target.value; changed('props:changed'); } },
         [['cover', 'Penuhi (potong)'], ['contain', 'Muat (tanpa potong)'], ['stretch', 'Regang']].map(([v, l]) => h('option', { value: v, selected: s.fit === v }, l)));

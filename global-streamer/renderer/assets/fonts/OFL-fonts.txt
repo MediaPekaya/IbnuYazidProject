@@ -1,0 +1,2 @@
+The font files in this folder (Orbitron, Rajdhani, Teko, Russo One, Audiowide, Bungee, Montserrat, Poppins, Playfair Display, Oswald, Lora, Raleway, Bebas Neue, Anton, Righteous, Black Ops One, Chakra Petch, Staatliches, Bangers)
+are distributed under the SIL Open Font License 1.1 (https://openfontlicense.org), obtained from Google Fonts. They may be bundled and redistributed with this application.

@@ -427,6 +427,7 @@
     const sec = Math.ceil(ms / 1000);
     // 5 saat terakhir: hanya nombor besar di tengah (tanpa kotak), kemudian START
     if (started && (done || (ms > 0 && sec <= 5))) {
+      if (!noPanel) W.panel(ctx, x, y, w, h, t, { phase: 5.1, r: 26, opaque: true }); // latar sama seperti kiraan detik, bukan warna plain
       const cx = x + w / 2, cy = y + h / 2;
       const txt = done ? (p.endText || 'MULA SEKARANG!') : String(sec);
       const frac = done ? 0 : 1 - ((ms % 1000) / 1000), pop = done ? 1 : 1 + 0.35 * Math.pow(1 - frac, 2);

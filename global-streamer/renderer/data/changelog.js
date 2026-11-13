@@ -47,6 +47,9 @@ window.GS_CHANGELOG = {
       'Latar bergerak (api, kilat, peti harta, anime, neon, bintang) ditambah sebagai sumber dan dalam template Sebentar Lagi serta Gaming.',
       'Template dipaparkan dalam grid tanpa skrol ke tepi: 3 lajur untuk YouTube dan Facebook, 5 lajur untuk TikTok, dengan skrol ke bawah.',
       'Tulisan GLOBAL STREAMER di bar atas menggunakan semi bold dengan gradien yang bergerak ke tepi.',
+      'Latar api kini api sebenar yang bergerak (bukan bentuk grafik).',
+      'Pada 5 saat terakhir, latar kotak kira detik kekal sama dengan template, bukan warna plain.',
+      'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
@@ -94,6 +97,9 @@ window.GS_CHANGELOG = {
       'Moving backgrounds (fire, lightning, treasure chest, anime, neon, stars) are added as a source and in the Coming Soon and Gaming templates.',
       'Templates are shown in a grid with no sideways scrolling: 3 columns for YouTube and Facebook, 5 columns for TikTok, scrolling downwards.',
       'The GLOBAL STREAMER title on the top bar uses semi bold with a gradient that moves sideways.',
+      'The fire background is now real moving fire (not a graphic shape).',
+      'In the last 5 seconds, the countdown box background stays the same as the template, not a plain colour.',
+      'Many fonts are added for the Gaming, Formal and Coming Soon templates; the font can be changed in each widget\'s Properties.',
     ],
   },
 };
