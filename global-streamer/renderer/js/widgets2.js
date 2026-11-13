@@ -216,63 +216,67 @@
     const st = GS.state.status;
     const live = GS.live && GS.live.state === 'live';
     const tiktok = GS.orient() === 'portrait' || !!(GS.state.platforms && GS.state.platforms.tiktok && GS.state.platforms.tiktok.enabled);
-    ctx.save();
-    ctx.beginPath(); W.rr(ctx, x, y, w, h, h / 2); ctx.clip();
+    const my = y + h / 2, fs = h * 0.44;
+    // jalur gelap mendatar (sebiji rujukan: segi empat, bukan pil)
     const bg = ctx.createLinearGradient(x, y, x + w, y);
-    bg.addColorStop(0, 'rgba(4,9,24,0.94)'); bg.addColorStop(1, 'rgba(22,8,28,0.94)');
+    bg.addColorStop(0, '#0a1233'); bg.addColorStop(1, '#0d1540');
     ctx.fillStyle = bg; ctx.fillRect(x, y, w, h);
-    ctx.restore();
-    ctx.save(); W.rr(ctx, x + 1, y + 1, w - 2, h - 2, h / 2); ctx.lineWidth = 2; ctx.strokeStyle = W.holoGrad(ctx, x, y, w, h, t); ctx.stroke(); ctx.restore();
-    const pad = h * 0.14, ph = h - pad * 2, my = y + h / 2;
-    // pil LIVE
+    ctx.fillStyle = '#2f6bff'; ctx.fillRect(x, y, w, Math.max(2, h * 0.05));
+    ctx.fillStyle = 'rgba(80,130,255,0.55)'; ctx.fillRect(x, y + h - Math.max(2, h * 0.05), w, Math.max(2, h * 0.05));
+    // panel biru kiri: LIVE + masa
+    ctx.save(); ctx.font = '900 ' + fs + 'px ' + W.FONT; if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
+    const lw = ctx.measureText('LIVE').width; ctx.font = '900 ' + fs + 'px ' + W.FONT; if ('letterSpacing' in ctx) ctx.letterSpacing = '1px';
+    const tw = ctx.measureText('00:00:00').width; ctx.restore();
+    const pw = h * 0.5 + lw + h * 0.45 + tw + h * 0.55;
+    const pg = ctx.createLinearGradient(x, y, x + pw, y); pg.addColorStop(0, '#1b3d9c'); pg.addColorStop(1, '#2a5bd6');
+    ctx.fillStyle = pg; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + pw, y); ctx.lineTo(x + pw - h * 0.28, y + h); ctx.lineTo(x, y + h); ctx.closePath(); ctx.fill();
+    // garis kuning senget
+    ctx.fillStyle = '#ffc928'; ctx.beginPath(); ctx.moveTo(x + pw + h * 0.04, y); ctx.lineTo(x + pw + h * 0.16, y); ctx.lineTo(x + pw - h * 0.12, y + h); ctx.lineTo(x + pw - h * 0.24, y + h); ctx.closePath(); ctx.fill();
     const pulse = 0.5 + 0.5 * Math.sin(t * 0.006);
-    ctx.save(); ctx.font = '900 ' + ph * 0.5 + 'px ' + W.FONT; if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
-    const pw = ctx.measureText('LIVE').width + ph * 1.2;
-    ctx.restore();
-    ctx.save(); W.rr(ctx, x + pad, y + pad, pw, ph, ph / 2);
-    ctx.fillStyle = live ? 'rgb(235,40,70)' : 'rgba(120,135,160,0.75)'; ctx.fill(); ctx.restore();
-    if (live) { ctx.save(); ctx.fillStyle = 'rgba(255,255,255,' + (0.55 + 0.45 * pulse).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(x + pad + ph * 0.42, my, ph * 0.12, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-    W.text(ctx, 'LIVE', x + pad + ph * (live ? 0.7 : 0.6), my + ph * 0.18, { size: ph * 0.5, weight: 900, spacing: 2, color: '#fff' });
-    // garis nipis
-    let cx = x + pad + pw + h * 0.28;
-    ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fillRect(cx, y + h * 0.28, 2, h * 0.44);
-    cx += h * 0.28;
-    // masa
+    ctx.fillStyle = live ? 'rgba(255,70,90,' + (0.6 + 0.4 * pulse).toFixed(2) + ')' : 'rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.arc(x + h * 0.32, my, h * 0.1, 0, Math.PI * 2); ctx.fill();
+    W.text(ctx, 'LIVE', x + h * 0.5, my + fs * 0.35, { size: fs, weight: 900, spacing: 3, color: '#fff' });
     const timer = live ? GS.fmtDur((Date.now() - GS.live.startedAt) / 1000) : '00:00:00';
-    W.text(ctx, timer, cx, my + ph * 0.18, { size: ph * 0.5, weight: 800, color: C.text });
-    ctx.save(); ctx.font = '800 ' + ph * 0.5 + 'px ' + W.FONT; cx += ctx.measureText('00:00:00').width + h * 0.3; ctx.restore();
-    // kawasan kanan: penonton dan HEART ME
-    let rx = x + w - pad - h * 0.2;
+    W.text(ctx, timer, x + h * 0.5 + lw + h * 0.45, my + fs * 0.35, { size: fs, weight: 900, spacing: 1, color: '#fff' });
+    let cx = x + pw + h * 0.45;
+    // kanan: penonton dalam kotak biru, kemudian HEART ME (TikTok sahaja)
+    let rx = x + w - h * 0.2;
     if (st.viewers > 0) {
       const vs = String(st.viewers);
-      ctx.save(); ctx.font = '800 ' + ph * 0.5 + 'px ' + W.FONT; const vw = ctx.measureText(vs).width; ctx.restore();
-      W.text(ctx, vs, rx, my + ph * 0.18, { size: ph * 0.5, weight: 800, align: 'right', color: C.text });
-      W.glyph(ctx, 'eye', rx - vw - h * 0.3, my, h * 0.2, C.cyan);
-      rx -= vw + h * 0.8;
+      ctx.save(); ctx.font = '900 ' + fs * 0.9 + 'px ' + W.FONT; const vw = ctx.measureText(vs).width; ctx.restore();
+      const bw = vw + h * 1.0;
+      ctx.fillStyle = '#1f4fd0'; W.rr(ctx, rx - bw, y + h * 0.2, bw, h * 0.6, h * 0.1); ctx.fill();
+      W.glyph(ctx, 'eye', rx - bw + h * 0.3, my, h * 0.17, '#fff');
+      W.text(ctx, vs, rx - h * 0.14, my + fs * 0.32, { size: fs * 0.9, weight: 900, align: 'right', color: '#fff' });
+      rx -= bw + h * 0.35;
     }
     if (tiktok) {
       const cur = st.likeCur || 0, max = Math.max(1, st.likeMax || 1), pr = clamp(cur / max, 0, 1);
-      const lw = Math.min(w * 0.3, h * 5.4);
-      const lx = rx - lw;
-      ctx.save(); W.rr(ctx, lx, y + pad, lw, ph, ph / 2); ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fill(); ctx.clip();
-      if (pr > 0) { ctx.fillStyle = 'rgba(255,60,110,0.85)'; ctx.fillRect(lx, y + pad, lw * pr, ph); }
-      ctx.restore();
-      W.glyph(ctx, 'heart', lx + ph * 0.55, my, ph * 0.28, '#fff');
-      W.text(ctx, T(!st.likeLabel || st.likeLabel === 'LIKE GOAL' ? 'HEART ME' : st.likeLabel), lx + ph * 1.0, my + ph * 0.17, { size: ph * 0.36, weight: 900, spacing: 0.5, color: '#fff', maxW: lw * 0.42 });
-      W.text(ctx, cur + '/' + (st.likeMax || 0), lx + lw - ph * 0.4, my + ph * 0.17, { size: ph * 0.36, weight: 800, align: 'right', color: '#fff', maxW: lw * 0.34 });
-      rx = lx - h * 0.25;
+      const label = T(!st.likeLabel || st.likeLabel === 'LIKE GOAL' ? 'HEART ME' : st.likeLabel);
+      const nums = cur + '/' + (st.likeMax || 0);
+      ctx.save(); ctx.font = '900 ' + fs * 0.85 + 'px ' + W.FONT; const nw = ctx.measureText(nums).width; ctx.font = '800 ' + fs * 0.62 + 'px ' + W.FONT; if ('letterSpacing' in ctx) ctx.letterSpacing = '2px'; const lbw = ctx.measureText(label).width; ctx.restore();
+      const gw = Math.max(h * 0.9, Math.min(w * 0.08, h * 2)), tot = h * 0.7 + lbw + h * 0.2 + nw + h * 0.2 + gw;
+      const lx = rx - tot;
+      // ikon hati merah bulat
+      ctx.fillStyle = '#ff4d5e'; ctx.beginPath(); ctx.arc(lx + h * 0.3, my, h * 0.27, 0, Math.PI * 2); ctx.fill();
+      W.glyph(ctx, 'heart', lx + h * 0.3, my, h * 0.15, '#fff');
+      W.text(ctx, label, lx + h * 0.7, my + fs * 0.25, { size: fs * 0.62, weight: 800, spacing: 2, color: '#cfd8f5' });
+      W.text(ctx, nums, lx + h * 0.7 + lbw + h * 0.2, my + fs * 0.3, { size: fs * 0.85, weight: 900, color: '#fff' });
+      const gx = lx + h * 0.7 + lbw + h * 0.2 + nw + h * 0.2;
+      ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(gx, my - 2, gw, 4);
+      ctx.fillStyle = '#ffd24a'; ctx.fillRect(gx, my - 2, Math.max(4, gw * pr), 4);
+      rx = lx - h * 0.35;
     }
     // tajuk lagu bergerak ke kiri dalam bar yang sama
-    const title = musicTitle();
-    const mx0 = cx, mw = rx - cx - h * 0.1;
+    const title = musicTitle(), mw = rx - cx;
     if (title && mw > h * 1.5) {
-      W.glyph(ctx, 'note', mx0 + h * 0.12, my, h * 0.2, C.cyan);
-      const tx0 = mx0 + h * 0.45, tw = mw - h * 0.45;
-      ctx.save(); ctx.beginPath(); ctx.rect(tx0, y, tw, h); ctx.clip();
-      ctx.font = '700 ' + ph * 0.46 + 'px ' + W.FONT;
+      W.glyph(ctx, 'note', cx + h * 0.12, my, h * 0.17, '#7fb0ff');
+      const tx0 = cx + h * 0.45, twid = mw - h * 0.45;
+      ctx.save(); ctx.beginPath(); ctx.rect(tx0, y, twid, h); ctx.clip();
+      ctx.font = '700 ' + fs * 0.85 + 'px ' + W.FONT;
       const txtw = ctx.measureText(title).width, gap = h * 1.6;
-      if (txtw <= tw) W.text(ctx, title, tx0, my + ph * 0.16, { size: ph * 0.46, weight: 700, color: C.text });
-      else { const off = ((t * 0.06) % (txtw + gap)); for (let k = 0; k < 2; k++) W.text(ctx, title, tx0 - off + k * (txtw + gap), my + ph * 0.16, { size: ph * 0.46, weight: 700, color: C.text }); }
+      if (txtw <= twid) W.text(ctx, title, tx0, my + fs * 0.3, { size: fs * 0.85, weight: 700, color: '#fff' });
+      else { const off = ((t * 0.06) % (txtw + gap)); for (let k = 0; k < 2; k++) W.text(ctx, title, tx0 - off + k * (txtw + gap), my + fs * 0.3, { size: fs * 0.85, weight: 700, color: '#fff' }); }
       ctx.restore();
     }
   };

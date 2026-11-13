@@ -11,3 +11,8 @@ Extra BM video skills: `video-script-bm`, `video-hook-library`, `video-remotion-
 - When creating a NEW repo, run `.claude/scripts/sync-skills.sh <new-repo-path>` to copy these skills into it.
 
 Also included: 52 marketing skills from marketingskills (start with `product-marketing`; upstream `marketing-plan` is `marketing-plan-corey`) and `free-llm-apis`. Sources: `.claude/skills/SOURCES.md`.
+
+## Working rules (from the owner)
+- Do exactly what is asked. Do not change, add or remove anything that was not requested.
+- Never skip a requested item; re-check the full list of requests before saying it is done.
+- Reply in simple Bahasa Melayu, short and step by step. Never cancel running builds.

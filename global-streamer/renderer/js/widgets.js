@@ -226,40 +226,37 @@
 
   /* ---------- widget: bar teks bergerak ---------- */
   W.ticker = function (ctx, s, t) {
-    const { x, y, w, h } = s;
+    const { x, y, w, h } = s, p = s.props || {};
     W.panel(ctx, x, y, w, h, t, { phase: 3.3, r: h / 2.6 });
     const msgs = (GS.state.ticker.messages || []).filter(Boolean);
-    // chip kiri
-    const chipW = h * 1.7;
-    ctx.save();
-    rr(ctx, x + 10, y + 10, chipW, h - 20, (h - 20) / 2.4);
-    ctx.fillStyle = W.holoGrad(ctx, x + 10, y + 10, chipW, h - 20, t, 0.5);
-    ctx.fill();
-    ctx.restore();
-    W.text(ctx, 'INFO', x + 10 + chipW / 2, y + h * 0.63, { size: h * 0.3, weight: 800, spacing: 4, align: 'center', color: '#fff' });
+    const badge = p.badge || 'left', align = p.align || 'left', sc = (p.textScale || 100) / 100;
+    const chipW = badge === 'none' ? 0 : h * 1.7;
+    const bx = (badge === 'right' ? x + w - chipW - 10 : x + 10) + (p.badgeDx || 0), by = y + 10 + (p.badgeDy || 0);
+    if (badge !== 'none') {
+      ctx.save();
+      rr(ctx, bx, by, chipW, h - 20, (h - 20) / 2.4);
+      ctx.fillStyle = W.holoGrad(ctx, bx, by, chipW, h - 20, t, 0.5);
+      ctx.fill();
+      ctx.restore();
+      W.text(ctx, 'INFO', bx + chipW / 2, by + (h - 20) * 0.6, { size: h * 0.3, weight: 800, spacing: 4, align: 'center', color: '#fff' });
+    }
     if (!msgs.length) return;
     const period = 4200;
     const idx = Math.floor(t / period) % msgs.length;
     const ph = (t % period) / period;
     const inP = GS.clamp(ph / 0.09, 0, 1), outP = GS.clamp((ph - 0.9) / 0.1, 0, 1);
     const ease = 1 - Math.pow(1 - inP, 3);
-    const tx = x + chipW + 34;
-    const maxW = w - chipW - 120;
+    // kawasan tulisan: antara butang INFO dan tepi bar
+    const left = x + 24 + (badge === 'left' ? chipW + 10 : 0), right = x + w - 24 - (badge === 'right' ? chipW + 10 : 0);
+    const maxW = Math.max(40, right - left);
+    const tx = (align === 'center' ? (left + right) / 2 : align === 'right' ? right : left) + (p.textDx || 0);
     ctx.save();
     ctx.beginPath();
-    ctx.rect(x + chipW + 20, y + 4, w - chipW - 80, h - 8);
+    ctx.rect(x + 6, y + 4, w - 12, h - 8);
     ctx.clip();
     ctx.globalAlpha = (1 - outP) * ease;
-    W.text(ctx, GS.tov(msgs[idx]).toUpperCase(), tx, y + h * 0.64 + (1 - ease) * h * 0.5 - outP * h * 0.5, { size: h * 0.42, weight: 800, spacing: 2, maxW });
+    W.text(ctx, GS.tov(msgs[idx]).toUpperCase(), tx, y + h * 0.64 + (p.textDy || 0) + (1 - ease) * h * 0.5 - outP * h * 0.5, { size: h * 0.42 * sc, weight: 800, spacing: 2, align, maxW });
     ctx.restore();
-    // titik denyut kanan
-    for (let i = 0; i < 3; i++) {
-      const a = 0.25 + 0.75 * Math.max(0, Math.sin(t * 0.006 - i * 0.9));
-      ctx.fillStyle = 'rgba(107,230,255,' + a.toFixed(2) + ')';
-      ctx.beginPath();
-      ctx.arc(x + w - 44 + i * 16, y + h / 2, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
   };
 
   /* dispatcher */

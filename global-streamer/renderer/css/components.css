@@ -594,3 +594,7 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .tier-lab{min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:#10131c;font-style:italic}
 .tier-chips{display:flex;flex-wrap:wrap;gap:4px}
 .tier-chip{padding:3px 8px;border-radius:999px;border:1px solid var(--line,#456);background:transparent;color:inherit;font-size:12px;cursor:pointer}
+
+.strip-grip { position: absolute; top: 8px; bottom: 8px; right: -5px; width: 10px; cursor: ew-resize; border-radius: 6px; z-index: 3; touch-action: none; }
+.strip-grip::after { content: ''; position: absolute; left: 4px; top: 30%; bottom: 30%; width: 2px; border-radius: 2px; background: var(--line-strong, rgba(120,170,255,0.5)); opacity: 0; transition: opacity 0.2s; }
+.strip:hover .strip-grip::after, .strip-grip:hover::after { opacity: 1; }

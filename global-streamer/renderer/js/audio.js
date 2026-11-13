@@ -53,7 +53,7 @@
 
   /* ---------- saluran ---------- */
   function persist() {
-    GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, vol: c.vol, muted: c.muted,
+    GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, vol: c.vol, muted: c.muted, w: c.w || undefined,
       // lagu sendiri: hanya laluan fail (app Windows) disimpan; URL sementara pelayar tidak kekal
       tracks: c.kind === 'music' ? (c.tracks || []).filter((t) => t.path).map((t) => ({ name: t.name, path: t.path })) : undefined, idx: c.kind === 'music' ? (c.idx || 0) : undefined, loop: c.kind === 'music' ? c.loop !== false : undefined }));
     GS.save();
@@ -390,6 +390,19 @@
                 GS.h('button', { class: 'icon-btn sm', title: GS.t('Lagu seterusnya'), onClick: () => A.musicNext(ch.id), html: GS.icon('down', 14) })),
               GS.h('button', { class: 'btn tiny', onClick: () => A.musicPick(ch.id) }, '+ ' + GS.t('Tambah lagu')))
           : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
+      // pemegang saiz: seret di tepi kanan untuk melaraskan lebar bahagian ini
+      if (ch.w) { strip.style.flex = '0 0 ' + ch.w + 'px'; strip.style.width = ch.w + 'px'; }
+      strip.style.position = 'relative';
+      const grip = GS.h('div', { class: 'strip-grip', title: GS.t('Seret untuk laras saiz') });
+      grip.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const x0 = e.clientX, w0 = strip.getBoundingClientRect().width;
+        const mv = (m) => { const nw = GS.clamp(Math.round(w0 + m.clientX - x0), 110, 640); ch.w = nw; strip.style.flex = '0 0 ' + nw + 'px'; strip.style.width = nw + 'px'; };
+        const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); persist(); };
+        document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+      });
+      grip.addEventListener('dblclick', () => { ch.w = 0; persist(); A.renderMixer(); });
+      strip.append(grip);
       root.append(strip);
     });
     if (GS.voiceui) root.append(GS.voiceui.strip());

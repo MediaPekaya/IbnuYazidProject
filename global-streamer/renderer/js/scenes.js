@@ -278,8 +278,9 @@
   /** Kedudukan bar bawah (footer): bar teks / banner promosi pada scene, jika tiada jalur bawah kanvas. */
   const footerRect = (sc) => {
     const W = GS.design.w, H = GS.design.h;
-    const bars = (sc ? sc.sources : []).filter((x) => x.type === 'widget' && (x.props.widget === 'ticker' || x.props.widget === 'promo'));
-    if (bars.length) { const b = bars.sort((a, c) => c.y - a.y)[0]; return [b.x, b.y, b.w, b.h]; }
+    // saiz footer besar mengikut rujukan: potret 1080 x 488, melintang 1920 x 300 (sampai ke bawah kanvas)
+    if (W < H) return [0, H - Math.round(W * 0.452), W, Math.round(W * 0.452)];
+    return [0, H - 300, W, 300];
     // saiz footer rujukan: lebar penuh, tinggi 0.45 x lebar (potret 1080 x 488 piksel)
     return W < H ? [0, H - Math.round(W * 0.452), W, Math.round(W * 0.452)] : [40, H - 210, W - 80, 170];
   };
@@ -308,7 +309,7 @@
       src.name = 'Footer Video'; src.fit = 'cover'; src.props.footerVideo = true; src.props.loop = true;
       S.setBarsHidden(S.editTarget(), true); // bar teks diganti video; boleh dipaparkan semula melalui kotak "Sembunyikan bar teks"
       changed('props:changed'); renderProps();
-      GS.toast(GS.t('Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.') + ' ' + GS.t('Saiz video yang sesuai:') + ' ' + (GS.design.w < GS.design.h ? '1080 x 488' : '1840 x 170') + ' px.', 'ok', 8000);
+      GS.toast(GS.t('Footer video dipasang di bar bawah dan berulang secara automatik. Seret atau ubah saiz jika perlu.') + ' ' + GS.t('Saiz video yang sesuai:') + ' ' + (GS.design.w < GS.design.h ? '1080 x 488' : '1920 x 300') + ' px.', 'ok', 8000);
     });
     document.body.append(inp);
     inp.click();
@@ -518,17 +519,22 @@
   };
 
   /* ---------- popover ---------- */
-  function popover(anchor, entries) {
+  function popover(anchor, entries, center) {
     GS.$$('.popover').forEach((p) => p.remove());
     const pop = h('div', { class: 'popover', role: 'menu' }, entries.map((e) => e === '-' ? h('hr') :
       h('button', { class: 'pop-item', role: 'menuitem', onClick: () => { close(); e.run(); }, html: icon(e.icon || 'plus', 16) + '<span>' + GS.escapeHtml(GS.t(e.label)) + '</span>' })));
     document.body.append(pop);
     const r = anchor.getBoundingClientRect();
     // menu panjang (banyak sumber): hadkan tinggi mengikut skrin dan benarkan skrol, jangan terpotong di atas
-    pop.style.maxHeight = (window.innerHeight - 16) + 'px';
+    pop.style.maxHeight = (center ? Math.round(window.innerHeight * 0.8) : window.innerHeight - 16) + 'px';
     const pr = pop.getBoundingClientRect();
+    if (center) { // menu panjang: di tengah skrin, boleh digulung, tidak terpotong di atas
+      pop.style.left = Math.max(8, (window.innerWidth - pr.width) / 2) + 'px';
+      pop.style.top = Math.max(8, (window.innerHeight - pr.height) / 2) + 'px';
+    } else {
     pop.style.left = Math.min(window.innerWidth - pr.width - 8, Math.max(8, r.left)) + 'px';
     pop.style.top = Math.max(8, Math.min(r.top - pr.height - 8, window.innerHeight - pr.height - 8)) + 'px';
+    }
     requestAnimationFrame(() => pop.classList.add('in'));
     function close() { pop.classList.remove('in'); setTimeout(() => pop.remove(), 200); document.removeEventListener('pointerdown', away, true); }
     function away(ev) { if (!pop.contains(ev.target)) close(); }
@@ -560,7 +566,7 @@
 
   /* ---------- UI: sumber ---------- */
   /* ikon berbeza untuk setiap jenis sumber (merujuk kepada sumber yang dipilih) */
-  const WIDGET_ICON = { clock: 'clock', winloss: 'scale', logo: 'hex', brand: 'typeA', ticker: 'ticker', frame: 'frame', metaboard: 'barchart', matchboard: 'sword', resultsboard: 'trophy',
+  const WIDGET_ICON = { clock: 'clock', winloss: 'scale', logo: 'hex', brand: 'tag', ticker: 'ticker', frame: 'frame', metaboard: 'barchart', matchboard: 'sword', resultsboard: 'trophy',
     promo: 'megaphone', countdown: 'timer', tierlist: 'layers', bot: 'bot', queue: 'list', boss: 'skull', toplike: 'heart', statusbar: 'activity', spelltimer: 'timer', draft: 'draft', label: 'tag', tiers: 'layers' };
   const typeIcon = (s) => {
     if (s.type === 'video') {
@@ -662,32 +668,32 @@
   function setupSourceToolbar() {
     const add = GS.$('#btnSourceAdd');
     add.addEventListener('click', () => popover(add, [
-      { label: 'Capture Card (game)', icon: 'monitor', run: () => S.addVideo('capture') },
+      { label: 'Capture Card (game)', icon: 'capture', run: () => S.addVideo('capture') },
       { label: 'Kamera / Webcam', icon: 'camera', run: () => S.addVideo('camera') },
-      { label: 'Display Capture (skrin atau tetingkap: game, Google, Steam, Edge)', icon: 'monitor', run: () => S.addVideo('display') },
-      { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'monitor', run: () => S.addVideo('gamepc') },
-      { label: 'Skrin penuh', icon: 'monitor', run: () => S.addVideo('screen') },
+      { label: 'Display Capture (skrin atau tetingkap: game, Google, Steam, Edge)', icon: 'cast', run: () => S.addVideo('display') },
+      { label: 'Game PC (pilih tetingkap: Steam, game)', icon: 'bolt', run: () => S.addVideo('gamepc') },
+      { label: 'Skrin penuh', icon: 'popout', run: () => S.addVideo('screen') },
       '-',
-      { label: 'Footer Video (video bergerak di bar bawah)', icon: 'image', run: S.addFooterVideo },
-      { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'image', run: S.addClip },
+      { label: 'Footer Video (video bergerak di bar bawah)', icon: 'film', run: S.addFooterVideo },
+      { label: 'Banner / Video sendiri (imej, GIF, video)', icon: 'megaphone', run: S.addClip },
       { label: 'Imej', icon: 'image', run: S.addImage },
-      { label: 'Auto Slide (gambar bergilir)', icon: 'image', run: () => GS.slides.openEditor(null) },
-      { label: 'Presentation (PDF / PowerPoint)', icon: 'widget', run: () => GS.deck.openFile(null) },
+      { label: 'Auto Slide (gambar bergilir)', icon: 'images', run: () => GS.slides.openEditor(null) },
+      { label: 'Presentation (PDF / PowerPoint)', icon: 'deck', run: () => GS.deck.openFile(null) },
       { label: 'Teks', icon: 'text', run: S.addText },
       '-',
-      { label: 'Widget: Jam & Masa Main', icon: 'widget', run: () => S.addWidget('clock') },
-      { label: 'Widget: Menang / Kalah', icon: 'widget', run: () => S.addWidget('winloss') },
-      { label: 'Widget: Logo', icon: 'widget', run: () => S.addWidget('logo') },
-      { label: 'Widget: Kira Detik (Sebentar Lagi)', icon: 'widget', run: () => S.addWidget('countdown') },
-      { label: 'Widget: Tier List', icon: 'widget', run: () => S.addWidget('tierlist') },
-      { label: 'Widget: Bot', icon: 'widget', run: () => S.addWidget('bot') },
-      { label: 'Widget: Tajuk', icon: 'widget', run: () => S.addWidget('brand') },
-      { label: 'Widget: Bar Teks', icon: 'widget', run: () => S.addWidget('ticker') },
-      { label: 'Widget: Bingkai', icon: 'widget', run: () => S.addWidget('frame') },
-      { label: 'Widget: Meta Tournament', icon: 'widget', run: () => S.addWidget('metaboard') },
-      { label: 'Widget: Perlawanan Tournament', icon: 'widget', run: () => S.addWidget('matchboard') },
-      { label: 'Widget: Keputusan Tournament', icon: 'widget', run: () => S.addWidget('resultsboard') },
-    ]));
+      { label: 'Widget: Jam & Masa Main', icon: 'clock', run: () => S.addWidget('clock') },
+      { label: 'Widget: Menang / Kalah', icon: 'scale', run: () => S.addWidget('winloss') },
+      { label: 'Widget: Logo', icon: 'hex', run: () => S.addWidget('logo') },
+      { label: 'Widget: Kira Detik (Sebentar Lagi)', icon: 'timer', run: () => S.addWidget('countdown') },
+      { label: 'Widget: Tier List', icon: 'layers', run: () => S.addWidget('tierlist') },
+      { label: 'Widget: Bot', icon: 'bot', run: () => S.addWidget('bot') },
+      { label: 'Widget: Tajuk', icon: 'tag', run: () => S.addWidget('brand') },
+      { label: 'Widget: Bar Teks', icon: 'ticker', run: () => S.addWidget('ticker') },
+      { label: 'Widget: Bingkai', icon: 'frame', run: () => S.addWidget('frame') },
+      { label: 'Widget: Meta Tournament', icon: 'barchart', run: () => S.addWidget('metaboard') },
+      { label: 'Widget: Perlawanan Tournament', icon: 'sword', run: () => S.addWidget('matchboard') },
+      { label: 'Widget: Keputusan Tournament', icon: 'trophy', run: () => S.addWidget('resultsboard') },
+    ], true));
     GS.$('#btnSourceUp').addEventListener('click', () => selectedId && S.moveSource(selectedId, 1));
     GS.$('#btnSourceDown').addEventListener('click', () => selectedId && S.moveSource(selectedId, -1));
     GS.$('#btnSourceDel').addEventListener('click', () => selectedId && S.removeSource(selectedId));
@@ -748,6 +754,14 @@
       const w = s.props.widget;
       if (w === 'ticker') {
         root.append(field('Mesej bar teks (satu baris = satu mesej)', h('textarea', { rows: 4, onInput: (e) => { GS.state.ticker.messages = e.target.value.split('\n').map((x) => x.trim()).filter(Boolean); GS.save(); } }, (GS.state.ticker.messages || []).join('\n'))));
+      }
+      if (w === 'ticker') {
+        const p = s.props, sel = (key, label, opts, def) => field(label, h('select', { onChange: (e) => { p[key] = e.target.value; GS.save(); } }, opts.map(([v, l]) => h('option', { value: v, selected: (p[key] || def) === v }, l))));
+        const nm = (key, label) => field(label, h('input', { type: 'number', value: p[key] || 0, onChange: (e) => { p[key] = Number(e.target.value) || 0; GS.save(); } }));
+        root.append(h('div', { class: 'grid2' }, sel('align', 'Kedudukan tulisan', [['left', 'Kiri'], ['center', 'Tengah'], ['right', 'Kanan']], 'left'), sel('badge', 'Butang INFO', [['left', 'Kiri'], ['right', 'Kanan'], ['none', 'Sembunyi']], 'left')));
+        root.append(h('div', { class: 'grid2' }, nm('textDx', 'Tulisan: geser kiri/kanan'), nm('textDy', 'Tulisan: geser atas/bawah')));
+        root.append(h('div', { class: 'grid2' }, nm('badgeDx', 'INFO: geser kiri/kanan'), nm('badgeDy', 'INFO: geser atas/bawah')));
+        root.append(field('Saiz tulisan (%)', h('input', { type: 'range', min: 50, max: 160, value: p.textScale || 100, onInput: (e) => { p.textScale = Number(e.target.value); GS.save(); } })));
       }
       if (w === 'tierlist') GS.tier.props(root, s, field, renderProps);
       if (w === 'countdown') {
