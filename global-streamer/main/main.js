@@ -1,7 +1,7 @@
 /* Global Streamer - proses utama Electron (app Windows).
  * STATUS: kerangka Fasa 2, BELUM diuji pada PC Windows sebenar. */
 'use strict';
-const { app, BrowserWindow, ipcMain, safeStorage, session, desktopCapturer, shell, Menu, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, safeStorage, session, desktopCapturer, shell, Menu, globalShortcut, screen: electronScreen, nativeImage, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { StreamEngine } = require('./stream-engine');
@@ -123,7 +123,7 @@ ipcMain.handle('rec:reveal', (_e, f) => {
  * Boleh DISEMBUNYIKAN sementara (butang "Sembunyi" atau Ctrl+Alt+H): bar mengecil menjadi tab kecil di tengah atas, klik tab atau tekan pintasan untuk paparkan semula. */
 let recBar = null;
 let recBarHidden = false;
-const BAR_W = 450, BAR_H = 56, PILL_W = 34, PILL_H = 34;
+const BAR_W = 560, BAR_H = 56, PILL_W = 34, PILL_H = 34;
 /* tukar antara bar penuh dan pil merah REC: kedudukan semasa (yang diseret pengguna) dikekalkan, hanya saiz berubah di sekitar titik tengah atasnya */
 /* bar REC kekal kelihatan di skrin tetapi TIDAK masuk dalam rakaman / siaran: dikecualikan daripada tangkapan skrin (Windows). Dipasang semula setiap kali tetingkap dipaparkan atau berubah supaya tidak hilang. */
 function recBarProtect() {
@@ -187,6 +187,83 @@ ipcMain.on('rec:bar-drag', (_e, d) => {
   recBar.setBounds({ x, y, width: b.width, height: b.height });
 });
 ipcMain.on('rec:bar-state', (_e, st) => { if (recBar && !recBar.isDestroyed()) recBar.webContents.send('rec:bar-state', st); });
+
+/* ---------- panel pilih sebelum merakam (gaya Snipping Tool): gambar skrin atau video, mikrofon, Mula ---------- */
+let recPre = null, preDone = false;
+function preClose() { preDone = true; if (recPre && !recPre.isDestroyed()) recPre.close(); recPre = null; }
+function preOpen(data) {
+  preClose(); preDone = false;
+  const wa = electronScreen.getPrimaryDisplay().workArea;
+  const W = 190, H = 60;
+  recPre = new BrowserWindow({
+    width: W, height: H, x: Math.round(wa.x + wa.width / 2 - W / 2), y: wa.y + 12, frame: false, resizable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: false, transparent: true,
+    backgroundColor: '#00000000', title: 'Global Streamer Rakam',
+    webPreferences: { preload: path.join(__dirname, 'recpre-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  recPre.setAlwaysOnTop(true, 'screen-saver');
+  try { recPre.setContentProtection(true); } catch (e) { /* tidak disokong */ }
+  recPre.webContents.on('will-navigate', (e) => e.preventDefault());
+  recPre.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  recPre.loadFile(path.join(__dirname, 'recpre.html'));
+  recPre.webContents.once('did-finish-load', () => { if (recPre && !recPre.isDestroyed()) recPre.webContents.send('pre:init', data || {}); });
+  recPre.once('ready-to-show', () => { if (recPre && !recPre.isDestroyed()) recPre.show(); });
+  recPre.on('closed', () => { recPre = null; if (!preDone && win && !win.isDestroyed()) win.webContents.send('rec:pre-event', { type: 'cancel' }); });
+}
+ipcMain.handle('rec:pre-open', (_e, data) => { preOpen(data); return true; });
+ipcMain.handle('rec:pre-close', () => { preClose(); return true; });
+ipcMain.on('pre:resize', (_e, d) => {
+  if (!recPre || recPre.isDestroyed() || !d) return;
+  const b = recPre.getBounds(), wa = electronScreen.getDisplayMatching(b).workArea;
+  const w = Math.max(120, Math.min(700, Math.round(d.w))), h = Math.max(40, Math.min(400, Math.round(d.h)));
+  const cx = b.x + b.width / 2;
+  recPre.setBounds({ x: Math.max(wa.x, Math.min(wa.x + wa.width - w, Math.round(cx - w / 2))), y: b.y, width: w, height: h });
+});
+ipcMain.on('pre:event', (_e, ev) => {
+  if (!ev || typeof ev.type !== 'string') return;
+  preClose();
+  if (win && !win.isDestroyed()) win.webContents.send('rec:pre-event', { type: ev.type, mic: typeof ev.mic === 'string' ? ev.mic.slice(0, 80) : 'off' });
+});
+/* tangkapan skrin: sembunyikan app sebentar supaya skrin sebenar yang diambil, simpan PNG ke Gambar/GlobalStreamer, salin ke papan keratan */
+const shotDir = () => path.join(app.getPath('pictures'), 'GlobalStreamer');
+function shotName() { const d = new Date(), p2 = (n) => String(n).padStart(2, '0'); return 'GlobalStreamer-' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png'; }
+function saveShot(img) {
+  fs.mkdirSync(shotDir(), { recursive: true });
+  const f = path.join(shotDir(), shotName());
+  fs.writeFileSync(f, img.toPNG());
+  try { clipboard.writeImage(img); } catch (e) { /* abaikan */ }
+  try { shell.showItemInFolder(f); } catch (e) { /* abaikan */ }
+  return f;
+}
+ipcMain.handle('rec:shot-screen', async () => {
+  try {
+    const d = electronScreen.getPrimaryDisplay();
+    const was = win && !win.isDestroyed() && win.isVisible() && !win.isMinimized();
+    if (was) { win.minimize(); await new Promise((r) => setTimeout(r, 650)); }
+    const size = { width: Math.round(d.size.width * d.scaleFactor), height: Math.round(d.size.height * d.scaleFactor) };
+    const srcs = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: size });
+    const src = srcs.find((x) => String(x.display_id) === String(d.id)) || srcs[0];
+    if (was && win && !win.isDestroyed()) { win.restore(); win.focus(); }
+    if (!src || src.thumbnail.isEmpty()) return { ok: false, error: 'tiada tangkapan skrin' };
+    return { ok: true, file: saveShot(src.thumbnail) };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+});
+ipcMain.handle('rec:shot-save', (_e, buf) => {
+  try {
+    if (!buf || !buf.byteLength || buf.byteLength > 64 * 1024 * 1024) return { ok: false, error: 'imej tidak sah' };
+    const img = nativeImage.createFromBuffer(Buffer.from(buf));
+    if (img.isEmpty()) return { ok: false, error: 'imej tidak sah' };
+    return { ok: true, file: saveShot(img) };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+});
+/* buang rakaman yang sedang berjalan: tutup dan padam fail */
+ipcMain.handle('rec:discard', async () => {
+  const st = recStream, f = recFile; recStream = null;
+  try { if (st) await new Promise((r) => st.end(r)); } catch (e) { /* abaikan */ }
+  try { if (f && path.resolve(f).startsWith(path.resolve(recDir()))) fs.unlinkSync(f); } catch (e) { /* abaikan */ }
+  return true;
+});
+ipcMain.on('rec:bar-discard', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:discard-request'); });
+ipcMain.on('rec:bar-mic', () => { if (win && !win.isDestroyed()) win.webContents.send('rec:mic-request'); });
 ipcMain.handle('app:minimize', () => { if (win && !win.isDestroyed()) win.minimize(); return true; });
 ytPlayer.register({ ipcMain, BrowserWindow });
 browserSrc.register({ ipcMain, BrowserWindow });

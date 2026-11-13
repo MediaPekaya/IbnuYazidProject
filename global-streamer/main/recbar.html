@@ -16,6 +16,11 @@
   .paused #p { background: #1f8f55; }
   #h { background: #1a2442; }
   #s { background: #ff3b5c; }
+  #m, #d { padding: 7px 9px; background: #1a2442; display: grid; place-items: center; }
+  #m svg, #d svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #m.off { background: #5a2330; }
+  #d:hover { background: #7a2335; }
+  #d.arm { background: #ff3b5c; animation: p 0.6s ease-in-out infinite; }
   /* pil merah apabila disembunyikan: klik untuk buka semula bar */
   /* bulatan merah kecil apabila disembunyikan: seret untuk alih, klik untuk buka semula bar */
   #pill { display: none; width: 100%; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; background: #e0213f; border-radius: 50%; box-shadow: 0 2px 10px rgba(224, 33, 63, .65); cursor: grab; }
@@ -28,7 +33,9 @@
 <div id="bar"><i></i><span id="t">REC 00:00</span>
   <button id="p" type="button" title="Pause / Resume rakaman">Pause</button>
   <button id="h" type="button" title="Sembunyikan bar ini. Klik pil merah REC untuk buka semula (atau Ctrl+Alt+H)">Hide</button>
+  <button id="m" type="button" title="Mikrofon: klik untuk senyap / dengar"><svg id="mI" viewBox="0 0 24 24"></svg></button>
   <button id="s" type="button" title="Tamatkan rakaman dan simpan fail">Simpan rakaman</button>
+  <button id="d" type="button" title="Buang rakaman (batal, fail dipadam)"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13M10.5 11v6M13.5 11v6"/></svg></button>
 </div>
 <div id="pill" title="Klik untuk buka bar rakaman. Seret untuk alih."><i></i></div>
 <script>
@@ -49,6 +56,17 @@
     document.body.classList.toggle('paused', paused);
     el('p').textContent = paused ? 'Resume' : 'Pause';
     render();
+  });
+  const MIC_ON = '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>';
+  const MIC_OFF = MIC_ON + '<path d="M4 4l16 16"/>';
+  function paintMic(on) { el('m').classList.toggle('off', !on); el('mI').innerHTML = on ? MIC_ON : MIC_OFF; el('m').title = on ? 'Mikrofon hidup: klik untuk senyap' : 'Mikrofon senyap: klik untuk dengar'; }
+  paintMic(true);
+  window.recbar.onState((st) => { if (st && st.micOn != null) paintMic(!!st.micOn); });
+  el('m').addEventListener('click', () => window.recbar.mic());
+  let arm = 0;
+  el('d').addEventListener('click', () => {
+    if (!arm) { el('d').classList.add('arm'); el('d').title = 'Klik sekali lagi untuk buang rakaman'; arm = setTimeout(() => { arm = 0; el('d').classList.remove('arm'); el('d').title = 'Buang rakaman (batal, fail dipadam)'; }, 3000); return; }
+    clearTimeout(arm); arm = 0; window.recbar.discard();
   });
   window.recbar.onCollapsed((c) => document.body.classList.toggle('collapsed', c));
   el('s').addEventListener('click', () => window.recbar.stop());

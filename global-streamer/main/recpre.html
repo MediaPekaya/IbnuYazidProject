@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><title>Rakam</title>
+<style>
+  :root { --ease: cubic-bezier(0.32, 0.72, 0, 1); }
+  html, body { margin: 0; height: 100%; background: transparent; font: 600 14px "Segoe UI", system-ui, sans-serif; color: #1b2433; user-select: none; overflow: hidden; }
+  #wrap { position: absolute; left: 0; top: 0; right: 0; padding: 4px; box-sizing: border-box; }
+  #card { background: rgba(247, 249, 253, 0.97); border: 1px solid rgba(180, 195, 220, 0.9); border-radius: 14px; box-shadow: 0 8px 26px rgba(10, 20, 50, 0.28); padding: 6px 8px; display: flex; align-items: center; gap: 4px; height: 48px; box-sizing: border-box; animation: pop 0.5s var(--ease) both; }
+  @keyframes pop { from { opacity: 0; transform: translateY(-10px) scale(0.94); } to { opacity: 1; transform: none; } }
+  .stage { display: none; align-items: center; gap: 4px; width: 100%; }
+  .stage.on { display: flex; animation: slide 0.5s var(--ease) both; }
+  @keyframes slide { from { opacity: 0; transform: translateX(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+  button { border: 0; background: transparent; color: #1b2433; border-radius: 10px; width: 44px; height: 36px; display: grid; place-items: center; cursor: pointer; position: relative; transition: background 0.3s var(--ease), transform 0.3s var(--ease); }
+  button:hover { background: rgba(30, 80, 190, 0.1); }
+  button:active { transform: scale(0.93); }
+  button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .sep { width: 1px; height: 24px; background: rgba(120, 135, 165, 0.35); margin: 0 4px; }
+  #bShot::after, #bVid::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 3px; border-radius: 3px; background: #1fa4c4; transform: scaleX(0); transition: transform 0.4s var(--ease); }
+  #bShot:hover::after, #bVid:hover::after { transform: scaleX(1); }
+  #bX { color: #5b6678; }
+  #start { width: auto; padding: 0 18px 0 14px; gap: 8px; background: #1296b4; color: #fff; display: flex; align-items: center; font-weight: 800; font-size: 14px; }
+  #start:hover { background: #0f87a2; }
+  #start i { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid #fff; box-sizing: border-box; display: block; position: relative; }
+  #start i::after { content: ''; position: absolute; inset: 2px; border-radius: 50%; background: #fff; }
+  #tm { color: #6a7589; font-variant-numeric: tabular-nums; margin: 0 8px; font-weight: 600; }
+  #mic { width: 56px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+  #mic .chev { width: 12px; height: 12px; stroke-width: 2; opacity: .7; }
+  #mic.off { color: #6a7589; }
+  #menu { position: absolute; top: 58px; right: 56px; min-width: 250px; background: rgba(250, 251, 254, 0.98); border: 1px solid rgba(180, 195, 220, 0.9); border-radius: 12px; box-shadow: 0 10px 28px rgba(10, 20, 50, 0.3); padding: 6px; display: none; animation: pop 0.4s var(--ease) both; }
+  #menu.on { display: block; }
+  #menu .it { height: auto; width: 100%; padding: 9px 12px 9px 30px; justify-content: flex-start; display: flex; font-weight: 600; font-size: 13.5px; text-align: left; position: relative; border-radius: 8px; }
+  #menu .it.sel::before { content: '✓'; position: absolute; left: 10px; color: #1b2433; }
+</style></head>
+<body>
+<div id="wrap">
+  <div id="card">
+    <div class="stage on" id="s1">
+      <button id="bShot" type="button" title="Ambil gambar skrin (screenshot)"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/></svg></button>
+      <button id="bVid" type="button" title="Rakam video skrin"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="13" height="11" rx="2.2"/><path d="M16 11l5-3v8l-5-3"/></svg></button>
+      <span class="sep"></span>
+      <button id="bX1" type="button" title="Batal"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="stage" id="s2">
+      <button id="start" type="button" title="Mula merakam"><i></i>Mula</button>
+      <span id="tm">00:00:00</span>
+      <button id="mic" type="button" title="Mikrofon: klik untuk senyap / dengar, anak panah untuk pilih"><svg id="micI" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg><svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+      <span class="sep"></span>
+      <button id="bX2" type="button" title="Batal"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
+  <div id="menu"></div>
+</div>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let mics = [], mic = 'off', menuOpen = false;
+  const W1 = 190, W2 = 420;
+  function paintMic() {
+    $('mic').classList.toggle('off', mic === 'off');
+    $('micI').innerHTML = mic === 'off' ? '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M4 4l16 16"/>' : '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>';
+  }
+  function closeMenu() { menuOpen = false; $('menu').classList.remove('on'); window.recpre.resize(W2, 60); }
+  function openMenu() {
+    const m = $('menu'); m.innerHTML = '';
+    const mk = (id, label) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'it' + (mic === id ? ' sel' : ''); b.textContent = label; b.onclick = () => { mic = id; paintMic(); closeMenu(); }; m.append(b); };
+    mk('off', 'Senyap (tanpa mikrofon)');
+    mics.forEach((x) => mk(x.id, x.label));
+    menuOpen = true; m.classList.add('on'); window.recpre.resize(W2, 60 + 60 + mics.length * 38);
+  }
+  window.recpre.onInit((d) => { mics = d.mics || []; mic = d.mic || 'off'; if (!mics.some((x) => x.id === mic)) mic = mics[0] ? mics[0].id : 'off'; if (d.mic === 'off') mic = 'off'; paintMic(); });
+  $('bShot').onclick = () => window.recpre.shot();
+  $('bVid').onclick = () => { $('s1').classList.remove('on'); $('s2').classList.add('on'); window.recpre.resize(W2, 60); };
+  $('start').onclick = () => window.recpre.start(mic);
+  $('bX1').onclick = $('bX2').onclick = () => window.recpre.cancel();
+  $('mic').onclick = (e) => {
+    const chev = e.offsetX > $('mic').clientWidth - 22;
+    if (chev) { menuOpen ? closeMenu() : openMenu(); return; }
+    if (menuOpen) closeMenu();
+    if (mic === 'off') mic = (mics[0] && mics[0].id) || 'off'; else mic = 'off';
+    paintMic();
+  };
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.recpre.cancel(); });
+  window.recpre.resize(W1, 60);
+</script></body></html>
