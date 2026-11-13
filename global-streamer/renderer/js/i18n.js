@@ -15,6 +15,8 @@
     return 'en'; // English ialah bahasa asal. Pilihan pengguna (Tetapan) disimpan dan diingati.
   }
   if (GS.state.lang !== 'ms' && GS.state.lang !== 'en') GS.state.lang = detect();
+  // sekali sahaja: semua pengguna bermula dengan English (bahasa asal baharu); selepas itu pilihan dalam Tetapan diingati
+  if (!GS.state.langEnDefault) { GS.state.langEnDefault = true; GS.state.lang = 'en'; }
   if (!['auto', 'ms', 'en'].includes(GS.state.overlayLang)) GS.state.overlayLang = 'auto';
 
   I.lang = () => GS.state.lang;
