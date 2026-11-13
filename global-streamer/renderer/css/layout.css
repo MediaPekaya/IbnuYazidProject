@@ -98,7 +98,8 @@ body.portrait .screens.studio #transitionCol { width: 100px; }
 .seg-mini { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: rgba(4, 10, 24, 0.7); border: 1px solid var(--line); }
 .seg-mini button { background: none; border: 0; padding: 3px 9px; border-radius: 7px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
 .seg-mini button.on { color: #fff; background: var(--grad-loop); background-size: 300% 100%; }
-.tpl-strip { flex-direction: row !important; align-items: flex-start; gap: 8px; overflow-x: auto; overflow-y: hidden; }
+.tpl-strip { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 8px; overflow-x: hidden; overflow-y: auto; }
+.tpl-strip[data-o="portrait"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .tpl-card { flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; align-items: stretch; padding: 4px; border-radius: 10px; border: 1px solid var(--line); background: rgba(4, 10, 24, 0.55); color: var(--text); cursor: pointer; text-align: left; font-family: inherit; }
 /* jenis template: Gaming / Formal, dengan penanda yang meluncur lembut gaya iOS */
 #dockTemplates .dock-head { gap: 8px; }
@@ -219,3 +220,8 @@ html.win-open .gutter, html.win-restore .gutter, html.win-closing .gutter, html.
 #dockTemplates .tpl-cats button { font-size: 9px; padding: 3px 7px; letter-spacing: 0.03em; white-space: nowrap; }
 #dockTemplates .seg-mini button { font-size: 9px; padding: 3px 6px; white-space: nowrap; }
 #dockTemplates .dock-head h3 { display: none; }   /* tajuk 'Template' dikosongkan supaya jenis dan format muat dalam satu baris */
+
+.tpl-strip .tpl-card { min-width: 0; width: 100%; }
+.tpl-strip .tpl-card canvas { width: 100% !important; height: auto !important; aspect-ratio: 16 / 9; }
+.tpl-strip .tpl-card.portrait canvas { aspect-ratio: 9 / 16; }
+.tpl-strip .tpl-card span { max-width: 100% !important; }

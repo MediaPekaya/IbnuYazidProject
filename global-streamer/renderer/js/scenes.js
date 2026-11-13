@@ -483,11 +483,16 @@
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
+    bgfx: ['Latar bergerak', 1080, 1920], tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
     if (!d) return;
+    if (type === 'bgfx') { // latar bergerak: penuh kanvas dan di belakang semua sumber
+      const sc = S.editTarget(); if (!sc) return;
+      const src = mk('widget', d[0], 0, 0, GS.design.w, GS.design.h, { widget: 'bgfx', style: 'fire' });
+      sc.sources.unshift(src); selectedId = src.id; changed('sources:changed'); GS.emit('scenes:changed'); return;
+    }
     addSource(mk('widget', d[0], 120, 120, d[1], d[2], { widget: type, label: type === 'frame' ? '' : undefined }));
   };
 
@@ -521,7 +526,7 @@
   /* ---------- popover ---------- */
   function popover(anchor, entries, center) {
     GS.$$('.popover').forEach((p) => p.remove());
-    const pop = h('div', { class: 'popover', role: 'menu' }, entries.map((e) => e === '-' ? h('hr') :
+    const pop = h('div', { class: 'popover', role: 'menu' }, entries.map((e) => e === '-' ? h('hr') : e.heading ? h('div', { class: 'pop-head' }, GS.t(e.heading)) :
       h('button', { class: 'pop-item', role: 'menuitem', onClick: () => { close(); e.run(); }, html: icon(e.icon || 'plus', 16) + '<span>' + GS.escapeHtml(GS.t(e.label)) + '</span>' })));
     document.body.append(pop);
     const r = anchor.getBoundingClientRect();
@@ -684,7 +689,6 @@
       { label: 'Widget: Jam & Masa Main', icon: 'clock', run: () => S.addWidget('clock') },
       { label: 'Widget: Menang / Kalah', icon: 'scale', run: () => S.addWidget('winloss') },
       { label: 'Widget: Logo', icon: 'hex', run: () => S.addWidget('logo') },
-      { label: 'Widget: Kira Detik (Sebentar Lagi)', icon: 'timer', run: () => S.addWidget('countdown') },
       { label: 'Widget: Tier List', icon: 'layers', run: () => S.addWidget('tierlist') },
       { label: 'Widget: Bot', icon: 'bot', run: () => S.addWidget('bot') },
       { label: 'Widget: Tajuk', icon: 'tag', run: () => S.addWidget('brand') },
@@ -693,6 +697,12 @@
       { label: 'Widget: Meta Tournament', icon: 'barchart', run: () => S.addWidget('metaboard') },
       { label: 'Widget: Perlawanan Tournament', icon: 'sword', run: () => S.addWidget('matchboard') },
       { label: 'Widget: Keputusan Tournament', icon: 'trophy', run: () => S.addWidget('resultsboard') },
+      { label: 'Latar bergerak (api, kilat, peti, anime)', icon: 'flame', run: () => S.addWidget('bgfx') },
+      '-',
+      { heading: 'Sebentar Lagi' },
+      { label: 'Kira Detik (jam, minit, saat)', icon: 'timer', run: () => S.addWidget('countdown') },
+      { label: 'Tajuk Sebentar Lagi', icon: 'tag', run: () => S.addWidget('brand') },
+      { label: 'Bar Teks Sebentar Lagi', icon: 'ticker', run: () => S.addWidget('ticker') },
     ], true));
     GS.$('#btnSourceUp').addEventListener('click', () => selectedId && S.moveSource(selectedId, 1));
     GS.$('#btnSourceDown').addEventListener('click', () => selectedId && S.moveSource(selectedId, -1));
@@ -706,12 +716,37 @@
     return h('input', { type: 'number', value: Math.round(s[key]), 'data-k': key, onChange: (e) => { s[key] = Math.max(key === 'w' || key === 'h' ? 10 : -5000, Number(e.target.value) || 0); changed('props:changed'); } });
   }
 
+
+  /* kotak PROGRAM: mulakan kira detik yang sedang ditayangkan kepada penonton (Studio) */
+  function programCountdownBox() {
+    if (st().mode !== 'studio') return null;
+    const prog = S.program(); if (!prog) return null;
+    const cds = prog.sources.filter((x) => x.type === 'widget' && x.props.widget === 'countdown');
+    if (!cds.length) return null;
+    const CD = GS.countdown, box = h('div', { class: 'prog-cd', id: 'progCd' }, h('h4', null, 'PROGRAM · Start countdown now'));
+    cds.forEach((src, i) => {
+      const p = src.props, state = h('span', { class: 'prog-cd-state' }, '');
+      const upd = () => { const ms = CD.remaining(p), pt = CD.parts(ms); state.textContent = String(pt.h).padStart(2, '0') + ':' + String(pt.m).padStart(2, '0') + ':' + String(pt.s).padStart(2, '0') + (CD.running(p) ? ' ▶' : ''); };
+      upd(); const iv = setInterval(() => { if (!state.isConnected) { clearInterval(iv); return; } upd(); }, 250);
+      box.append(h('div', { class: 'prog-cd-row' }, h('b', null, (src.name || 'Kira Detik') + (cds.length > 1 ? ' ' + (i + 1) : '')), state),
+        h('div', { class: 'btn-row' },
+          h('button', { class: 'btn primary', id: 'btnProgCdStart' + i, onClick: () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); upd(); } }, 'Mula sekarang'),
+          h('button', { class: 'btn', onClick: () => { CD.pause(p); GS.save(); upd(); } }, 'Jeda'),
+          h('button', { class: 'btn ghost', onClick: () => { CD.reset(p); GS.save(); upd(); } }, 'Set semula')));
+    });
+    return box;
+  }
   function renderProps() {
+    renderPropsBase();
+    const root = GS.$('#propsBody');
+    if (root && S.selectedSource()) { const pb = programCountdownBox(); if (pb) root.append(pb); }
+  }
+  function renderPropsBase() {
     const root = GS.$('#propsBody');
     if (!root) return;
     root.innerHTML = '';
     const s = S.selectedSource();
-    if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); return; }
+    if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); const pb0 = programCountdownBox(); if (pb0) root.append(pb0); return; }
     root.append(
       h('div', { class: 'grid4' }, field('X', numInput(s, 'x')), field('Y', numInput(s, 'y')), field('Lebar', numInput(s, 'w')), field('Tinggi', numInput(s, 'h'))));
     if (s.type === 'video' || s.type === 'image' || s.type === 'clip') {
@@ -764,14 +799,24 @@
         root.append(field('Saiz tulisan (%)', h('input', { type: 'range', min: 50, max: 160, value: p.textScale || 100, onInput: (e) => { p.textScale = Number(e.target.value); GS.save(); } })));
       }
       if (w === 'tierlist') GS.tier.props(root, s, field, renderProps);
+      if (w === 'bgfx') {
+        const p = s.props;
+        root.append(field('Gaya latar', h('select', { onChange: (e) => { p.style = e.target.value; GS.save(); } }, GS.bgfx.styles.map(([v, l]) => h('option', { value: v, selected: (p.style || 'fire') === v }, GS.t(l))))));
+        root.append(h('p', { class: 'muted note' }, 'Latar ini berada di belakang semua sumber lain. Gerakkannya ke atas atau bawah dalam senarai sumber jika perlu.'));
+      }
       if (w === 'countdown') {
         const p = s.props, CD = GS.countdown;
         const num = (key, label, max) => field(label, h('input', { type: 'number', min: 0, max, value: p[key] || 0, class: 'cd-in', 'data-k': 'cd-' + key, onChange: (e) => { p[key] = GS.clamp(Number(e.target.value) || 0, 0, max); if (!CD.running(p)) { p.pausedMs = null; p.endAt = 0; } GS.save(); } }));
         root.append(h('div', { class: 'grid3' }, num('hours', 'Jam', 99), num('minutes', 'Minit', 59), num('seconds', 'Saat', 59)));
-        root.append(h('div', { class: 'btn-row' },
-          h('button', { class: 'btn primary', id: 'btnCdStart', onClick: () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Mula'),
-          h('button', { class: 'btn', id: 'btnCdPause', onClick: () => { CD.pause(p); GS.save(); renderProps(); } }, 'Jeda'),
-          h('button', { class: 'btn ghost', id: 'btnCdReset', onClick: () => { CD.reset(p); GS.save(); renderProps(); } }, 'Set semula')));
+        root.append(h('div', { class: 'grid2' },
+          field('Gaya nombor', h('select', { onChange: (e) => { p.numStyle = e.target.value; GS.save(); } }, CD.styles.map(([v, l]) => h('option', { value: v, selected: (p.numStyle || 'box') === v }, GS.t(l))))),
+          h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!p.noPanel, onChange: (e) => { p.noPanel = e.target.checked; GS.save(); } }), h('span', null, 'Tanpa kotak latar'))));
+        if (st().mode !== 'studio') {
+          root.append(h('div', { class: 'btn-row' },
+            h('button', { class: 'btn primary', id: 'btnCdStart', onClick: () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Mula'),
+            h('button', { class: 'btn', id: 'btnCdPause', onClick: () => { CD.pause(p); GS.save(); renderProps(); } }, 'Jeda'),
+            h('button', { class: 'btn ghost', id: 'btnCdReset', onClick: () => { CD.reset(p); GS.save(); renderProps(); } }, 'Set semula')));
+        } else root.append(h('p', { class: 'muted note' }, 'Tetapkan masa di sini. Kira detik dimulakan dari kotak PROGRAM di bawah selepas scene ini berada di Program.'));
         const clock = h('input', { type: 'time', id: 'cdClock', class: 'cd-in' });
         root.append(field('Kira ke jam tertentu (cth 21:00)', h('div', { class: 'btn-row' }, clock, h('button', { class: 'btn', id: 'btnCdClock', onClick: () => { if (!CD.toClock(p, clock.value)) GS.toast(GS.t('Pilih jam dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Kira ke jam ini'))));
         root.append(field('Tajuk', h('input', { type: 'text', value: p.title || 'SEBENTAR LAGI', onInput: (e) => { p.title = e.target.value; GS.save(); } })));

@@ -354,6 +354,9 @@
         case 'itembuy': osc('sine', 988, 988, 0.12, 0.14); osc('sine', 1319, 1319, 0.35, 0.14, 0.09); break;
         case 'chest': osc('sawtooth', 140, 90, 0.55, 0.07); noise(0.5, 0.08, 900); osc('sine', 90, 40, 0.25, 0.22, 0.55); [1319, 1568, 1976, 2637].forEach((f, i) => osc('triangle', f, f, 0.4, 0.12, 0.7 + i * 0.07)); noise(0.5, 0.05, 7000, 0.75); break; // peti: berderit, hentakan, kilauan
         case 'alert': osc('sine', 880, 1320, 0.25, 0.1); break;
+        case 'tick': osc('square', 1500, 1100, 0.04, 0.05); noise(0.03, 0.06, 4200); break;
+        case 'beep': osc('sine', 880, 880, 0.16, 0.16); osc('triangle', 1760, 1760, 0.1, 0.05); break;
+        case 'go': [523, 659, 784, 1047, 1319].forEach((f, i) => osc('triangle', f, f, 0.5, 0.16, i * 0.07)); noise(0.8, 0.12, 5000, 0.2); osc('sawtooth', 110, 55, 0.7, 0.12); break;
         default: break;
       }
     } catch (e) { console.warn('[GS] sfx gagal', e); }

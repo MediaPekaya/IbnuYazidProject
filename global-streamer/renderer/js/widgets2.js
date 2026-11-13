@@ -400,28 +400,77 @@
     },
     parts(ms) { const s = Math.ceil(ms / 1000); return { h: Math.floor(s / 3600), m: Math.floor(s / 60) % 60, s: s % 60 }; },
   });
+  /* gaya nombor: kotak, flip, neon, api, garis, biasa */
+  CD.styles = [['box', 'Kotak'], ['flip', 'Flip'], ['neon', 'Neon'], ['fire', 'Api'], ['outline', 'Garis'], ['plain', 'Biasa']];
+  function drawDigits(ctx, str, cx, cy, size, style, t) {
+    ctx.save();
+    ctx.font = '900 ' + size + 'px ' + W.FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+    const y = cy + size * 0.36;
+    if (style === 'fire') {
+      const g = ctx.createLinearGradient(0, cy - size * 0.5, 0, cy + size * 0.5); g.addColorStop(0, '#fff3b0'); g.addColorStop(0.35, '#ffb62e'); g.addColorStop(0.75, '#ff5a1f'); g.addColorStop(1, '#c1121f');
+      ctx.shadowColor = 'rgba(255,110,20,' + (0.75 + 0.25 * Math.sin(t * 0.02)).toFixed(2) + ')'; ctx.shadowBlur = size * 0.35; ctx.fillStyle = g; ctx.fillText(str, cx, y);
+    } else if (style === 'neon') {
+      ctx.shadowColor = '#18e2ff'; ctx.shadowBlur = size * 0.4; ctx.lineWidth = Math.max(2, size * 0.03); ctx.strokeStyle = '#7ff3ff'; ctx.strokeText(str, cx, y); ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillText(str, cx, y);
+    } else if (style === 'outline') {
+      ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(3, size * 0.07); ctx.strokeStyle = '#ffffff'; ctx.strokeText(str, cx, y); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillText(str, cx, y);
+    } else if (style === 'plain') {
+      ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = size * 0.15; ctx.shadowOffsetY = size * 0.05; ctx.fillStyle = '#fff'; ctx.fillText(str, cx, y);
+    } else { ctx.fillStyle = C.text; ctx.fillText(str, cx, y); }
+    ctx.restore();
+  }
   W.countdown = function (ctx, s, t) {
-    const p = s.props, { x, y, w, h } = s;
-    W.panel(ctx, x, y, w, h, t, { phase: 5.1, r: 26, opaque: true });
-    const ms = CD.remaining(p), done = ms <= 0 && (p.endAt || p.pausedMs === 0);
+    const p = s.props, { x, y, w, h } = s, style = p.numStyle || 'box', noPanel = !!p.noPanel;
+    const ms = CD.remaining(p), started = !!(p.endAt || p.pausedMs != null), done = ms <= 0 && started;
     const pt = CD.parts(ms), show3 = p.showHours !== false;
     const title = GS.tov ? GS.tov(p.title || 'SEBENTAR LAGI') : (p.title || 'SEBENTAR LAGI');
-    W.text(ctx, title, x + w / 2, y + h * 0.2, { size: Math.min(h * 0.14, w * 0.075), weight: 900, align: 'center', color: C.text, spacing: 6, maxW: w * 0.9, shadow: C.cyan, blur: 18 });
-    if (done) {
-      const k = 0.5 + 0.5 * Math.abs(Math.sin(t * 0.004));
-      W.text(ctx, p.endText || 'MULA SEKARANG!', x + w / 2, y + h * 0.6, { size: Math.min(h * 0.2, w * 0.09), weight: 900, align: 'center', color: C.gold, maxW: w * 0.92, shadow: C.gold, blur: 20 * k });
-    } else {
-      const units = show3 ? [[pt.h, 'JAM'], [pt.m, 'MINIT'], [pt.s, 'SAAT']] : [[pt.m + pt.h * 60, 'MINIT'], [pt.s, 'SAAT']];
-      const n = units.length, gap = w * 0.03, tw = (w * 0.86 - gap * (n - 1)) / n, th = h * 0.42, ty = y + h * 0.3, tx0 = x + (w - (tw * n + gap * (n - 1))) / 2;
-      units.forEach(([v, lab], i) => {
-        const tx = tx0 + i * (tw + gap);
-        ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.28)'; W.rr(ctx, tx, ty, tw, th, th * 0.14); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = W.holoGrad(ctx, tx, ty, tw, th, t, i); ctx.stroke(); ctx.restore();
-        W.text(ctx, String(v).padStart(2, '0'), tx + tw / 2, ty + th * 0.7, { size: Math.min(th * 0.66, tw * 0.62), weight: 900, align: 'center', color: C.text, maxW: tw * 0.9 });
-        W.text(ctx, GS.tov ? GS.tov(lab) : lab, tx + tw / 2, ty + th + h * 0.075, { size: Math.min(h * 0.055, tw * 0.13), weight: 800, align: 'center', color: C.muted, spacing: 3 });
-      });
+    const sec = Math.ceil(ms / 1000);
+    // 5 saat terakhir: hanya nombor besar di tengah (tanpa kotak), kemudian START
+    if (started && (done || (ms > 0 && sec <= 5))) {
+      const cx = x + w / 2, cy = y + h / 2;
+      const txt = done ? (p.endText || 'MULA SEKARANG!') : String(sec);
+      const frac = done ? 0 : 1 - ((ms % 1000) / 1000), pop = done ? 1 : 1 + 0.35 * Math.pow(1 - frac, 2);
+      const size = Math.min(h * (done ? 0.28 : 0.78), w * (done ? 0.14 : 0.5)) * pop;
+      if (!done) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,' + (0.5 * (1 - frac)).toFixed(2) + ')'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, size * (0.62 + frac * 0.5), 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+      drawDigits(ctx, txt, cx, cy, done ? Math.min(size, w * 0.9 / Math.max(3, txt.length) * 1.6) : size, style === 'box' || style === 'flip' ? 'neon' : style, t);
+      return;
     }
-    W.text(ctx, p.subtitle || 'MOBILE LEGENDS', x + w / 2, y + h * 0.93, { size: Math.min(h * 0.075, w * 0.045), weight: 800, align: 'center', color: C.cyan, spacing: 4, maxW: w * 0.9 });
+    if (!noPanel) W.panel(ctx, x, y, w, h, t, { phase: 5.1, r: 26, opaque: true });
+    W.text(ctx, title, x + w / 2, y + h * 0.2, { size: Math.min(h * 0.14, w * 0.075), weight: 900, align: 'center', color: C.text, spacing: 6, maxW: w * 0.9, shadow: noPanel ? '#000' : C.cyan, blur: 18 });
+    const units = show3 ? [[pt.h, 'JAM'], [pt.m, 'MINIT'], [pt.s, 'SAAT']] : [[pt.m + pt.h * 60, 'MINIT'], [pt.s, 'SAAT']];
+    const n = units.length, gap = w * 0.03, tw = (w * 0.86 - gap * (n - 1)) / n, th = h * 0.42, ty = y + h * 0.3, tx0 = x + (w - (tw * n + gap * (n - 1))) / 2;
+    units.forEach(([v, lab], i) => {
+      const tx = tx0 + i * (tw + gap), vs = String(v).padStart(2, '0');
+      if (style === 'box' || style === 'flip') {
+        ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.28)'; W.rr(ctx, tx, ty, tw, th, th * 0.14); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = W.holoGrad(ctx, tx, ty, tw, th, t, i); ctx.stroke();
+        if (style === 'flip') { ctx.fillStyle = 'rgba(255,255,255,0.08)'; W.rr(ctx, tx, ty, tw, th / 2, th * 0.14); ctx.fill(); ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(tx, ty + th / 2 - 2, tw, 4); }
+        ctx.restore();
+      }
+      drawDigits(ctx, vs, tx + tw / 2, ty + th / 2, Math.min(th * 0.78, tw * 0.62), style === 'box' || style === 'flip' ? 'box' : style, t);
+      if (!(style === 'box' || style === 'flip') && i < n - 1) W.text(ctx, ':', tx + tw + gap / 2, ty + th * 0.66, { size: th * 0.6, weight: 900, align: 'center', color: 'rgba(255,255,255,0.8)' });
+      W.text(ctx, GS.tov ? GS.tov(lab) : lab, tx + tw / 2, ty + th + h * 0.075, { size: Math.min(h * 0.055, tw * 0.13), weight: 800, align: 'center', color: noPanel ? '#fff' : C.muted, spacing: 3, shadow: noPanel ? '#000' : undefined, blur: 8 });
+    });
+    W.text(ctx, p.subtitle || 'MOBILE LEGENDS', x + w / 2, y + h * 0.93, { size: Math.min(h * 0.075, w * 0.045), weight: 800, align: 'center', color: noPanel ? '#fff' : C.cyan, spacing: 4, maxW: w * 0.9, shadow: noPanel ? '#000' : undefined, blur: 10 });
   };
+
+  /* bunyi masa untuk countdown yang sedang berjalan di PROGRAM (apa yang penonton nampak) */
+  const cdLast = new WeakMap();
+  setInterval(() => {
+    try {
+      const sc = GS.scenes && GS.scenes.program && GS.scenes.program();
+      if (!sc) return;
+      sc.sources.forEach((src) => {
+        if (src.type !== 'widget' || !src.props || src.props.widget !== 'countdown' || src.visible === false) return;
+        const p = src.props;
+        if (!p.endAt) return;
+        const ms = CD.remaining(p), sec = Math.ceil(ms / 1000), last = cdLast.get(p);
+        if (last === sec) return;
+        cdLast.set(p, sec);
+        if (!GS.audio || !GS.audio.sfx) return;
+        if (ms <= 0) GS.audio.sfx('go'); else if (sec <= 5) GS.audio.sfx('beep'); else GS.audio.sfx('tick');
+      });
+    } catch (e) { /* abaikan */ }
+  }, 120);
 
   /* ---------- bot kecil (sumber berasingan di sebelah banner promosi) ---------- */
   W.bot = function (ctx, s, t) {
