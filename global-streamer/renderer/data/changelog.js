@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Gambar skrin kini terus diambil dan disimpan sebaik tetikus dilepaskan selepas menarik kotak (tiada lagi butang Ambil gambar / Batal). Garis kotak berwarna merah, bulatan sudut putih.',
       'Gambar skrin kini memilih kawasan: skrin dibekukan, tarik kotak dari mana-mana titik, laras saiz dengan sudut atau tepi, seret kotak untuk alih, kemudian tekan Ambil gambar (atau Enter). Esc untuk batal.',
       'Butang tong sampah pada bar REC kini cukup satu klik untuk membuang rakaman.',
       'Rakaman gaya Snipping Tool: menekan REC kini memaparkan panel putih dahulu dengan butang kamera (gambar skrin) dan video, mikrofon (senyap atau pilih) dan Mula. Belum merakam sehingga Mula ditekan. Kualiti video dipilih dalam app.',
@@ -96,6 +97,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Screenshots are now taken and saved as soon as you release the mouse after dragging the box (no more Take picture / Cancel buttons). The box outline is red and the corner dots are white.',
       'Screenshots now select an area: the screen freezes, drag a box from any point, resize it by the corners or edges, drag the box to move it, then press Take picture (or Enter). Esc cancels.',
       'The trash button on the REC bar now discards the recording with a single click.',
       'Snipping Tool style recording: pressing REC now first shows a white panel with a camera (screenshot) button, a video button, microphone (mute or choose) and Start. Nothing records until Start is pressed. Video quality is chosen in the app.',
