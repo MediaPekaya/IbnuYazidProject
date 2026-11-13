@@ -372,21 +372,21 @@
   const SP = (o) => Object.assign({ orientation: 'portrait', category: 'soon', fxStyle: 'holo', fxAnchor: 1180, alertY: 1500 }, o);
   const SL = (o) => Object.assign({ orientation: 'landscape', category: 'soon', fxStyle: 'holo' }, o);
   const soonP = [
-    SP({ id: 'sl-holo-portrait', theme: 'holo', fxStyle: 'holo', name: 'Countdown Timer · Hologram', desc: 'Kira detik besar berlatar hologram biru dengan logo dan bar teks. Tetapkan jam, minit dan saat dalam Sifat.',
+    SP({ id: 'sl-holo-portrait', theme: 'holo', fxStyle: 'holo', name: 'Countdown · Hologram', desc: 'Kira detik besar berlatar hologram biru dengan logo dan bar teks. Tetapkan jam, minit dan saat dalam Sifat.',
       build: () => [
         widget('Logo', 'logo', 440, 240, 200, 170),
         countdown(60, 520, 960, 560),
         handcam(340, 1130, 400, 400),
         widget('Bar Teks', 'ticker', 40, 1560, 1000, 96),
       ] }),
-    SP({ id: 'sl-navy-portrait', theme: 'flat-navy', fxStyle: 'flat-navy', name: 'Countdown Timer · Navy', desc: 'Formal 2D latar navy plain: kira detik, logo dan bar teks.',
+    SP({ id: 'sl-navy-portrait', theme: 'flat-navy', fxStyle: 'flat-navy', name: 'Countdown · Navy', desc: 'Formal 2D latar navy plain: kira detik, logo dan bar teks.',
       build: () => [
         widget('Tajuk', 'brand', 140, 180, 800, 140, { text: 'MOBILE LEGENDS' }),
         countdown(60, 480, 960, 560, { subtitle: 'LIVE AKAN BERMULA' }),
         widget('Logo', 'logo', 440, 1120, 200, 170),
         widget('Bar Teks', 'ticker', 40, 1560, 1000, 96),
       ] }),
-    SP({ id: 'sl-wine-portrait', theme: 'flat-wine', fxStyle: 'flat-wine', name: 'Countdown Timer · Anggur', desc: 'Formal 2D latar merah anggur: kira detik besar dan banner promosi.',
+    SP({ id: 'sl-wine-portrait', theme: 'flat-wine', fxStyle: 'flat-wine', name: 'Countdown · Anggur', desc: 'Formal 2D latar merah anggur: kira detik besar dan banner promosi.',
       build: () => [
         widget('Logo', 'logo', 440, 200, 200, 170),
         countdown(60, 480, 960, 560, { subtitle: 'JANGAN KETINGGALAN' }),
@@ -395,21 +395,21 @@
       ] }),
   ];
   const soonL = [
-    SL({ id: 'sl-holo-land', theme: 'holo', fxStyle: 'holo', name: 'Countdown Timer · Hologram', desc: 'Kira detik besar berlatar hologram dengan logo dan bar teks.',
+    SL({ id: 'sl-holo-land', theme: 'holo', fxStyle: 'holo', name: 'Countdown · Hologram', desc: 'Kira detik besar berlatar hologram dengan logo dan bar teks.',
       build: () => [
         widget('Logo', 'logo', 880, 60, 160, 120),
         countdown(300, 220, 1320, 560),
         handcam(1500, 640, 360, 203),
         widget('Bar Teks', 'ticker', 40, 860, 1840, 96),
       ] }),
-    SL({ id: 'sl-navy-land', theme: 'flat-navy', fxStyle: 'flat-navy', name: 'Countdown Timer · Navy', desc: 'Formal 2D latar navy plain dengan kira detik di tengah.',
+    SL({ id: 'sl-navy-land', theme: 'flat-navy', fxStyle: 'flat-navy', name: 'Countdown · Navy', desc: 'Formal 2D latar navy plain dengan kira detik di tengah.',
       build: () => [
         widget('Tajuk', 'brand', 560, 40, 800, 120, { text: 'MOBILE LEGENDS' }),
         countdown(300, 220, 1320, 560, { subtitle: 'LIVE AKAN BERMULA' }),
         widget('Logo', 'logo', 60, 40, 160, 120),
         widget('Bar Teks', 'ticker', 40, 860, 1840, 96),
       ] }),
-    SL({ id: 'sl-forest-land', theme: 'flat-forest', fxStyle: 'flat-forest', name: 'Countdown Timer · Hutan', desc: 'Formal 2D latar hijau hutan: kira detik, logo dan banner promosi.',
+    SL({ id: 'sl-forest-land', theme: 'flat-forest', fxStyle: 'flat-forest', name: 'Countdown · Hutan', desc: 'Formal 2D latar hijau hutan: kira detik, logo dan banner promosi.',
       build: () => [
         widget('Logo', 'logo', 880, 40, 160, 120),
         countdown(300, 200, 1320, 520),

@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Peralihan gaya iOS: penanda tab meluncur lembut dan kandungan masuk dengan licin pada tab Template, Game (Kawalan, Stream, Draft, Tier, Hero, Meta...), Tetapan dan panel kanan.',
+      'Menekan tab template tidak lagi tersangkut: gambar kecil template dilukis sedikit demi sedikit dan disimpan.',
+      'Tab jenis template dan format (TikTok/YouTube) disusun supaya tidak terpotong. Nama Countdown Timer dipendekkan kepada Countdown.',
       'Kamera kini bergaya cermin: bila anda bergerak ke kanan, gambar ikut ke kanan; ke kiri, ikut ke kiri. Berlaku pada semua template, dan boleh dimatikan pada sifat kamera.',
       'Ikon jantung HEART ME pada bar LIVE kini berdenyut seperti jantung, dengan gelombang cahaya setiap kali penonton menekan like.',
       'Nama lagu pada bar LIVE sentiasa bergerak perlahan ke kiri dengan hujung kiri dan kanan yang kabur (pudar).',
@@ -86,6 +89,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'iOS-style transitions: tab indicators glide and content eases in on the Template, Game (Controls, Stream, Draft, Tier, Hero, Meta...), Settings and right-hand panel tabs.',
+      'Tapping template tabs no longer lags: template thumbnails are drawn gradually and cached.',
+      'The template type tabs and format (TikTok/YouTube) tabs are arranged so nothing is cut off. Countdown Timer was shortened to Countdown.',
       'The camera now behaves like a mirror: when you move right the picture follows right, and left follows left. Applies to every template and can be turned off in the camera properties.',
       'The HEART ME icon on the LIVE bar now beats like a heart, with a glow ripple each time a viewer likes.',
       'The song name on the LIVE bar now always scrolls slowly to the left, with soft faded edges on the left and right.',

@@ -114,6 +114,7 @@
       GS.$$('.subtab', tabs).forEach((b) => b.classList.toggle('on', b.dataset.id === id));
       body.innerHTML = '';
       pages[id](body);
+      if (GS.ios) GS.ios.enter(body);
     };
     order.forEach(([id, label]) => tabs.append(h('button', { class: 'subtab', dataset: { id }, onClick: () => D.show(id) }, label)));
     root.append(tabs, body);

@@ -27,19 +27,52 @@
 
   const templates = (o) => { const g = GS.games[GS.state.game] || GS.games.mlbb; return g ? g.templates.filter((t) => t.orientation === o) : []; };
 
+  /* Gambar kecil template dilukis sedikit demi sedikit (satu setiap bingkai) supaya menekan tab tidak tersangkut. */
+  const hi = [], lo = []; let pumping = false;
+  F.pending = () => hi.length + lo.length;
+  function render(t, key) {
+    const por = t.orientation === 'portrait';
+    const cv = document.createElement('canvas');
+    cv.width = por ? 180 : 320; cv.height = por ? 320 : 180;
+    try { GS.Compositor.thumb(cv, t.build(), por ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 }, t.theme || t.fxStyle); } catch (e) { console.warn('[GS] thumb template', e); }
+    thumbs[key] = cv; return cv;
+  }
+  function pump() {
+    pumping = false;
+    const t0 = performance.now();
+    while ((hi.length || lo.length) && performance.now() - t0 < 6) {
+      if (!hi.length) break;
+      const j = hi.shift(); if (!thumbs[j.key]) render(j.t, j.key);
+      if (j.target && j.target.isConnected) j.target.getContext('2d').drawImage(thumbs[j.key], 0, 0);
+    }
+    if (hi.length) { pumping = true; requestAnimationFrame(pump); } else idle();
+  }
+  let idling = false;
+  function idle() {
+    if (idling || !lo.length) return; idling = true;
+    const ric = window.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 250));
+    ric((dl) => {
+      idling = false;
+      if (hi.length) return;
+      if (!(GS.live && GS.live.state === 'live') && dl.timeRemaining() > 6) { const j = lo.shift(); if (j && !thumbs[j.key]) render(j.t, j.key); }
+      idle();
+    }, { timeout: 4000 });
+  }
+  function enqueue(job, front) { (front ? hi : lo).push(job); if (front && !pumping) { pumping = true; requestAnimationFrame(pump); } else if (!front) idle(); }
+  F.prewarm = function () {
+    // selepas permulaan, siapkan gambar kecil jenis lain semasa app tidak sibuk
+    const all = (GS.games[GS.state.game] || GS.games.mlbb).templates;
+    all.forEach((t) => { const key = t.id + '|' + (t.theme || t.fxStyle); if (!thumbs[key]) enqueue({ t, key, target: null }); });
+  };
+
   function thumb(t) {
     const por = t.orientation === 'portrait';
     const key = t.id + '|' + (t.theme || t.fxStyle);
-    if (!thumbs[key]) {
-      const cv = document.createElement('canvas');
-      cv.width = por ? 180 : 320; cv.height = por ? 320 : 180;
-      try { GS.Compositor.thumb(cv, t.build(), por ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 }, t.theme || t.fxStyle); } catch (e) { console.warn('[GS] thumb template', e); }
-      thumbs[key] = cv;
-    }
     // salinan baharu setiap lukisan (satu elemen DOM tidak boleh berada di dua tempat)
     const c = document.createElement('canvas');
-    c.width = thumbs[key].width; c.height = thumbs[key].height;
-    c.getContext('2d').drawImage(thumbs[key], 0, 0);
+    c.width = por ? 180 : 320; c.height = por ? 320 : 180;
+    if (thumbs[key]) c.getContext('2d').drawImage(thumbs[key], 0, 0);
+    else enqueue({ t, key, target: c }, true);
     return c;
   }
 
@@ -96,5 +129,6 @@
     GS.on('format:changed', (o) => { viewO = o; });
     F.syncSwitch();
     F.drawDock();
+    setTimeout(F.prewarm, 1500);
   };
 })();

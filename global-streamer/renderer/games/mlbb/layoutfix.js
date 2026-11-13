@@ -24,7 +24,7 @@
   const SOON_THEMES = [['flat-charcoal', '2D Arang'], ['flat-gold', '2D Hitam Emas'], ['flat-indigo', '2D Indigo'], ['flat-teal', '2D Teal'], ['flat-ocean', '2D Lautan'], ['flat-white', '2D Putih'], ['flat-rose', '2D Mawar']];
   soonBase.filter((t) => /navy/.test(t.id)).forEach((t) => {
     SOON_THEMES.forEach(([theme, label]) => {
-      clones.push(Object.assign({}, t, { id: t.id.replace('navy', theme.replace('flat-', '')), theme, fxStyle: theme, name: 'Countdown Timer · ' + label, desc: 'Formal 2D latar ' + label.replace('2D ', '').toLowerCase() + ': kira detik, logo dan bar teks.' }));
+      clones.push(Object.assign({}, t, { id: t.id.replace('navy', theme.replace('flat-', '')), theme, fxStyle: theme, name: 'Countdown · ' + label, desc: 'Formal 2D latar ' + label.replace('2D ', '').toLowerCase() + ': kira detik, logo dan bar teks.' }));
     });
   });
   G.templates.push(...clones);
@@ -41,32 +41,32 @@
   const SP = (o) => Object.assign({ orientation: 'portrait', category: 'soon', fxAnchor: 1180, alertY: 1500 }, o);
   const SLd = (o) => Object.assign({ orientation: 'landscape', category: 'soon' }, o);
   const soonNew = [
-    SP({ id: 'sl-api-p', theme: 'crimson', fxStyle: 'crimson', name: 'Api · Countdown Timer', desc: 'Nombor api bergerak di atas latar api, tanpa kotak.',
+    SP({ id: 'sl-api-p', theme: 'crimson', fxStyle: 'crimson', name: 'Api · Countdown', desc: 'Nombor api bergerak di atas latar api, tanpa kotak.',
       build: withBg(() => [logo(440, 200, 200, 170), cdw(40, 560, 1000, 600, { numStyle: 'fire', noPanel: true }), brand(140, 1240, 800, 130), tick(40, 1700, 1000, 100)], 'fire', true) }),
-    SP({ id: 'sl-kilat-p', theme: 'galaxy', fxStyle: 'galaxy', name: 'Kilat · Countdown Timer', desc: 'Nombor neon dengan kilat menyambar.',
+    SP({ id: 'sl-kilat-p', theme: 'galaxy', fxStyle: 'galaxy', name: 'Kilat · Countdown', desc: 'Nombor neon dengan kilat menyambar.',
       build: withBg(() => [cdw(40, 240, 1000, 560, { numStyle: 'neon', noPanel: true, subtitle: 'LIVE AKAN BERMULA' }), cam(240, 900, 600, 600), logo(440, 1560, 200, 170), tick(40, 1760, 1000, 100)], 'lightning', true) }),
-    SP({ id: 'sl-anime-p', theme: 'neon', fxStyle: 'neon', name: 'Anime · Countdown Timer', desc: 'Latar anime berwarna dengan kelopak sakura dan bot.',
+    SP({ id: 'sl-anime-p', theme: 'neon', fxStyle: 'neon', name: 'Anime · Countdown', desc: 'Latar anime berwarna dengan kelopak sakura dan bot.',
       build: withBg(() => [cdw(40, 480, 1000, 560, { numStyle: 'outline', noPanel: true, title: 'SEBENTAR LAGI~', subtitle: 'JANGAN KETINGGALAN!' }), bot(60, 1160, 460, 460), logo(740, 1260, 220, 190), tick(40, 1700, 1000, 100)], 'anime', true) }),
-    SP({ id: 'sl-neon-p', theme: 'neon', fxStyle: 'neon', name: 'Neon Grid · Countdown Timer', desc: 'Latar neon gaya retro dengan nombor neon di bawah matahari.',
+    SP({ id: 'sl-neon-p', theme: 'neon', fxStyle: 'neon', name: 'Neon Grid · Countdown', desc: 'Latar neon gaya retro dengan nombor neon di bawah matahari.',
       build: withBg(() => [logo(440, 160, 200, 170), cdw(60, 980, 960, 520, { numStyle: 'neon', noPanel: true }), tick(40, 1700, 1000, 100)], 'neon', true) }),
-    SP({ id: 'sl-bintang-p', theme: 'holo', fxStyle: 'holo', name: 'Bintang · Countdown Timer', desc: 'Kamera di atas, kiraan flip di bawah, latar bintang.',
+    SP({ id: 'sl-bintang-p', theme: 'holo', fxStyle: 'holo', name: 'Bintang · Countdown', desc: 'Kamera di atas, kiraan flip di bawah, latar bintang.',
       build: withBg(() => [cam(190, 160, 700, 700), cdw(40, 940, 1000, 560, { numStyle: 'flip' }), logo(440, 1540, 200, 170), tick(40, 1740, 1000, 100)], 'stars', true) }),
   ];
   const soonNewL = [
-    SLd({ id: 'sl-api-l', theme: 'crimson', fxStyle: 'crimson', name: 'Api · Countdown Timer', desc: 'Nombor api bergerak di atas latar api, tanpa kotak.',
+    SLd({ id: 'sl-api-l', theme: 'crimson', fxStyle: 'crimson', name: 'Api · Countdown', desc: 'Nombor api bergerak di atas latar api, tanpa kotak.',
       build: withBg(() => [logo(60, 40, 170, 130), cdw(260, 180, 1400, 600, { numStyle: 'fire', noPanel: true }), tick(40, 880, 1840, 110)], 'fire', false) }),
-    SLd({ id: 'sl-kilat-l', theme: 'galaxy', fxStyle: 'galaxy', name: 'Kilat · Countdown Timer', desc: 'Nombor neon di kiri, kamera di kanan, kilat menyambar.',
+    SLd({ id: 'sl-kilat-l', theme: 'galaxy', fxStyle: 'galaxy', name: 'Kilat · Countdown', desc: 'Nombor neon di kiri, kamera di kanan, kilat menyambar.',
       build: withBg(() => [cdw(40, 200, 1100, 600, { numStyle: 'neon', noPanel: true }), cam(1200, 260, 660, 372), logo(1500, 680, 170, 130), tick(40, 880, 1840, 110)], 'lightning', false) }),
-    SLd({ id: 'sl-anime-l', theme: 'neon', fxStyle: 'neon', name: 'Anime · Countdown Timer', desc: 'Latar anime dengan kelopak sakura dan bot.',
+    SLd({ id: 'sl-anime-l', theme: 'neon', fxStyle: 'neon', name: 'Anime · Countdown', desc: 'Latar anime dengan kelopak sakura dan bot.',
       build: withBg(() => [cdw(260, 160, 1400, 560, { numStyle: 'outline', noPanel: true, title: 'SEBENTAR LAGI~', subtitle: 'JANGAN KETINGGALAN!' }), bot(1560, 700, 300, 300), logo(60, 40, 170, 130), tick(40, 900, 1500, 100)], 'anime', false) }),
-    SLd({ id: 'sl-neon-l', theme: 'neon', fxStyle: 'neon', name: 'Neon Grid · Countdown Timer', desc: 'Latar neon retro dengan nombor neon.',
+    SLd({ id: 'sl-neon-l', theme: 'neon', fxStyle: 'neon', name: 'Neon Grid · Countdown', desc: 'Latar neon retro dengan nombor neon.',
       build: withBg(() => [logo(880, 30, 160, 120), cdw(260, 440, 1400, 520, { numStyle: 'neon', noPanel: true }), tick(40, 930, 1840, 100)], 'neon', false) }),
-    SLd({ id: 'sl-bintang-l', theme: 'holo', fxStyle: 'holo', name: 'Bintang · Countdown Timer', desc: 'Logo besar di kiri, kiraan flip di kanan, latar bintang.',
+    SLd({ id: 'sl-bintang-l', theme: 'holo', fxStyle: 'holo', name: 'Bintang · Countdown', desc: 'Logo besar di kiri, kiraan flip di kanan, latar bintang.',
       build: withBg(() => [logo(120, 200, 560, 420), brand(60, 660, 700, 120), cdw(860, 180, 1000, 640, { numStyle: 'flip' }), tick(40, 900, 1840, 110)], 'stars', false) }),
   ];
-  soonNew.push(SP({ id: 'sl-ribut-p', theme: 'galaxy', fxStyle: 'galaxy', name: 'Hujan Ribut · Countdown Timer', desc: 'Hujan lebat dan petir sebenar di atas awan ribut, nombor neon di tengah.',
+  soonNew.push(SP({ id: 'sl-ribut-p', theme: 'galaxy', fxStyle: 'galaxy', name: 'Hujan Ribut · Countdown', desc: 'Hujan lebat dan petir sebenar di atas awan ribut, nombor neon di tengah.',
     build: withBg(() => [logo(440, 160, 200, 170), cdw(40, 560, 1000, 560, { numStyle: 'neon', noPanel: true, subtitle: 'RIBUT AKAN TIBA' }), brand(140, 1240, 800, 130), tick(40, 1700, 1000, 100)], 'storm', true) }));
-  soonNewL.push(SLd({ id: 'sl-ribut-l', theme: 'galaxy', fxStyle: 'galaxy', name: 'Hujan Ribut · Countdown Timer', desc: 'Hujan lebat dan petir sebenar di atas awan ribut.',
+  soonNewL.push(SLd({ id: 'sl-ribut-l', theme: 'galaxy', fxStyle: 'galaxy', name: 'Hujan Ribut · Countdown', desc: 'Hujan lebat dan petir sebenar di atas awan ribut.',
     build: withBg(() => [logo(60, 40, 170, 130), cdw(260, 180, 1400, 600, { numStyle: 'neon', noPanel: true, subtitle: 'RIBUT AKAN TIBA' }), tick(40, 880, 1840, 110)], 'storm', false) }));
   G.templates.push(...soonNew, ...soonNewL);
 

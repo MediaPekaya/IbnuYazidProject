@@ -633,3 +633,21 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 /* penanda PGM / PVW pada senarai scene: petak bersudut membulat (bukan bujur) */
 .list-item .tag { border-radius: 7px; min-width: 38px; height: 30px; padding: 0 4px; }
 .list-item .tag:empty { min-width: 38px; }
+
+/* ===== peralihan licin gaya iOS ===== */
+.subtabs, .set-tabs, .rtabs { position: relative; }
+.subtabs > button, .set-tabs > button, .rtabs > button { position: relative; z-index: 1; }
+.ios-pill { position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 8px; background: rgba(46, 168, 255, 0.22);
+  transition: transform 0.5s var(--ease), width 0.5s var(--ease), height 0.5s var(--ease), opacity 0.2s; will-change: transform, width; }
+.set-tabs .ios-pill { background: var(--blue); border-radius: 9px; }
+.rtabs .ios-pill { background: var(--blue); border-radius: 2px; }
+html[data-appmode^="formal"] .set-tabs .ios-pill, html[data-appmode^="formal"] .subtabs .ios-pill, html[data-appmode^="formal"] .rtabs .ios-pill { background: var(--accent); }
+.has-pill > button.on { background: transparent !important; }
+.rtabs.has-pill > .rtab.on { border-bottom-color: transparent; }
+.subtab, .set-tabs button, .rtab, .seg-mini button, .tpl-cats button { transition: color 0.35s var(--ease), transform 0.3s var(--ease); }
+.subtab:active, .set-tabs button:active, .rtab:active, .seg-mini button:active, .tpl-cats button:active, .btn:active, .icon-btn:active { transform: scale(0.95); }
+.ios-in { animation: iosIn 0.5s var(--ease) both; }
+@keyframes iosIn { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+.set-pane { animation: iosIn 0.5s var(--ease) both; }
+.rpanel.on { animation: iosIn 0.5s var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { .ios-pill, .ios-in, .set-pane, .rpanel.on { transition: none !important; animation: none !important; } }
