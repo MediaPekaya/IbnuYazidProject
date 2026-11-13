@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Dibaiki ralat "Object has been destroyed" yang muncul apabila lagu YouTube ditukar atau ditutup: pemasa pemain tersembunyi kini disemak dahulu, dan ralat proses utama tidak lagi memaparkan kotak ralat.',
       'Rakaman membuang bunyi latar secara automatik (RNNoise dan pintu bunyi pintar): kipas, hujan dan kenderaan dibuang, hanya suara yang bercakap kekal, dan di antara perkataan menjadi senyap. Boleh dimatikan di Tetapan > Audio.',
       'Senyap mikrofon pada rakaman kini memutuskan mikrofon sepenuhnya: tiada bunyi langsung sehingga mikrofon dihidupkan semula.',
       'Gambar skrin disimpan sebagai PNG tanpa mampatan dan dibesarkan dengan kualiti terbaik sehingga sekurang-kurangnya 4K supaya licin apabila dizum.',
@@ -100,6 +101,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Fixed the "Object has been destroyed" error that appeared when a YouTube song was changed or closed: the hidden player timers are now checked first, and main-process errors no longer show an error box.',
       'Recording automatically removes background noise (RNNoise and a smart noise gate): fans, rain and traffic are removed, only speech remains, and between words is fully silent. Can be turned off in Settings > Audio.',
       'Muting the microphone in a recording now disconnects the microphone completely: no sound at all until it is unmuted.',
       'Screenshots are saved as uncompressed PNG and enlarged with best quality to at least 4K so they stay smooth when zoomed in.',

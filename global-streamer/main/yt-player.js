@@ -35,9 +35,11 @@ function register({ ipcMain, BrowserWindow }) {
   ipcMain.handle('adblock:set', (_e, on) => { setAdBlock(on); return adBlockOn; });
   ipcMain.handle('adblock:get', () => adBlockOn);
   try { const { session } = require('electron'); hookSession(session.fromPartition('persist:gs-yt')); hookSession(session.fromPartition('persist:gs-browser')); } catch (e) { /* abaikan */ }
-  const alive = (key) => { const w = wins.get(key); return w && !w.isDestroyed() ? w : null; };
+  const alive = (key) => { const w = wins.get(key); return w && !w.isDestroyed() && w.webContents && !w.webContents.isDestroyed() ? w : null; };
   const stop = (key) => { const w = wins.get(key); if (w && !w.isDestroyed()) w.destroy(); wins.delete(key); };
-  const run = (w, code) => w.webContents.executeJavaScript(code, true).catch(() => null);
+  // selamat: tetingkap atau kandungannya mungkin sudah dimusnahkan (lagu ditukar / ditutup) semasa pemasa masih berjalan
+  const live = (w) => !!(w && !w.isDestroyed() && w.webContents && !w.webContents.isDestroyed());
+  const run = (w, code) => { try { return live(w) ? w.webContents.executeJavaScript(code, true).catch(() => null) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } };
 
   ipcMain.handle('yt:load', async (_e, key, url) => {
     if (typeof key !== 'string' || !/^https:\/\/(www\.|music\.)?youtube\.com\//.test(String(url))) return { ok: false };
@@ -46,12 +48,12 @@ function register({ ipcMain, BrowserWindow }) {
     w.webContents.setUserAgent(UA);
     w.webContents.setAudioMuted(false);
     w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-    w.webContents.on('did-finish-load', () => { w.webContents.insertCSS(AD_CSS).catch(() => {}); });
+    w.webContents.on('did-finish-load', () => { try { if (live(w)) w.webContents.insertCSS(AD_CSS).catch(() => {}); } catch (e) { /* abaikan */ } });
     wins.set(key, w);
     try { await w.loadURL(url, { userAgent: UA }); } catch (e) { /* halaman mungkin dialihkan; teruskan */ }
     // cuba main (halaman kadang-kadang menunggu)
-    [800, 2500, 5000].forEach((ms) => setTimeout(() => { if (alive(key)) run(w, CONSENT); }, ms));
-    setTimeout(() => { if (alive(key)) run(w, "(function(){var v=document.querySelector('video');if(v&&v.paused)v.play().catch(function(){});var b=document.querySelector('.ytp-large-play-button');if(v&&v.paused&&b)b.click();})()"); }, 1500);
+    [800, 2500, 5000].forEach((ms) => setTimeout(() => { if (live(w)) run(w, CONSENT); }, ms));
+    setTimeout(() => { if (live(w)) run(w, "(function(){var v=document.querySelector('video');if(v&&v.paused)v.play().catch(function(){});var b=document.querySelector('.ytp-large-play-button');if(v&&v.paused&&b)b.click();})()"); }, 1500);
     return { ok: true };
   });
   ipcMain.handle('yt:state', async (_e, key) => {

@@ -18,6 +18,10 @@ const browserSrc = require('./browser-src');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 
+// Jaring keselamatan: ralat tidak dijangka dalam proses utama tidak lagi memaparkan kotak ralat (siaran tidak terganggu); dicatat dalam konsol.
+process.on('uncaughtException', (e) => { try { console.error('[GS] ralat proses utama:', e && e.stack || e); } catch (e2) { /* abaikan */ } });
+process.on('unhandledRejection', (e) => { try { console.error('[GS] janji ditolak:', e && e.stack || e); } catch (e2) { /* abaikan */ } });
+
 let win = null;
 const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.webContents.send('stream:event', ev); });
 
