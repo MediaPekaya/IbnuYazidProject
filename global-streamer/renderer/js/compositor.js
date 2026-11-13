@@ -189,7 +189,7 @@
     }
 
     /** Bingkai kamera: sudut sedikit bulat; garisan (stroke) sebahagian daripada bingkai kamera itu sendiri. */
-    camGeom(s) { const m = Math.min(s.w, s.h); return { r: Math.max(6, m * 0.035), lw: Math.max(3, m * 0.014) }; }
+    camGeom(s) { const m = Math.min(s.w, s.h); return { r: Math.max(6, m * 0.035), lw: Math.min(4, Math.max(2, m * 0.006)) }; }
     camClip(ctx, s) { const g = this.camGeom(s); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(s.x, s.y, s.w, s.h, g.r); else ctx.rect(s.x, s.y, s.w, s.h); ctx.clip(); }
     camLight() {
       const th = (GS.theme && GS.theme.cur) || {}; const hex = String(th.bgBase || '#000').replace('#', '');
