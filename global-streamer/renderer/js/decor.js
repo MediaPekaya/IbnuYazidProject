@@ -86,12 +86,23 @@
       shapes.forEach(([fx, fy, k, s2], i) => { const cx = x + w * fx, cy = y + h * fy, r = s2 * u; ctx.fillStyle = cols[i % cols.length]; ctx.save(); ctx.translate(cx, cy); ctx.rotate(i); ctx.beginPath(); if (k === 'c') ctx.arc(0, 0, r, 0, TAU); else if (k === 't') { ctx.moveTo(0, -r); ctx.lineTo(r, r * 0.8); ctx.lineTo(-r, r * 0.8); ctx.closePath(); } else if (k === 's') ctx.rect(-r * 0.7, -r * 0.7, r * 1.4, r * 1.4); else { ctx.moveTo(-r, 0); for (let q = 0; q < 5; q++) ctx.quadraticCurveTo(-r + q * r * 0.4 + r * 0.2, (q % 2 ? 1 : -1) * r * 0.5, -r + (q + 1) * r * 0.4, 0); ctx.lineWidth = 8 * u; ctx.strokeStyle = cols[i % cols.length]; ctx.stroke(); ctx.restore(); return; } ctx.fill(); ctx.restore(); });
     },
   };
-  W.decor = function (ctx, s) {
-    const p = s.props || {}, fn = DRAW[p.style] || DRAW.corporate;
-    const u = Math.max(0.5, Math.min(s.w, s.h) / 1080);
-    ctx.save(); ctx.beginPath(); ctx.rect(s.x, s.y, s.w, s.h); ctx.clip();
-    fn(ctx, s.x, s.y, s.w, s.h, u);
-    ctx.restore();
+  const ANIM = {};
+  const cache = {};
+  /** Lapisan statik dilukis sekali pada kanvas luar-skrin (cepat); lapisan animasi dilukis setiap bingkai (vektor, tajam pada sebarang resolusi). */
+  W.decor = function (ctx, s, t) {
+    const p = s.props || {}, style = DRAW[p.style] ? p.style : 'corporate';
+    const w = Math.round(s.w), h = Math.round(s.h), key = style + '|' + w + 'x' + h;
+    let c = cache[key];
+    if (!c) {
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const u = Math.max(0.5, Math.min(w, h) / 1080);
+      DRAW[style](cv.getContext('2d'), 0, 0, w, h, u);
+      c = cache[key] = cv;
+      const keys = Object.keys(cache); if (keys.length > 14) delete cache[keys[0]];
+    }
+    ctx.drawImage(c, s.x, s.y, s.w, s.h);
+    const fn = ANIM[style];
+    if (fn) { const u = Math.max(0.5, Math.min(s.w, s.h) / 1080); ctx.save(); ctx.beginPath(); ctx.rect(s.x, s.y, s.w, s.h); ctx.clip(); fn(ctx, s.x, s.y, s.w, s.h, u, t || 0); ctx.restore(); }
   };
-  GS.decor = { styles: STYLES };
+  GS.decor = { styles: STYLES, DRAW, ANIM, h: { lin, rr, flower, leaf, cloud, book, cap, pencil, TAU } };
 })();
