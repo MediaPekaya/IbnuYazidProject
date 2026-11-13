@@ -2,6 +2,8 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Lagu daripada link YouTube kini kekal selepas aplikasi ditutup dan dibuka semula, dan dimainkan tanpa memerlukan pelayar anda.',
+      'Ad Block ditambah (Tetapan > Umum, butang merah): iklan disekat dan dilangkau supaya lagu terus dimainkan.',
       'Pratonton dan Program diasingkan: perubahan di Pratonton tidak muncul di Program sehingga butang Peralihan ditekan.',
       'Sumber Display Capture ditambah untuk memaparkan skrin atau tetingkap yang dipilih, seperti game, pelayar dan Steam.',
       'Sumber Auto Slide ditambah: gambar dipilih daripada peranti, dengan kelajuan, peralihan dan kelicinan yang boleh ditetapkan.',
@@ -76,6 +78,8 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Songs from YouTube links now survive closing and reopening the app, and play without needing your browser.',
+      'Ad Block added (Settings > General, red button): ads are blocked and skipped so the song keeps playing.',
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
       'A Display Capture source is added to show a chosen screen or window, such as a game, browser or Steam.',
       'An Auto Slide source is added: pictures are picked from the device, with adjustable speed, transition and smoothness.',

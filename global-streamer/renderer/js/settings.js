@@ -66,9 +66,22 @@
         h('label', { class: 'field' }, h('span', null, 'Tempoh (ms)'), h('input', { type: 'number', min: 50, max: 10000, step: 50, value: s.transitionMs, onChange: (e) => { s.transitionMs = GS.clamp(Number(e.target.value) || 500, 50, 10000); GS.save(); } }))),
       h('h3', null, 'Susun atur panel'),
       h('p', { class: 'muted note' }, 'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.'),
-      h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnLayoutReset', onClick: () => GS.layout.resetAll() }, 'Tetapkan semula susun atur panel')),
+      h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnLayoutReset', onClick: () => GS.layout.resetAll() }, 'Tetapkan semula susun atur panel'), adBtn),
       h('h3', null, 'Data'),
       h('div', { class: 'btn-row' }, h('button', { class: 'btn danger', onClick: async () => { if (await GS.ask(GS.t('Padam SEMUA tetapan, scene dan data tempatan?'), { danger: true })) GS.resetState(); } }, 'Set semula semua data')));
+
+    /* Ad Block: butang merah (logo perisai + AD) bersama butang tetapan semula susun atur */
+    const adOn = () => GS.state.settings.adBlock !== false;
+    const adBtn = h('button', { type: 'button', class: 'btn danger', id: 'btnAdBlock', style: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#d62b2b', borderColor: '#d62b2b', color: '#fff' } });
+    const adPaint = () => {
+      adBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#fff"/><text x="12" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="#d62b2b">AD</text><path d="M6 6l12 12" stroke="#d62b2b" stroke-width="2.2" stroke-linecap="round"/></svg><span>' + GS.t('Ad Block') + ' · ' + GS.t(adOn() ? 'HIDUP' : 'MATI') + '</span>';
+      adBtn.style.opacity = adOn() ? '1' : '0.6';
+    };
+    adBtn.addEventListener('click', () => {
+      GS.state.settings.adBlock = !adOn(); GS.save(); adPaint();
+      if (window.gsNative && window.gsNative.adblock) window.gsNative.adblock.set(adOn()).catch(() => {});
+    });
+    adPaint();
 
     /* ===== AUDIO ===== */
     const audio = h('div', { class: 'set-pane' },

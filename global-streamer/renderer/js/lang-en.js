@@ -586,6 +586,9 @@
     'Susun atur panel': 'Panel layout',
     'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.': 'Drag the dividers between panels (Scenes, Sources, Properties, Audio Mixer, Templates, right panel) to resize them, and drag a panel title to move it. Panels stay inside the app and cannot be removed or hidden. Double-click a divider for the default.',
     'Tetapkan semula susun atur panel': 'Reset the panel layout',
+    'Ad Block': 'Ad Block',
+    'HIDUP': 'ON',
+    'MATI': 'OFF',
 
 
     /* ---- siaran dalam panel chat ---- */

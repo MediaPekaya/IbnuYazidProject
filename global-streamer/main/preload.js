@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('gsNative', {
     nav: (key, cmd, a, b) => ipcRenderer.invoke('br:nav', key, cmd, a, b),
     close: (key) => ipcRenderer.invoke('br:close', key),
   },
+  adblock: { set: (on) => ipcRenderer.invoke('adblock:set', on), get: () => ipcRenderer.invoke('adblock:get') },
   yt: {
     load: (key, url) => ipcRenderer.invoke('yt:load', key, url),
     state: (key) => ipcRenderer.invoke('yt:state', key),

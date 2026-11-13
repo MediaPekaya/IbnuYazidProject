@@ -56,7 +56,7 @@
   function persist() {
     GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, vol: c.vol, muted: c.muted, w: c.w || undefined,
       // lagu sendiri: hanya laluan fail (app Windows) disimpan; URL sementara pelayar tidak kekal
-      tracks: c.kind === 'music' ? (c.tracks || []).filter((t) => t.path || t.link).map((t) => (t.link ? { name: t.name, link: t.link } : { name: t.name, path: t.path })) : undefined, idx: c.kind === 'music' ? (c.idx || 0) : undefined, loop: c.kind === 'music' ? c.loop !== false : undefined }));
+      tracks: c.kind === 'music' ? (c.tracks || []).filter((t) => t.path || t.link).map((t) => (t.link ? { name: t.name, link: t.link, yt: t.yt || undefined, list: t.list || undefined } : { name: t.name, path: t.path })) : undefined, idx: c.kind === 'music' ? (c.idx || 0) : undefined, loop: c.kind === 'music' ? c.loop !== false : undefined }));
     GS.save();
   }
 
@@ -71,6 +71,15 @@
   const YT = { frames: {}, nat: {} };
   const nat = () => !!(window.gsNative && window.gsNative.yt);
   const ytActive = (ch) => !!(YT.frames[ch.id] || YT.nat[ch.id]);
+  /** Ambil id video/senarai daripada link YouTube (watch, youtu.be, shorts, embed, music). */
+  A.ytParse = function (raw) {
+    let u; try { u = new URL(raw); } catch (e) { return null; }
+    if (!/(^|\.)(youtube\.com|youtu\.be|music\.youtube\.com)$/i.test(u.hostname)) return null;
+    let vid = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : (u.searchParams.get('v') || '');
+    const m = u.pathname.match(/^\/(?:shorts|embed|live|v)\/([\w-]{6,})/); if (!vid && m) vid = m[1];
+    const list = u.searchParams.get('list') || '';
+    return (vid || list) ? { yt: vid.split('/')[0], list } : null;
+  };
   const ytUrl = (t) => 'https://www.youtube.com/watch?' + [t.yt ? 'v=' + encodeURIComponent(t.yt) : '', t.list ? 'list=' + encodeURIComponent(t.list) : ''].filter(Boolean).join('&');
   function ytSend(ch, func, args) {
     if (YT.nat[ch.id]) {
@@ -160,7 +169,7 @@
         let u; try { u = new URL(raw); } catch (e) { GS.toast(GS.t('Link tidak sah.'), 'warn'); return; }
         const first = !ch.tracks.length; let tr;
         if (/(^|\.)(youtube\.com|youtu\.be|music\.youtube\.com)$/i.test(u.hostname)) {
-          const vid = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v') || '', list = u.searchParams.get('list') || '';
+          const yp = A.ytParse(raw) || { yt: '', list: '' }, vid = yp.yt, list = yp.list;
           if (!vid && !list) { GS.toast(GS.t('Link tidak sah.'), 'warn'); return; }
           tr = { name: list ? 'YouTube · ' + GS.t('Album') : 'YouTube · ' + vid, link: raw, yt: vid, list };
           fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(raw)).then((r) => r.json()).then((j) => { if (j && j.title) { tr.name = j.title; persist(); GS.emit('audio:changed'); } }).catch(() => {});
@@ -275,9 +284,10 @@
   }
 
   A.channelsInit = function () {
+    try { if (window.gsNative && window.gsNative.adblock) window.gsNative.adblock.set(GS.state.settings.adBlock !== false).catch(() => {}); } catch (e) { /* abaikan */ }
     const saved = GS.state.audio.channels;
     if (saved && saved.length) {
-      A.channels = saved.map((c) => makeChannel(c.kind === 'music' ? Object.assign({}, c, { tracks: c.tracks || [], idx: c.idx || 0 }) : c));
+      A.channels = saved.map((c) => makeChannel(c.kind === 'music' ? Object.assign({}, c, { tracks: (c.tracks || []).map((t) => { if (t && t.link && !t.yt && !t.list) { const y = A.ytParse(t.link); if (y) return Object.assign({}, t, y); } return t; }), idx: c.idx || 0 }) : c));
     } else {
       A.channels = [
         makeChannel({ id: 'ch_mic', label: 'Mikrofon', kind: 'input' }),
