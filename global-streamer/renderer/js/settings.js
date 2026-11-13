@@ -11,6 +11,10 @@
     { id: 'formal-gray', name: 'Formal Kelabu', desc: 'Kelabu cerah, rata dan teratur (2D).', sw: ['#dfe3ea', '#eef0f4', '#374151'] },
     { id: 'formal-dark', name: 'Formal Gelap', desc: 'Kelabu arang, rata tanpa cahaya (2D).', sw: ['#15171c', '#20232a', '#4c8dff'] },
     { id: 'formal-blue', name: 'Formal Biru', desc: 'Biru tua rata tanpa cahaya (2D).', sw: ['#0f1b33', '#18284a', '#3b82f6'] },
+    { id: 'formal-green', name: 'Formal Hijau', desc: 'Hijau hutan tua rata tanpa cahaya (2D).', sw: ['#0d1f18', '#16302a', '#22c55e'] },
+    { id: 'formal-purple', name: 'Formal Ungu', desc: 'Ungu tua rata tanpa cahaya (2D).', sw: ['#1a1230', '#271c48', '#a78bfa'] },
+    { id: 'formal-wine', name: 'Formal Anggur', desc: 'Merah anggur tua rata tanpa cahaya (2D).', sw: ['#220d16', '#341522', '#f43f5e'] },
+    { id: 'formal-gold', name: 'Formal Hitam Emas', desc: 'Hitam dengan aksen emas, rata tanpa cahaya (2D).', sw: ['#0c0c0c', '#1a1a17', '#f5b301'] },
   ];
   const M = (GS.appModes = { list: MODES });
   M.apply = function (id) {
@@ -43,6 +47,19 @@
     let bitrateIn;
 
     /* ===== UMUM ===== */
+    /* Ad Block: butang merah (logo perisai + AD) bersama butang tetapan semula susun atur */
+    const adOn = () => GS.state.settings.adBlock !== false;
+    const adBtn = h('button', { type: 'button', class: 'btn danger', id: 'btnAdBlock', style: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#d62b2b', borderColor: '#d62b2b', color: '#fff' } });
+    const adPaint = () => {
+      adBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#fff"/><text x="12" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="#d62b2b">AD</text><path d="M6 6l12 12" stroke="#d62b2b" stroke-width="2.2" stroke-linecap="round"/></svg><span>' + GS.t('Ad Block') + ' · ' + GS.t(adOn() ? 'HIDUP' : 'MATI') + '</span>';
+      adBtn.style.opacity = adOn() ? '1' : '0.6';
+    };
+    adBtn.addEventListener('click', () => {
+      GS.state.settings.adBlock = !adOn(); GS.save(); adPaint();
+      if (window.gsNative && window.gsNative.adblock) window.gsNative.adblock.set(adOn()).catch(() => {});
+    });
+    adPaint();
+
     const umum = h('div', { class: 'set-pane' },
       h('h3', null, 'Bahasa'),
       h('div', { class: 'grid2' },
@@ -69,19 +86,6 @@
       h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnLayoutReset', onClick: () => GS.layout.resetAll() }, 'Tetapkan semula susun atur panel'), adBtn),
       h('h3', null, 'Data'),
       h('div', { class: 'btn-row' }, h('button', { class: 'btn danger', onClick: async () => { if (await GS.ask(GS.t('Padam SEMUA tetapan, scene dan data tempatan?'), { danger: true })) GS.resetState(); } }, 'Set semula semua data')));
-
-    /* Ad Block: butang merah (logo perisai + AD) bersama butang tetapan semula susun atur */
-    const adOn = () => GS.state.settings.adBlock !== false;
-    const adBtn = h('button', { type: 'button', class: 'btn danger', id: 'btnAdBlock', style: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#d62b2b', borderColor: '#d62b2b', color: '#fff' } });
-    const adPaint = () => {
-      adBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#fff"/><text x="12" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="#d62b2b">AD</text><path d="M6 6l12 12" stroke="#d62b2b" stroke-width="2.2" stroke-linecap="round"/></svg><span>' + GS.t('Ad Block') + ' · ' + GS.t(adOn() ? 'HIDUP' : 'MATI') + '</span>';
-      adBtn.style.opacity = adOn() ? '1' : '0.6';
-    };
-    adBtn.addEventListener('click', () => {
-      GS.state.settings.adBlock = !adOn(); GS.save(); adPaint();
-      if (window.gsNative && window.gsNative.adblock) window.gsNative.adblock.set(adOn()).catch(() => {});
-    });
-    adPaint();
 
     /* ===== AUDIO ===== */
     const audio = h('div', { class: 'set-pane' },

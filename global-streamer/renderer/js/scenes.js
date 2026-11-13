@@ -450,7 +450,7 @@
     let added = false;
     st.scenes.forEach((sc) => {
       if (sc.sources.some((s) => s.type === 'widget' && s.props.widget === 'metaboard')) return;
-      if (/^sl-/.test(sc.templateId || '') || /sebentar\s*lagi/i.test(sc.name || '')) return;   // scene Sebentar Lagi tidak memerlukan papan Meta
+      if (/^sl-/.test(sc.templateId || '') || /sebentar\s*lagi|countdown timer/i.test(sc.name || '')) return;   // scene Sebentar Lagi tidak memerlukan papan Meta
       const tpl = game && game.templates.find((t) => t.id === sc.templateId);
       let spec = null;
       if (tpl) { const w = tpl.build().find((s) => s.props && s.props.widget === 'metaboard'); if (w) spec = [w.x, w.y, w.w, w.h]; }

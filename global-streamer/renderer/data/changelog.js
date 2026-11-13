@@ -2,6 +2,10 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Nama lagu pada bar LIVE sentiasa bergerak perlahan ke kiri dengan hujung kiri dan kanan yang kabur (pudar).',
+      'Perkataan Coming Soon ditukar kepada Countdown Timer pada template, tambah sumber dan scene.',
+      'Butang Tetapan dibaiki supaya boleh ditekan semula.',
+      'Empat mod warna baharu ditambah (Hijau, Ungu, Anggur, Hitam Emas) menjadikan 9 mod dalam 3 baris.',
       'Nama scene yang ditukar kini kekal dan tidak lagi kembali kepada nama asal selepas butang Peralihan ditekan.',
       'Scene boleh diseret ke atas atau bawah, dan anak panah naik/turun ditambah di sebelah butang tambah scene.',
       'Lagu daripada link YouTube kini kekal selepas aplikasi ditutup dan dibuka semula, dan dimainkan tanpa memerlukan pelayar anda.',
@@ -80,6 +84,10 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'The song name on the LIVE bar now always scrolls slowly to the left, with soft faded edges on the left and right.',
+      'The words Coming Soon were changed to Countdown Timer in templates, add source and scenes.',
+      'The Settings button was fixed so it can be clicked again.',
+      'Four new colour modes added (Green, Purple, Wine, Black Gold), making 9 modes in 3 rows.',
       'Renamed scenes now keep their name and no longer revert to the old name after the Transition button is pressed.',
       'Scenes can be dragged up or down, and up/down arrows were added next to the add-scene button.',
       'Songs from YouTube links now survive closing and reopening the app, and play without needing your browser.',

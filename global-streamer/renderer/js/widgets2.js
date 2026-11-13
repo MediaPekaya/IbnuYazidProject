@@ -274,9 +274,16 @@
       const tx0 = cx + h * 0.45, twid = mw - h * 0.45;
       ctx.save(); ctx.beginPath(); ctx.rect(tx0, y, twid, h); ctx.clip();
       ctx.font = '700 ' + fs * 0.85 + 'px ' + W.FONT;
-      const txtw = ctx.measureText(title).width, gap = h * 1.6;
-      if (txtw <= twid) W.text(ctx, title, tx0, my + fs * 0.3, { size: fs * 0.85, weight: 700, color: '#fff' });
-      else { const off = ((t * 0.06) % (txtw + gap)); for (let k = 0; k < 2; k++) W.text(ctx, title, tx0 - off + k * (txtw + gap), my + fs * 0.3, { size: fs * 0.85, weight: 700, color: '#fff' }); }
+      const txtw = ctx.measureText(title).width, gap = Math.max(h * 1.6, twid * 0.4), per = txtw + gap;
+      // sentiasa bergerak perlahan ke kiri, berulang tanpa putus
+      const off = (t * 0.035) % per;
+      for (let k = 0; k * per - off < twid; k++) W.text(ctx, title, tx0 - off + k * per, my + fs * 0.3, { size: fs * 0.85, weight: 700, color: '#fff' });
+      // hujung kiri dan kanan kabur (pudar) mengikut warna bar
+      const fw = Math.min(twid * 0.2, h * 1.1), sw = Math.max(2, h * 0.05), fy = y + sw, fh = h - sw * 2;
+      const gl = ctx.createLinearGradient(tx0, 0, tx0 + fw, 0); gl.addColorStop(0, 'rgba(11,20,56,1)'); gl.addColorStop(1, 'rgba(11,20,56,0)');
+      ctx.fillStyle = gl; ctx.fillRect(tx0, fy, fw, fh);
+      const gr = ctx.createLinearGradient(tx0 + twid - fw, 0, tx0 + twid, 0); gr.addColorStop(0, 'rgba(11,20,56,0)'); gr.addColorStop(1, 'rgba(11,20,56,1)');
+      ctx.fillStyle = gr; ctx.fillRect(tx0 + twid - fw, fy, fw, fh);
       ctx.restore();
     }
   };

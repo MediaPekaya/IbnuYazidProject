@@ -65,8 +65,8 @@
     root.innerHTML = '';
     root.dataset.o = viewO;
     // scene "Sebentar Lagi": papar terus template Sebentar Lagi untuk scene itu
-    if (sc && sc.templateId && F._lastScene !== sc.id) { const tcur = (GS.games[GS.state.game] || GS.games.mlbb).templates.find((t) => t.id === sc.templateId); if (tcur && tcur.category) viewC = tcur.category; else if (/sebentar\s*lagi|brb|soon/i.test(sc.name || '')) viewC = 'soon'; }
-    else if (sc && F._lastScene !== sc.id && /sebentar\s*lagi|brb|soon/i.test(sc.name || '')) viewC = 'soon';
+    if (sc && sc.templateId && F._lastScene !== sc.id) { const tcur = (GS.games[GS.state.game] || GS.games.mlbb).templates.find((t) => t.id === sc.templateId); if (tcur && tcur.category) viewC = tcur.category; else if (/sebentar\s*lagi|countdown timer|brb|soon/i.test(sc.name || '')) viewC = 'soon'; }
+    else if (sc && F._lastScene !== sc.id && /sebentar\s*lagi|countdown timer|brb|soon/i.test(sc.name || '')) viewC = 'soon';
     if (sc) F._lastScene = sc.id;
     $$('#tplCats button').forEach((b) => b.classList.toggle('on', b.dataset.c === viewC));
     const cats = $('#tplCats'); if (cats) { cats.dataset.c = viewC; const on = cats.querySelector('button.on'); const th = cats.querySelector('.thumb'); if (on && th) { th.style.width = on.offsetWidth + 'px'; th.style.transform = 'translateX(' + (on.offsetLeft - 2) + 'px)'; } }

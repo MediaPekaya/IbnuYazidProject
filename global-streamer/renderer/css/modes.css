@@ -10,7 +10,7 @@
 .settings .ver-line { font-size: 14px; display: flex; align-items: center; gap: 8px; }
 .ver-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; background: rgba(46, 168, 255, 0.16); color: var(--cyan); font-weight: 800; font-size: 13px; }
 .changelog { margin: 0; padding-left: 20px; display: grid; gap: 7px; font-size: 13.5px; line-height: 1.5; }
-.mode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .mode-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; padding: 12px; border-radius: 12px; border: 2px solid var(--line); background: rgba(255, 255, 255, 0.03); color: var(--text); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
 .mode-card:hover { border-color: var(--line-strong); }
 .mode-card.on { border-color: var(--blue); background: rgba(46, 168, 255, 0.12); }
@@ -70,6 +70,27 @@ html[data-appmode="formal-blue"] {
   --bg0: #0b1426; --bg1: #0f1b33; --panel: #14223e; --panel-2: #1a2b4d; --line: #263a60; --line-strong: #38507f;
   --text: #e9f0fc; --muted: #9db0d0; --dim: #7186aa; --accent: #3b82f6; --accent-hover: #5b97f8; --blue: #3b82f6; --cyan: #8ab8ff; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
   --card: #1b2d51; --card-hover: #223764; --card-sel: #24407a; --card-pgm: #3b2233; --field: #0f1b33; --screen: #08101f; color-scheme: dark;
+}
+
+html[data-appmode="formal-green"] {
+  --bg0: #08150f; --bg1: #0d1f18; --panel: #12281f; --panel-2: #183328; --line: #244a39; --line-strong: #356b53;
+  --text: #eef2ef; --muted: #a3b0a9; --dim: #7a8a82; --accent: #22c55e; --accent-hover: #4ade80; --blue: #22c55e; --cyan: #86efac; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
+  --card: #17332a; --card-hover: #1d4034; --card-sel: #1f5a3c; --card-pgm: #3b2228; --field: #0d1f18; --screen: #060f0a; color-scheme: dark;
+}
+html[data-appmode="formal-purple"] {
+  --bg0: #120c24; --bg1: #1a1230; --panel: #21173d; --panel-2: #2a1d4d; --line: #3c2d6b; --line-strong: #55429a;
+  --text: #eef2ef; --muted: #a3b0a9; --dim: #7a8a82; --accent: #8b5cf6; --accent-hover: #a78bfa; --blue: #8b5cf6; --cyan: #c4b5fd; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
+  --card: #2b1f4f; --card-hover: #352760; --card-sel: #473283; --card-pgm: #3b2233; --field: #1a1230; --screen: #0c0719; color-scheme: dark;
+}
+html[data-appmode="formal-wine"] {
+  --bg0: #18080f; --bg1: #220d16; --panel: #2b121e; --panel-2: #361a28; --line: #522437; --line-strong: #7a3550;
+  --text: #eef2ef; --muted: #a3b0a9; --dim: #7a8a82; --accent: #f43f5e; --accent-hover: #fb7185; --blue: #f43f5e; --cyan: #fda4af; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
+  --card: #3a1827; --card-hover: #46202f; --card-sel: #6b2540; --card-pgm: #4a1d28; --field: #220d16; --screen: #10050a; color-scheme: dark;
+}
+html[data-appmode="formal-gold"] {
+  --bg0: #070707; --bg1: #0c0c0c; --panel: #141412; --panel-2: #1d1c18; --line: #33311f; --line-strong: #5a5530;
+  --text: #eef2ef; --muted: #a3b0a9; --dim: #7a8a82; --accent: #f5b301; --accent-hover: #ffc933; --blue: #f5b301; --cyan: #ffd966; --red: #ff5468; --gold: #ffd36b; --green: #3be39a;
+  --card: #1f1e19; --card-hover: #29271f; --card-sel: #3d3410; --card-pgm: #3b2228; --field: #0c0c0c; --screen: #030303; color-scheme: dark;
 }
 
 /* bahagian lain yang asalnya berlatar biru tua: ikut warna mod Formal */
