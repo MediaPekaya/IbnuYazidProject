@@ -52,12 +52,8 @@
   ];
   TA4.forEach(([theme, label], i) => add({ id: 'pr-a4-p-' + theme, orientation: 'portrait', theme, fxStyle: theme, label, name: '', desc: 'Masukkan PDF saiz A4: ia diletak di tengah kawasan kertas; guru boleh melaraskan saiznya.' }, PA4[i % PA4.length]));
   // ---- reka bentuk berhias (sekolah, perpustakaan, universiti, korporat, bunga, buku nota, sains, kanak-kanak, geometri) ----
-  const DEC = [['school', 'Sekolah', 'School', 'flat-forest'], ['library', 'Perpustakaan', 'Library', 'flat-white'], ['university', 'Universiti', 'University', 'flat-navy'], ['corporate', 'Korporat', 'Corporate', 'flat-white'],
-    ['floral', 'Bunga', 'Floral', 'flat-rose'], ['notebook', 'Buku Nota', 'Notebook', 'flat-sun'], ['science', 'Sains', 'Science', 'flat-sky'], ['kids', 'Kanak-kanak', 'Kids', 'flat-sky'], ['geometric', 'Geometri', 'Geometric', 'flat-mint'],
-    ['dental', 'Doktor Gigi', 'Dentist', 'flat-white'], ['ortho', 'Ortopedi', 'Orthopedic', 'flat-navy'], ['surgery', 'Pembedahan', 'Surgery', 'flat-white'], ['dna', 'Biologi', 'Biology', 'flat-teal'],
-    ['electrical', 'Elektrik', 'Electrical', 'flat-navy'], ['engineering', 'Kejuruteraan', 'Engineering', 'flat-indigo'], ['construction', 'Pembinaan', 'Construction', 'flat-sun'], ['islamic', 'Islamik', 'Islamic', 'flat-forest'],
-    ['coding', 'Pengaturcaraan', 'Coding', 'flat-charcoal'], ['finance', 'Kewangan', 'Finance', 'flat-mint'], ['law', 'Undang-undang', 'Law', 'flat-sun'], ['math', 'Matematik', 'Math', 'flat-sky'],
-    ['language', 'Bahasa', 'Language', 'flat-rose'], ['eco', 'Alam Sekitar', 'Eco', 'flat-mint'], ['art', 'Seni & Reka Bentuk', 'Art & Design', 'flat-white']];
+  const DEC = [['school', 'Sekolah', 'School', 'flat-forest'], ['university', 'Universiti', 'University', 'flat-navy'], ['corporate', 'Korporat', 'Corporate', 'flat-white'],
+    ['floral', 'Bunga', 'Floral', 'flat-rose'], ['notebook', 'Buku Nota', 'Notebook', 'flat-sun'], ['science', 'Sains', 'Science', 'flat-sky']];
   const layouts = { 'l-16': [L16, 1920, 1080, 'landscape', '16:9'], 'l-a4': [LA4, 1920, 1080, 'landscape', 'A4'], 'p-16': [P16, 1080, 1920, 'portrait', '16:9'], 'p-a4': [PA4, 1080, 1920, 'portrait', 'A4'] };
   Object.keys(layouts).forEach((lk) => {
     const [arr, cw, ch, orient, kind] = layouts[lk];
@@ -68,6 +64,15 @@
       o.build = () => { const items = build(); items.unshift(wid('Latar hiasan', 'decor', 0, 0, cw, ch, { style })); items.forEach((s2) => { if (s2.type === 'widget' && !s2.props.font && !['logo', 'frame', 'bot', 'decor'].includes(s2.props.widget)) s2.props.font = font; }); return items; };
       out.push(named(o, kind, ms, en));
     });
+    // gambar sebenar (foto): pantai, rak buku, gunung, hutan dan lain-lain, dengan gerakan perlahan
+    (GS.PHOTO_LIST || []).forEach((ph, i) => {
+      const build = arr[(i + 2) % arr.length], theme = ph.tone === 'light' ? 'flat-white' : 'flat-charcoal';
+      const o = { id: 'pr-photo-' + lk + '-' + ph.id, orientation: orient, theme, fxStyle: theme, category: 'present', fxAnchor: orient === 'portrait' ? 1100 : 540, desc: 'Latar gambar sebenar (' + ph.ms + '): masukkan ' + (kind === 'A4' ? 'PDF A4' : 'slaid 16:9') + ' dan ia terus masuk ke kawasan perbentangan.' };
+      const font = FONTS[(n++) % FONTS.length];
+      o.build = () => { const items = build(); items.unshift(wid('Latar gambar', 'photo', 0, 0, cw, ch, { photo: ph.id, shade: ph.tone === 'light' ? 0.08 : 0.25 })); items.forEach((s2) => { if (s2.type === 'widget' && !s2.props.font && !['logo', 'frame', 'bot', 'decor', 'photo'].includes(s2.props.widget)) s2.props.font = font; }); return items; };
+      out.push(named(o, kind, ph.ms, ph.en));
+    });
   });
+
   G.templates.push(...out);
 })();

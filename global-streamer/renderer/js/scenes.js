@@ -483,11 +483,17 @@
 
   const widgetDefs = {
     clock: ['Jam & Masa Main', 520, 118], winloss: ['Menang / Kalah', 520, 118], logo: ['Logo', 170, 116],
-    decor: ['Latar hiasan', 1080, 1920], bgfx: ['Latar bergerak', 1080, 1920], tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
+    photo: ['Latar gambar sebenar', 1080, 1920], decor: ['Latar hiasan', 1080, 1920], bgfx: ['Latar bergerak', 1080, 1920], tierlist: ['Tier List', 1000, 1300], countdown: ['Kira Detik (Sebentar Lagi)', 900, 460], bot: ['Bot', 160, 150], brand: ['Tajuk', 420, 116], ticker: ['Bar Teks', 1200, 90], frame: ['Bingkai', 640, 360], metaboard: ['Meta Tournament', 560, 330], matchboard: ['Perlawanan Tournament', 760, 250], resultsboard: ['Keputusan Tournament', 560, 400],
   };
   S.addWidget = function (type) {
     const d = widgetDefs[type];
     if (!d) return;
+    if (type === 'photo') {
+      const sc = S.editTarget(); if (!sc) return;
+      const first = (GS.photos.list[0] || {}).id;
+      const src = mk('widget', d[0], 0, 0, GS.design.w, GS.design.h, { widget: 'photo', photo: first, shade: 0.22 });
+      sc.sources.unshift(src); selectedId = src.id; changed('sources:changed'); GS.emit('scenes:changed'); return;
+    }
     if (type === 'decor') {
       const sc = S.editTarget(); if (!sc) return;
       const src = mk('widget', d[0], 0, 0, GS.design.w, GS.design.h, { widget: 'decor', style: 'school' });
@@ -706,7 +712,8 @@
       { label: 'Widget: Perlawanan Tournament', icon: 'sword', run: () => S.addWidget('matchboard') },
       { label: 'Widget: Keputusan Tournament', icon: 'trophy', run: () => S.addWidget('resultsboard') },
       { label: 'Latar bergerak (api, kilat, peti, anime)', icon: 'flame', run: () => S.addWidget('bgfx') },
-      { label: 'Latar hiasan (sekolah, buku, bunga, universiti)', icon: 'images', run: () => S.addWidget('decor') },
+      { label: 'Latar gambar sebenar (pantai, rak buku, gunung...)', icon: 'image', run: () => S.addWidget('photo') },
+      { label: 'Latar hiasan (sekolah, universiti, bunga, sains)', icon: 'images', run: () => S.addWidget('decor') },
       '-',
       { heading: 'Sebentar Lagi' },
       { label: 'Kira Detik (jam, minit, saat)', icon: 'timer', run: () => S.addWidget('countdown') },
@@ -758,7 +765,7 @@
     if (!s) { root.append(h('div', { class: 'empty' }, 'Pilih satu sumber untuk ubah sifatnya.')); const pb0 = programCountdownBox(); if (pb0) root.append(pb0); return; }
     root.append(
       h('div', { class: 'grid4' }, field('X', numInput(s, 'x')), field('Y', numInput(s, 'y')), field('Lebar', numInput(s, 'w')), field('Tinggi', numInput(s, 'h'))));
-    if (s.type === 'widget' && s.props.widget !== 'bgfx' && s.props.widget !== 'decor' && GS.fonts) {
+    if (s.type === 'widget' && s.props.widget !== 'bgfx' && s.props.widget !== 'decor' && s.props.widget !== 'photo' && GS.fonts) {
       const fsel = h('select', { id: 'selFont', onChange: (e) => { s.props.font = e.target.value || undefined; changed('props:changed'); } },
         h('option', { value: '' }, GS.t('Fon asal')),
         Object.keys(GS.fonts.groups).map((g) => h('optgroup', { label: GS.t(GS.fonts.groups[g]) }, GS.fonts.list.filter((f) => f.group === g).map((f) => h('option', { value: f.key, selected: s.props.font === f.key }, f.name)))));
@@ -815,6 +822,12 @@
         root.append(field('Saiz tulisan (%)', h('input', { type: 'range', min: 50, max: 160, value: p.textScale || 100, onInput: (e) => { p.textScale = Number(e.target.value); GS.save(); } })));
       }
       if (w === 'tierlist') GS.tier.props(root, s, field, renderProps);
+      if (w === 'photo') {
+        const p = s.props;
+        root.append(field('Gambar', h('select', { id: 'selPhoto', onChange: (e) => { p.photo = e.target.value; GS.save(); } }, GS.photos.list.map((ph) => h('option', { value: ph.id, selected: p.photo === ph.id }, GS.state.lang === 'ms' ? ph.ms : ph.en)))));
+        root.append(field('Kegelapan tepi', h('input', { type: 'range', min: 0, max: 60, value: Math.round((p.shade != null ? p.shade : 0.22) * 100), onInput: (e) => { p.shade = Number(e.target.value) / 100; GS.save(); } })));
+        const ph = GS.photos.byId(p.photo); if (ph) root.append(h('p', { class: 'muted note' }, ph.credit));
+      }
       if (w === 'decor') {
         const p = s.props;
         root.append(field('Gaya latar', h('select', { onChange: (e) => { p.style = e.target.value; GS.save(); } }, GS.decor.styles.map(([v, l]) => h('option', { value: v, selected: (p.style || 'school') === v }, GS.t(l))))));

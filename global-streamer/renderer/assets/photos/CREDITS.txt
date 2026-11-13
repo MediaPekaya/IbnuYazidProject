@@ -1,0 +1,79 @@
+Photos used as presentation backgrounds. All from Wikimedia Commons under the licenses listed.
+
+beach.jpg
+  Havelock Island, Sandy lagoon, Andaman Islands.jpg
+  Author: Vyacheslav Argenberg
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Havelock_Island%2C_Sandy_lagoon%2C_Andaman_Islands.jpg
+
+library.jpg
+  Long Room Interior, Trinity College Dublin, Ireland - Diliff.jpg
+  Author: Diliff
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Long_Room_Interior%2C_Trinity_College_Dublin%2C_Ireland_-_Diliff.jpg
+
+mountains.jpg
+  Blue Lake in Mount Cook National Park.jpg
+  Author: Krzysztof Golik
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Blue_Lake_in_Mount_Cook_National_Park.jpg
+
+forest.jpg
+  Birchwood Slavnoe 2012 G1.jpg
+  Author: George Chernilevsky
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Birchwood_Slavnoe_2012_G1.jpg
+
+sunset.jpg
+  Albi Panorama Sunset Panini General.jpg
+  Author: Benh LIEU SONG ( Flickr )
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Albi_Panorama_Sunset_Panini_General.jpg
+
+mosque.jpg
+  Mausoleum of Khoja Ahmed Yasawi in Hazrat-e Turkestan, Kazakhstan.jpg
+  Author: Petar Milošević
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Mausoleum_of_Khoja_Ahmed_Yasawi_in_Hazrat-e_Turkestan%2C_Kazakhstan.jpg
+
+flowers.jpg
+  Apple-tree blossoms 2017 G3.jpg
+  Author: George Chernilevsky
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Apple-tree_blossoms_2017_G3.jpg
+
+desert.jpg
+  006 Dune 45 in Sossusvlei at sunrise Photo by Giles Laurent.jpg
+  Author: n/a
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:006_Dune_45_in_Sossusvlei_at_sunrise_Photo_by_Giles_Laurent.jpg
+
+snow.jpg
+  Angelus Hut in the winter, Nelson Lakes National Park, New Zealand.jpg
+  Author: Michal Klajban Exposure time 1/25 sec (0.04) F-number f/11 ISO speed rating 100
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Angelus_Hut_in_the_winter%2C_Nelson_Lakes_National_Park%2C_New_Zealand.jpg
+
+lake.jpg
+  1 lake louise pano 2019.jpg
+  Author: n/a
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:1_lake_louise_pano_2019.jpg
+
+waterfall.jpg
+  American and Bridal Veil Falls winter.jpg
+  Author: The Cosmonaut , editing by Wilfredor
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:American_and_Bridal_Veil_Falls_winter.jpg
+
+cove.jpg
+  Navagio, Zante 02.jpg
+  Author: Wilnel José Verdú Guerrero
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:Navagio%2C_Zante_02.jpg
+
+library2.jpg
+  George-peabody-library.jpg
+  Author: Matthew Petroff
+  License: CC0
+  Source: https://commons.wikimedia.org/wiki/File:George-peabody-library.jpg
