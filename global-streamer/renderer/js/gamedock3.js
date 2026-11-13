@@ -11,7 +11,13 @@
   const avatar = (name, px, cls) => {
     const url = GS.heroUrl(name, px * 2);
     if (!url) return h('i');
-    return h('img', { class: cls || 'hav', src: url, alt: '', width: px, height: px, loading: 'lazy', referrerpolicy: 'no-referrer', onError: (e) => { e.target.replaceWith(h('i')); } });
+    let tries = 0;
+    return h('img', { class: cls || 'hav', src: url, alt: '', width: px, height: px, loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer', onError: (e) => {
+      const im = e.target;
+      // cuba semula beberapa kali (CDN mungkin menyekat banyak permintaan serentak) sebelum guna inisial
+      if (tries++ < 3) setTimeout(() => { if (im.isConnected) im.src = url + (url.includes('?') ? '&' : '?') + 'r=' + tries; }, 800 * tries + Math.random() * 600);
+      else im.replaceWith(h('i', { class: 'hav-fb' }, (name || '?').slice(0, 2).toUpperCase()));
+    } });
   };
   const pct = (x) => (x * 100).toFixed(1).replace(/\.0$/, '') + '%';
   const sec = (title, ...kids) => h('div', { class: 'gd-sec' }, h('h4', null, title), ...kids);
@@ -78,19 +84,41 @@
       if (!rows.length) list.append(h('div', { class: 'empty' }, 'Tiada hero dijumpai.'));
       count.textContent = rows.length + ' / ' + all.length + ' hero';
     };
+    // satu pilihan sahaja pada satu masa (peranan ATAU lane); tiada butang "Semua"
+    role = GS.data.mlbbRoles[0]; lane = '';
+    const rolesRow = h('div', { class: 'subtabs wrap' }), lanesRow = h('div', { class: 'subtabs wrap' });
+    const refreshRows = () => { GS.$$('.subtab', rolesRow).forEach((b) => b.classList.toggle('on', b.dataset.v === role)); GS.$$('.subtab', lanesRow).forEach((b) => b.classList.toggle('on', b.dataset.v === lane)); };
+    GS.data.mlbbRoles.forEach((r) => rolesRow.append(h('button', { class: 'subtab', dataset: { v: r }, onClick: () => { role = r; lane = ''; refreshRows(); draw(); } }, r)));
+    GS.data.mlbbLanes.forEach((l) => lanesRow.append(h('button', { class: 'subtab', dataset: { v: l.id }, onClick: () => { lane = l.id; role = ''; refreshRows(); draw(); } }, LANE[l.id])));
     root.append(
       h('div', { class: 'callout slim' }, h('span', { html: icon('shield', 14) }), ' Panel peribadi. Senarai ini TIDAK masuk dalam siaran penonton.'),
       h('div', { class: 'search' }, h('span', { html: icon('search', 16) }), h('input', { type: 'search', placeholder: 'Cari hero…', 'aria-label': 'Cari hero', onInput: (e) => { q = e.target.value.trim().toLowerCase(); draw(); } })),
-      chipRow(roleOpts(), role, (v) => { role = v; draw(); }),
-      chipRow(laneOpts(), lane, (v) => { lane = v; draw(); }),
+      rolesRow, lanesRow,
       count, list, detail,
       h('p', { class: 'muted note' }, GS.t('{0} hero, {1} item, {2} set emblem daripada Mobile Legends Wiki (CC-BY-SA 3.0).', all.length, GS.data.mlbbItems.length, GS.data.mlbbEmblems.length)));
     showDetail(null);
+    refreshRows();
     draw();
     metaCb = () => { if (sel) showDetail(sel); };
   }
 
   /* ============ Meta ============ */
+  // build dan emblem cadangan mengikut peranan hero (data item/emblem Mobile Legends Wiki); BUKAN statistik tournament
+  const ROLE_BUILD = {
+    Marksman: ["Berserker's Fury", 'Windtalker', 'Blade of Despair', 'Malefic Roar'],
+    Fighter: ['War Axe', 'Blade of Despair', 'Endless Battle', 'Immortality'],
+    Assassin: ['Hunter Strike', 'Blade of the Heptaseas', 'Malefic Roar', 'Endless Battle'],
+    Mage: ['Clock of Destiny', 'Lightning Truncheon', 'Holy Crystal', 'Divine Glaive'],
+    Tank: ['Antique Cuirass', 'Dominance Ice', 'Immortality', 'Oracle'],
+    Support: ['Oracle', 'Dominance Ice', 'Immortality', 'Antique Cuirass'],
+  };
+  const buildOf = (name) => {
+    const x = GS.hero && GS.hero(name), role = x && x.roles && x.roles[0];
+    if (!role || !ROLE_BUILD[role]) return null;
+    const items = ROLE_BUILD[role].map((n) => (GS.data.mlbbItems || []).find((i) => i.name === n)).filter((i) => i && i.img);
+    const emb = (GS.data.mlbbEmblems || []).find((e) => new RegExp('Custom ' + role + ' Emblem', 'i').test(e.name));
+    return { role, items, emb };
+  };
   function leaderboard(title, rows, valf, maxv) {
     const box = h('div', { class: 'gd-sec' }, h('h4', null, title));
     if (!rows.length) { box.append(h('div', { class: 'placeholder' }, 'Belum ada data')); return box; }
@@ -99,9 +127,16 @@
       box.append(h('div', { class: 'lb-row' + (i < rows.length - 1 ? ' gap' : '') },
         h('span', { class: 'lb-rank' }, String(i + 1)),
         h('span', { class: 'lb-name' }, avatar(x.name, 22), x.name),
+        buildEl(x.name),
         h('b', { class: 'lb-val ' + (i % 2 === 0 ? 'red' : 'yellow') }, v.text)));
     });
     return box;
+  }
+  function buildEl(name) {
+    const b = buildOf(name);
+    if (!b) return h('span');
+    return h('span', { class: 'lb-build', title: b.role + ': ' + b.items.map((i) => i.name).join(', ') + (b.emb ? ' · ' + b.emb.name : '') },
+      b.items.map((i) => imgOf(i.img, 16, 'lb-item')), b.emb ? imgOf(b.emb.img, 18, 'lb-emb') : null);
   }
   function meta(root) {
     const body = h('div', { class: 'meta-body' });
