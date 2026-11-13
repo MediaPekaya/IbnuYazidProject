@@ -206,7 +206,8 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 11px; padding: 
 .chat-list { flex: 1; min-height: 120px; overflow: auto; display: flex; flex-direction: column; gap: 5px; padding: 2px; }
 .chat-msg { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; padding: 7px 9px; border-radius: 10px; background: rgba(20, 44, 88, 0.25); border-left: 3px solid var(--pf); font-size: 12.5px; animation: msgin 0.4s var(--ease); }
 @keyframes msgin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.cm-badge { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 5px; background: var(--pf); color: #04122a; font-size: 10px; font-weight: 800; flex: none; align-self: center; }
+.cm-badge { display: inline-grid; place-items: center; width: 18px; height: 18px; background: none; flex: none; align-self: center; }
+.cm-badge svg { display: block; }
 .cm-user { font-weight: 800; color: var(--pf); }
 .cm-text { color: var(--text); word-break: break-word; }
 .cm-demo { font-size: 9px; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 5px; background: rgba(255, 211, 107, 0.14); color: var(--gold); text-transform: uppercase; }

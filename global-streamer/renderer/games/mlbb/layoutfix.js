@@ -45,8 +45,6 @@
       build: withBg(() => [logo(440, 200, 200, 170), cdw(40, 560, 1000, 600, { numStyle: 'fire', noPanel: true }), brand(140, 1240, 800, 130), tick(40, 1700, 1000, 100)], 'fire', true) }),
     SP({ id: 'sl-kilat-p', theme: 'galaxy', fxStyle: 'galaxy', name: 'Kilat · Sebentar Lagi', desc: 'Nombor neon dengan kilat menyambar.',
       build: withBg(() => [cdw(40, 240, 1000, 560, { numStyle: 'neon', noPanel: true, subtitle: 'LIVE AKAN BERMULA' }), cam(240, 900, 600, 600), logo(440, 1560, 200, 170), tick(40, 1760, 1000, 100)], 'lightning', true) }),
-    SP({ id: 'sl-peti-p', theme: 'gold', fxStyle: 'gold', name: 'Peti Harta · Sebentar Lagi', desc: 'Peti harta bercahaya dengan kiraan detik di atas.',
-      build: withBg(() => [logo(440, 120, 200, 170), cdw(40, 330, 1000, 520, { numStyle: 'plain', noPanel: true, subtitle: 'HADIAH MENANTI' }), tick(40, 1720, 1000, 100)], 'chest', true) }),
     SP({ id: 'sl-anime-p', theme: 'neon', fxStyle: 'neon', name: 'Anime · Sebentar Lagi', desc: 'Latar anime berwarna dengan kelopak sakura dan bot.',
       build: withBg(() => [cdw(40, 480, 1000, 560, { numStyle: 'outline', noPanel: true, title: 'SEBENTAR LAGI~', subtitle: 'JANGAN KETINGGALAN!' }), bot(60, 1160, 460, 460), logo(740, 1260, 220, 190), tick(40, 1700, 1000, 100)], 'anime', true) }),
     SP({ id: 'sl-neon-p', theme: 'neon', fxStyle: 'neon', name: 'Neon Grid · Sebentar Lagi', desc: 'Latar neon gaya retro dengan nombor neon di bawah matahari.',
@@ -59,8 +57,6 @@
       build: withBg(() => [logo(60, 40, 170, 130), cdw(260, 180, 1400, 600, { numStyle: 'fire', noPanel: true }), tick(40, 880, 1840, 110)], 'fire', false) }),
     SLd({ id: 'sl-kilat-l', theme: 'galaxy', fxStyle: 'galaxy', name: 'Kilat · Sebentar Lagi', desc: 'Nombor neon di kiri, kamera di kanan, kilat menyambar.',
       build: withBg(() => [cdw(40, 200, 1100, 600, { numStyle: 'neon', noPanel: true }), cam(1200, 260, 660, 372), logo(1500, 680, 170, 130), tick(40, 880, 1840, 110)], 'lightning', false) }),
-    SLd({ id: 'sl-peti-l', theme: 'gold', fxStyle: 'gold', name: 'Peti Harta · Sebentar Lagi', desc: 'Kiraan detik di atas peti harta bercahaya.',
-      build: withBg(() => [cdw(260, 40, 1400, 460, { numStyle: 'plain', noPanel: true, subtitle: 'HADIAH MENANTI' }), logo(60, 40, 170, 130), tick(40, 900, 1840, 110)], 'chest', false) }),
     SLd({ id: 'sl-anime-l', theme: 'neon', fxStyle: 'neon', name: 'Anime · Sebentar Lagi', desc: 'Latar anime dengan kelopak sakura dan bot.',
       build: withBg(() => [cdw(260, 160, 1400, 560, { numStyle: 'outline', noPanel: true, title: 'SEBENTAR LAGI~', subtitle: 'JANGAN KETINGGALAN!' }), bot(1560, 700, 300, 300), logo(60, 40, 170, 130), tick(40, 900, 1500, 100)], 'anime', false) }),
     SLd({ id: 'sl-neon-l', theme: 'neon', fxStyle: 'neon', name: 'Neon Grid · Sebentar Lagi', desc: 'Latar neon retro dengan nombor neon.',
@@ -75,7 +71,7 @@
   G.templates.push(...soonNew, ...soonNewL);
 
   /* ---------- template gaming dengan latar api, kilat, peti harta dan anime ---------- */
-  const BG = [['fire', 'Api', 'crimson'], ['storm', 'Hujan Ribut', 'galaxy'], ['lightning', 'Kilat', 'galaxy'], ['chest', 'Peti Harta', 'gold'], ['anime', 'Anime', 'neon']];
+  const BG = [['fire', 'Api', 'crimson'], ['storm', 'Hujan Ribut', 'galaxy'], ['lightning', 'Kilat', 'galaxy'], ['anime', 'Anime', 'neon']];
   ['holo-portrait', 'portrait-game', 'mono-bersih', 'holo-pro', 'cam-besar', 'galaxy-kamera'].forEach((id) => {
     const t = G.templates.find((x) => x.id === id); if (!t) return;
     BG.forEach(([style, label, fx]) => {
@@ -83,7 +79,7 @@
       clones.push(Object.assign({}, t, { id: id + '-' + style, fxStyle: fx, theme: undefined, category: 'gaming', name: label + ' · ' + t.name, desc: 'Latar ' + label.toLowerCase() + ' bergerak di belakang susun atur. ' + (t.desc || ''), build: withBg(t.build, style, por) }));
     });
   });
-  G.templates.push(...clones.slice(-30));
+  G.templates.push(...clones.slice(-24));
 
   /* ---------- penormal susun atur ---------- */
   function normPortrait(t, items) {

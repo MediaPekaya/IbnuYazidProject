@@ -5,7 +5,7 @@
   const W = GS.widgets;
   const TAU = Math.PI * 2;
   const rnd = (i, k) => { const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); };
-  const STYLES = [['fire', 'Api'], ['storm', 'Hujan ribut kilat'], ['lightning', 'Kilat'], ['chest', 'Peti harta'], ['anime', 'Anime'], ['neon', 'Neon grid'], ['stars', 'Bintang']];
+  const STYLES = [['fire', 'Api'], ['storm', 'Hujan ribut kilat'], ['lightning', 'Kilat'], ['anime', 'Anime'], ['neon', 'Neon grid'], ['stars', 'Bintang']];
 
   function fireFallback(ctx, x, y, w, h, t) {
     const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#0a0206'); g.addColorStop(0.6, '#2a0608'); g.addColorStop(1, '#5a1004');
@@ -51,7 +51,7 @@
     ' c += vec3(.22, .04, 0.) * pow(1. - uv.y, 3.) * .7;' +
     ' gl_FragColor = vec4(c, 1.); }';
   /* hujan ribut: awan ribut berlapis (fbm), hujan berlapis dengan serong angin, kilat dan petir bercabang yang menerangi awan */
-  const STORM = 'float seg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float k = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * k); }' +
+  const STORM = 'float bwob(float y, float k, float sd){ float v = 0., a = .075, f = 2.2; for (int i = 0; i < 6; i++) { v += a * (n(vec2(y * f + sd * 13.1, k * 7.7 + float(i) * 3.1)) - .5) * 2.; f *= 2.25; a *= .55; } return v; }' +
     'void main(){ vec2 uv = gl_FragCoord.xy / R; float asp = R.x / R.y; vec2 p = vec2(uv.x * asp, uv.y); float t = T;' +
     ' float per = 3.4, k = floor(t / per), ph = (t - k * per);' +
     ' float flash = exp(-ph * 5.5) * step(ph, 1.0) + .65 * exp(-max(ph - .22, 0.) * 8.) * step(.22, ph) * step(ph, 1.0) + .015 * (n(vec2(t * 9., 1.)) - .5);' +
@@ -63,13 +63,22 @@
     ' vec3 col = mix(vec3(.02, .025, .045), vec3(.15, .18, .26), cl) * (.45 + .75 * uv.y);' +
     ' col = mix(col, col * .55, smoothstep(.2, .7, cl2) * (1. - uv.y) * .6);' +
     ' col += vec3(.5, .56, .85) * flash * (.25 + cl * 1.1) * (.35 + uv.y);' +
-    // petir bercabang
-    ' float d = 1e3, d2 = 1e3; vec2 prev = vec2(bx * asp, 1.06), pb = prev; float fl = ph < 1.0 ? 1. : 0.;' +
-    ' for (int i = 1; i <= 16; i++) { float fi = float(i) / 16.; vec2 nx = vec2((bx + (h(vec2(k, float(i))) - .5) * .20 * (1. - fi * .3)) * asp, 1.06 - fi * 1.0); d = min(d, seg(p, prev, nx));' +
-    '   if (i == 6) pb = nx; prev = nx; }' +
-    ' vec2 pr = pb; for (int i = 1; i <= 8; i++) { float fi = float(i) / 8.; vec2 nx = pb + vec2((.12 + .1 * h(vec2(k, 40.))) * asp * fi * (h(vec2(k, 50.)) > .5 ? 1. : -1.) + (h(vec2(k, float(i) + 60.)) - .5) * .06 * asp, -fi * .38); d2 = min(d2, seg(p, pr, nx)); pr = nx; }' +
-    ' float bolt = (.0028 / (d + .0016) + .0016 / (d2 + .0018) * .7) * flash * fl;' +
-    ' col += vec3(.75, .82, 1.) * bolt + vec3(.9, .93, 1.) * smoothstep(.0035, 0., d) * flash * fl;' +
+    // petir sebenar: laluan fraktal (hingar berbilang skala) dengan cabang yang menipis
+    ' float fl = ph < 1.0 ? 1. : 0.;' +
+    ' float x0 = bx * asp; float y = p.y;' +
+    ' float X = x0 + bwob(y, k, 1.) * asp; float X2 = x0 + bwob(y + .004, k, 1.) * asp; float sl = (X2 - X) / .004;' +
+    ' float d = abs(p.x - X) / sqrt(1. + sl * sl);' +
+    ' float taper = smoothstep(.03 + .22 * h(vec2(k, 8.)), .35, y);' +
+    ' float yb = .78 - .2 * h(vec2(k, 9.)); float xb = x0 + bwob(yb, k, 1.) * asp; float dir = h(vec2(k, 50.)) > .5 ? 1. : -1.;' +
+    ' float Xb = xb + (yb - y) * dir * .38 * asp + bwob(y, k, 2.) * asp * .7; float Xb2 = xb + (yb - y - .004) * dir * .38 * asp + bwob(y + .004, k, 2.) * asp * .7; float slb = (Xb2 - Xb) / .004;' +
+    ' float db = abs(p.x - Xb) / sqrt(1. + slb * slb); float mb = step(y, yb) * smoothstep(yb - .42, yb - .05, y);' +
+    ' float yc = .5 - .12 * h(vec2(k, 11.)); float xc = x0 + bwob(yc, k, 1.) * asp; float Xc = xc + (yc - y) * -dir * .3 * asp + bwob(y, k, 3.) * asp * .6; float Xc2 = xc + (yc - y - .004) * -dir * .3 * asp + bwob(y + .004, k, 3.) * asp * .6; float slc = (Xc2 - Xc) / .004;' +
+    ' float dc = abs(p.x - Xc) / sqrt(1. + slc * slc); float mc = step(y, yc) * smoothstep(yc - .3, yc - .04, y);' +
+    ' float wid = .0016 * (.55 + .6 * y);' +
+    ' float core = smoothstep(wid, 0., d) * taper + .6 * smoothstep(wid * .8, 0., db) * mb + .5 * smoothstep(wid * .7, 0., dc) * mc;' +
+    ' float glow = (.0026 / (d + .0014)) * taper + .35 * (.0022 / (db + .0016)) * mb + .3 * (.0018 / (dc + .0016)) * mc;' +
+    ' float bolt = glow * flash * fl;' +
+    ' col += vec3(.75, .82, 1.) * bolt + vec3(.92, .95, 1.) * core * flash * fl * 1.2;' +
     // hujan
     ' float rain = 0.;' +
     ' for (int L = 0; L < 3; L++) { float lf = float(L); float N = 70. + lf * 55.; float S = 1.3 + lf * .6; float sp = 1.9 + lf * 1.1;' +
@@ -81,7 +90,9 @@
     ' col += vec3(.68, .78, .95) * rain * (.5 + flash * 1.4);' +
     ' col += vec3(.1, .12, .18) * fbm(vec2(p.x * 2. - t * .1, uv.y * 3.)) * pow(1. - uv.y, 2.5) * .8;' +
     ' gl_FragColor = vec4(col, 1.); }';
-  const SRC = { fire: FIRE, storm: STORM };
+  // kilat ungu: awan ribut dan petir bercabang tanpa hujan, lebih kerap menyambar
+  const LIGHT = STORM.replace("float per = 3.4", "float per = 2.2").replace("vec3(.5, .56, .85) * flash", "vec3(.62, .45, .95) * flash").replace("col += vec3(.68, .78, .95) * rain * (.5 + flash * 1.4);", "col += vec3(.7, .6, .95) * rain * flash * 1.2;").replace("mix(vec3(.02, .025, .045), vec3(.15, .18, .26), cl)", "mix(vec3(.03, .015, .06), vec3(.2, .13, .32), cl)").replace("vec3(.75, .82, 1.) * bolt", "vec3(.8, .7, 1.) * bolt");
+  const SRC = { fire: FIRE, storm: STORM, lightning: LIGHT };
   function initGL() {
     if (GL !== null) return GL;
     try {
@@ -129,9 +140,12 @@
     ctx.restore();
   }
   function storm(ctx, x, y, w, h, t) {
-    if (!glDraw('storm', ctx, x, y, w, h, t)) lightning(ctx, x, y, w, h, t);
+    if (!glDraw('storm', ctx, x, y, w, h, t)) lightning2d(ctx, x, y, w, h, t);
   }
   function lightning(ctx, x, y, w, h, t) {
+    if (!glDraw('lightning', ctx, x, y, w, h, t)) lightning2d(ctx, x, y, w, h, t);
+  }
+  function lightning2d(ctx, x, y, w, h, t) {
     const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#05061a'); g.addColorStop(1, '#1a0b3a'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
     const cl = ctx.createRadialGradient(x + w / 2, y, 10, x + w / 2, y, Math.max(w, h)); cl.addColorStop(0, 'rgba(120,90,255,0.35)'); cl.addColorStop(1, 'rgba(60,40,160,0)'); ctx.fillStyle = cl; ctx.fillRect(x, y, w, h);
     const per = 1700, k = Math.floor(t / per), ph = (t % per) / per;
@@ -195,7 +209,7 @@
     const g = ctx.createRadialGradient(x + w / 2, y + h / 2, 10, x + w / 2, y + h / 2, Math.max(w, h) * 0.7); g.addColorStop(0, '#16224a'); g.addColorStop(1, '#03040c'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
     for (let i = 0; i < 90; i++) { const px = x + rnd(i, 1) * w, py = y + ((rnd(i, 2) * h + t * (0.01 + rnd(i, 3) * 0.03)) % h), r = 0.8 + rnd(i, 4) * 2.4; ctx.fillStyle = 'rgba(255,255,255,' + (0.4 + 0.6 * Math.abs(Math.sin(t * 0.004 + i))).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(px, py, r, 0, TAU); ctx.fill(); }
   }
-  const DRAW = { fire, storm, lightning, chest, anime, neon, stars };
+  const DRAW = { fire, storm, lightning, anime, neon, stars };
   W.bgfx = function (ctx, s, t) {
     const p = s.props || {}, fn = DRAW[p.style] || fire;
     ctx.save();

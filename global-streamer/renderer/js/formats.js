@@ -61,6 +61,7 @@
     if (!viewO) viewO = cur;
     $$('#tplTabs button').forEach((b) => b.classList.toggle('on', b.dataset.o === viewO));
     const sc = GS.scenes.editTarget();
+    const keepTop = root.scrollTop, keepSig = root.dataset.sig;
     root.innerHTML = '';
     root.dataset.o = viewO;
     // scene "Sebentar Lagi": papar terus template Sebentar Lagi untuk scene itu
@@ -79,6 +80,11 @@
     const sig = viewO + '|' + viewC;
     if (F._sig !== undefined && F._sig !== sig) { root.classList.remove('swap'); void root.offsetWidth; root.classList.add('swap'); }
     F._sig = sig;
+    // kekalkan kedudukan skrol: klik template tidak menaikkan senarai ke atas; hanya bila jenis/format ditukar baru ke atas
+    root.dataset.sig = sig;
+    root.style.scrollBehavior = 'auto';
+    root.scrollTop = keepSig === sig ? keepTop : 0;
+    requestAnimationFrame(() => { root.style.scrollBehavior = ''; });
   };
 
   F.init = function () {

@@ -22,10 +22,16 @@
     }
   };
 
+  const LOGO = {
+    tiktok: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><g transform="translate(-0.9,0.5)"><path fill="#25f4ee" d="M16.6 3c.3 2.3 1.6 3.7 3.9 3.9v2.8c-1.4.1-2.6-.3-3.9-1.1v6.1c0 3.1-2.1 5.3-5.2 5.3S6 17.900 6 15.100c0-3.100 2.600-5.400 5.800-5v2.900c-1.400-.4-2.800.5-2.800 2 0 1.200.9 2.100 2.100 2.100 1.300 0 2.200-.9 2.200-2.400V3h3.300z"/></g><g transform="translate(0.9,-0.5)"><path fill="#fe2c55" d="M16.6 3c.3 2.3 1.6 3.7 3.9 3.9v2.8c-1.4.1-2.6-.3-3.9-1.1v6.1c0 3.1-2.1 5.3-5.2 5.3S6 17.900 6 15.100c0-3.100 2.600-5.400 5.800-5v2.900c-1.400-.4-2.800.5-2.800 2 0 1.200.9 2.100 2.100 2.100 1.300 0 2.200-.9 2.200-2.400V3h3.300z"/></g><path fill="#fff" d="M16.6 3c.3 2.3 1.6 3.7 3.9 3.9v2.8c-1.4.1-2.6-.3-3.9-1.1v6.1c0 3.1-2.1 5.3-5.2 5.3S6 17.900 6 15.100c0-3.100 2.600-5.400 5.800-5v2.900c-1.400-.4-2.800.5-2.800 2 0 1.200.9 2.100 2.100 2.100 1.300 0 2.200-.9 2.200-2.400V3h3.300z"/></svg>',
+    youtube: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#ff0000"/><path d="M10 8.800l5.600 3.200-5.600 3.200z" fill="#fff"/></svg>',
+    facebook: '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1877f2"/><path fill="#fff" d="M13.400 21v-7h2.400l.4-2.800h-2.800V9.500c0-.8.300-1.400 1.400-1.400h1.500V5.600c-.3 0-1.200-.1-2.200-.1-2.200 0-3.700 1.300-3.700 3.800v2H8v2.800h2.400v7h3z"/></svg>',
+    other: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#9a7bff"/><circle cx="12" cy="12" r="3.500" fill="#fff"/></svg>',
+  };
   function msgEl(m) {
     const time = new Date(m.ts);
     return h('div', { class: 'chat-msg ' + m.type, style: { '--pf': colors[m.platform] || colors.other } },
-      h('span', { class: 'cm-badge', title: labels[m.platform] }, (labels[m.platform] || '?')[0]),
+      h('span', { class: 'cm-badge', title: labels[m.platform], html: LOGO[m.platform] || LOGO.other }),
       h('span', { class: 'cm-user' }, m.user),
       h('span', { class: 'cm-text' }, m.type === 'follow' ? GS.t('follow anda') : m.type === 'gift' ? GS.t('hantar gift') + ' ' + (m.text || '') : m.type === 'superchat' ? 'Super Chat ' + (m.text || '') : m.type === 'member' ? GS.t('ahli baharu') + ' ' + (m.text || '') : m.text),
       m.demo ? h('span', { class: 'cm-demo' }, 'demo') : null,
