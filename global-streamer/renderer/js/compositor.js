@@ -143,8 +143,13 @@
       switch (s.type) {
         case 'video': {
           const r = GS.media.videos[s.id];
-          if (r && r.video.readyState >= 2 && r.video.videoWidth) this.drawFit(ctx, r.video, r.video.videoWidth, r.video.videoHeight, s);
-          else this.placeholder(ctx, s, now);
+          if (r && r.video.readyState >= 2 && r.video.videoWidth) {
+            // kamera: pantulan cermin (lalai hidup) - bila anda ke kanan, gambar ikut ke kanan; ke kiri, ikut ke kiri
+            const mir = s.props && s.props.kind === 'camera' && s.props.mirror !== false;
+            if (mir) { ctx.save(); const cx = s.x + s.w / 2; ctx.translate(cx, 0); ctx.scale(-1, 1); ctx.translate(-cx, 0); }
+            this.drawFit(ctx, r.video, r.video.videoWidth, r.video.videoHeight, s);
+            if (mir) ctx.restore();
+          } else this.placeholder(ctx, s, now);
           break;
         }
         case 'clip': {
