@@ -12,7 +12,7 @@
   const I = (GS.i18n = { en: {}, missing: new Set(), langs: { ms: 'Bahasa Melayu', en: 'English' } });
 
   function detect() {
-    return 'ms'; // BM ialah bahasa asal produk. Pilihan pengguna disimpan dan diingati.
+    return 'en'; // English ialah bahasa asal. Pilihan pengguna (Tetapan) disimpan dan diingati.
   }
   if (GS.state.lang !== 'ms' && GS.state.lang !== 'en') GS.state.lang = detect();
   if (!['auto', 'ms', 'en'].includes(GS.state.overlayLang)) GS.state.overlayLang = 'auto';

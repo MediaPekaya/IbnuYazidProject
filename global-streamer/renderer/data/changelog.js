@@ -31,6 +31,7 @@ window.GS_CHANGELOG = {
       'Butang Ajar skrin DEFEAT dan VICTORY memaparkan bilangan contoh yang telah diajar.',
       'Pengesan kill, mati, item, item penuh, victory dan defeat hidup sendiri tanpa menekan sebarang kekunci.',
       'Semasa merakam, tetingkap app dikecilkan secara automatik; pilihan tick di menu REC dibuang.',
+      'Bahasa asal aplikasi ialah English; bahasa Melayu dipilih dalam Tetapan.',
     ],
     en: [
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',
@@ -62,6 +63,7 @@ window.GS_CHANGELOG = {
       'The Learn DEFEAT and VICTORY buttons show how many samples have been learned.',
       'The kill, death, item, full item, victory and defeat detectors start by themselves without pressing any key.',
       'While recording, the app window is minimised automatically; the tick option in the REC menu is removed.',
+      'The default app language is English; Bahasa Melayu is chosen in Settings.',
     ],
   },
 };
