@@ -755,7 +755,7 @@
     'Gaya nombor': 'Number style', 'Kotak': 'Box', 'Flip': 'Flip', 'Neon': 'Neon', 'Garis': 'Outline', 'Biasa': 'Plain', 'Tanpa kotak latar': 'No background box',
     'Tetapkan masa di sini. Kira detik dimulakan dari kotak PROGRAM di bawah selepas scene ini berada di Program.': 'Set the time here. Start the countdown from the PROGRAM box below once this scene is in Program.',
     'PROGRAM · Start countdown now': 'PROGRAM · Start countdown now', 'Mula sekarang': 'Start now',
-    'hantar': 'sent', 'Link tidak sah.': 'Invalid link.', 'Album': 'Album', 'Lagu ditambah.': 'Song added.', 'Pelayar / link': 'Browser / link',
+    'hantar': 'sent', 'Kedudukan lagu': 'Song position', 'Presentasi': 'Presentation', 'Tempoh peralihan (ms)': 'Transition duration (ms)', 'Link tidak sah.': 'Invalid link.', 'Album': 'Album', 'Lagu ditambah.': 'Song added.', 'Pelayar / link': 'Browser / link',
     'Tambah lagu daripada pelayar / link': 'Add a song from browser / link', 'Tambah': 'Add', 'Batal': 'Cancel',
     'Tampal link YouTube (video atau album/playlist) atau link terus fail audio. Bunyi YouTube dimainkan melalui pembesar suara komputer; untuk masukkan ke siaran, hidupkan "Audio skrin" dalam Audio Mixer.': 'Paste a YouTube link (video or album/playlist) or a direct audio file link. YouTube sound plays through the computer speakers; to add it to the stream, turn on "Screen audio" in the Audio Mixer.', 'Hujan ribut kilat': 'Thunderstorm', 'Fon tulisan': 'Text font', 'Fon asal': 'Default font', 'Seret untuk laras saiz': 'Drag to resize',
     'Kedudukan tulisan': 'Text position', 'Kiri': 'Left', 'Tengah': 'Center', 'Kanan': 'Right', 'Butang INFO': 'INFO button', 'Sembunyi': 'Hide',

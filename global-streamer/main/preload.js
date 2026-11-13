@@ -36,6 +36,12 @@ contextBridge.exposeInMainWorld('gsNative', {
     onClosingCancel: (cb) => ipcRenderer.on('win:closing-cancel', () => cb()),
     onRestored: (cb) => ipcRenderer.on('win:restored', () => cb()),
   },
+  yt: {
+    load: (key, url) => ipcRenderer.invoke('yt:load', key, url),
+    state: (key) => ipcRenderer.invoke('yt:state', key),
+    cmd: (key, cmd, val) => ipcRenderer.invoke('yt:cmd', key, cmd, val),
+    stop: (key) => ipcRenderer.invoke('yt:stop', key),
+  },
   deck: {
     read: (file) => ipcRenderer.invoke('deck:read', file),
     convert: (file) => ipcRenderer.invoke('deck:convert', file),

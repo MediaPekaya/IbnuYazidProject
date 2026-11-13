@@ -44,7 +44,15 @@
 
     const sel = $('#selTransition');
     sel.value = GS.state.settings.transition;
-    sel.addEventListener('change', () => { GS.state.settings.transition = sel.value; GS.save(); });
+    sel.addEventListener('change', () => { GS.state.settings.transition = sel.value; GS.save(); GS.emit('transition:changed'); });
+    // tempoh peralihan (ms) seperti OBS Studio
+    const ms = $('#inpTransMs');
+    ms.value = GS.state.settings.transitionMs;
+    const applyMs = () => { const v = GS.clamp(Math.round(Number(ms.value) || 500), 50, 10000); GS.state.settings.transitionMs = v; ms.value = v; GS.save(); };
+    ms.addEventListener('change', applyMs);
+    ms.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { applyMs(); ms.blur(); } });
+    const syncTr = () => { ms.disabled = GS.state.settings.transition === 'cut'; ms.value = GS.state.settings.transitionMs; };
+    sel.addEventListener('change', syncTr); syncTr();
 
     const gsel = $('#gameSelect');
     GS.gameList.forEach((g) => gsel.append(h('option', { value: g.id, disabled: !g.ready, selected: g.id === GS.state.game }, g.ready ? g.name : GS.t('{0} (akan datang)', g.name))));

@@ -63,7 +63,7 @@
       h('h3', null, 'Peralihan scene (Mod Studio)'),
       h('div', { class: 'grid2' },
         h('label', { class: 'field' }, h('span', null, 'Jenis'), sel('transition', [['fade', 'Pudar'], ['slide', 'Luncur'], ['cut', 'Potong']], String)),
-        h('label', { class: 'field' }, h('span', null, 'Tempoh (ms)'), h('input', { type: 'number', min: 100, max: 3000, step: 100, value: s.transitionMs, onChange: (e) => { s.transitionMs = GS.clamp(Number(e.target.value) || 500, 100, 3000); GS.save(); } }))),
+        h('label', { class: 'field' }, h('span', null, 'Tempoh (ms)'), h('input', { type: 'number', min: 50, max: 10000, step: 50, value: s.transitionMs, onChange: (e) => { s.transitionMs = GS.clamp(Number(e.target.value) || 500, 50, 10000); GS.save(); } }))),
       h('h3', null, 'Susun atur panel'),
       h('p', { class: 'muted note' }, 'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.'),
       h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', id: 'btnLayoutReset', onClick: () => GS.layout.resetAll() }, 'Tetapkan semula susun atur panel')),

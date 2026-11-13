@@ -626,3 +626,7 @@ button.hero:hover { border-color: var(--line-strong); background: rgba(46, 168, 
 .lb-build .lb-tal { width: 13px; height: 13px; }
 .lb-build .lb-sep { height: 15px; margin: 0 3px; }
 .lb-name { gap: 5px; }
+
+.music-prog { display: flex; flex-direction: column; gap: 2px; }
+.music-seek { width: 100%; accent-color: var(--blue, #2ea8ff); height: 14px; }
+.music-time { font-size: 10px; font-variant-numeric: tabular-nums; color: var(--muted); text-align: center; }

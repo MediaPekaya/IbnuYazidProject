@@ -227,6 +227,19 @@
   };
   DK.pageCount = (s) => { const d = s.props && s.props.docKey && DK.docs.get(s.props.docKey); return d ? d.numPages : 0; };
 
+  /** Kawasan perbentangan: sumber bertanda props.slot (template perbentangan), jika tiada guna capture card yang kelihatan, jika tiada guna seluruh kanvas. */
+  DK.slotRect = function (sc) {
+    const srcs = (sc && sc.sources) || [];
+    const slot = srcs.find((x) => x.props && x.props.slot && x.visible !== false) || srcs.find((x) => x.type === 'video' && x.props && x.props.kind === 'capture' && x.visible !== false);
+    return slot ? { x: slot.x, y: slot.y, w: slot.w, h: slot.h } : { x: 0, y: 0, w: GS.design.w, h: GS.design.h };
+  };
+  DK.placeInSlot = function (sc, s, aspect) {
+    const r = DK.slotRect(sc);
+    if (aspect >= 1.5) { s.x = r.x; s.y = r.y; s.w = r.w; s.h = r.h; s.fit = 'contain'; return; }                 // slaid 16:9
+    const hh = Math.round(r.h * 0.96), ww = Math.round(Math.min(r.w, hh * aspect));                                // kertas A4 / menegak: di tengah
+    s.w = ww; s.h = Math.round(ww / aspect); s.x = Math.round(r.x + (r.w - s.w) / 2); s.y = Math.round(r.y + (r.h - s.h) / 2); s.fit = 'contain';
+  };
+
   /** Buka fail presentation (PDF / PPT / PPTX) dan cipta/ganti sumber. */
   DK.openFile = function (src) {
     const inp = h('input', { type: 'file', accept: '.pdf,.ppt,.pptx,.pps,.ppsx,.odp,application/pdf', style: { display: 'none' } });
@@ -257,7 +270,10 @@
         } else {
           const dw = GS.design.w, dh = GS.design.h;
           const s = { id: GS.uid('src'), type: 'deck', name: 'Presentation', visible: true, locked: false, x: Math.round(dw * 0.05), y: Math.round(dh * 0.05), w: Math.round(dw * 0.9), h: Math.round(dh * 0.9), fit: 'contain', props: { docKey: key, name: f.name, page: 1, pdfPath } };
-          const sc = st.editTarget(); sc.sources.push(s); st.selectSource(s.id);
+          const sc = st.editTarget();
+          // letak automatik di kedudukan capture card (atau kawasan perbentangan template): slaid 16:9 memenuhi kawasan itu, kertas A4 di tengah
+          try { const pg = await doc.getPage(1); const vp = pg.getViewport({ scale: 1 }); DK.placeInSlot(sc, s, vp.width / vp.height); } catch (e) { /* kekal saiz asal */ }
+          sc.sources.push(s); st.selectSource(s.id);
         }
         GS.save(); GS.emit('sources:changed'); GS.emit('scenes:changed'); GS.emit('props:changed');
         GS.toast(GS.t('Presentation dimuatkan: {0} ({1} halaman).', f.name, doc.numPages), 'ok');

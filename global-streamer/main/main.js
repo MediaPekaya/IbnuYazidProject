@@ -11,6 +11,7 @@ const { execFile } = require('child_process');
 const { fetchTTS, elevenApi } = require('./tts-net');
 const { chat: aiChat, transcribe: aiStt } = require('./ai-net');
 const deck = require('./deck');
+const ytPlayer = require('./yt-player');
 
 // Penting untuk siaran: jangan perlahankan tab bila tetingkap tidak fokus.
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -186,6 +187,7 @@ ipcMain.on('rec:bar-drag', (_e, d) => {
 });
 ipcMain.on('rec:bar-state', (_e, st) => { if (recBar && !recBar.isDestroyed()) recBar.webContents.send('rec:bar-state', st); });
 ipcMain.handle('app:minimize', () => { if (win && !win.isDestroyed()) win.minimize(); return true; });
+ytPlayer.register({ ipcMain, BrowserWindow });
 ipcMain.handle('app:restore', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } return true; });
 
 /* ---------- siaran ---------- */
@@ -211,6 +213,7 @@ function createWindow() {
     },
   });
   win.once('ready-to-show', () => win.show());
+  win.on('closed', () => { ytPlayer.stopAll(); });
   /* tutup dengan animasi: beri masa kepada animasi (gaya macOS) sebelum tetingkap benar-benar ditutup */
   let closingOK = false;
   win.on('close', (e) => {
@@ -328,5 +331,5 @@ ipcMain.handle('update:check', () => { if (!updater) return false; checkUpdate(t
 ipcMain.handle('update:install', () => { if (updater && updState.state === 'downloaded') { updater.quitAndInstall(true, true); return true; } return false; });
 ipcMain.handle('update:enable', (_e, on) => { const v = Object.assign(readUpd(), { enabled: !!on }); fs.writeFileSync(updFile(), JSON.stringify(v)); return v.enabled; });
 
-app.on('before-quit', () => { engine.stop(); voice.stopAll(); try { if (recStream) recStream.end(); } catch (e) { /* abaikan */ } showRecBar(false); try { globalShortcut.unregisterAll(); } catch (e) { /* abaikan */ } });
+app.on('before-quit', () => { ytPlayer.stopAll(); engine.stop(); voice.stopAll(); try { if (recStream) recStream.end(); } catch (e) { /* abaikan */ } showRecBar(false); try { globalShortcut.unregisterAll(); } catch (e) { /* abaikan */ } });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

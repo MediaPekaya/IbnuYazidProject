@@ -105,7 +105,7 @@ body.portrait .screens.studio #transitionCol { width: 100px; }
 #dockTemplates .dock-head { gap: 8px; }
 #dockTemplates .dock-head h3 { font-size: 11px; }
 #tplTabs button { white-space: nowrap; padding-left: 7px; padding-right: 7px; }
-.tpl-cats { position: relative; display: grid; grid-template-columns: 1fr 1fr 1.5fr; margin: 0 0 0 auto; padding: 2px; border-radius: 10px; background: rgba(4, 10, 24, 0.55); border: 1px solid var(--line); }
+.tpl-cats { position: relative; display: grid; grid-template-columns: 1fr 1fr 1.5fr 1.3fr; margin: 0 0 0 auto; padding: 2px; border-radius: 10px; background: rgba(4, 10, 24, 0.55); border: 1px solid var(--line); }
 .tpl-cats button { position: relative; z-index: 1; background: none; border: 0; padding: 3px 10px; border-radius: 8px; color: var(--muted); font-weight: 800; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: color 0.35s var(--ease); }
 .tpl-cats button.on { color: #fff; }
 .tpl-cats .thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: 0; transition: transform 0.5s var(--ease), width 0.5s var(--ease), left 0.5s var(--ease); border-radius: 8px; background: var(--blue); transition: transform 0.5s var(--ease); }
@@ -225,3 +225,8 @@ html.win-open .gutter, html.win-restore .gutter, html.win-closing .gutter, html.
 .tpl-strip .tpl-card canvas { width: 100% !important; height: auto !important; aspect-ratio: 16 / 9; }
 .tpl-strip .tpl-card.portrait canvas { aspect-ratio: 9 / 16; }
 .tpl-strip .tpl-card span { max-width: 100% !important; }
+
+#transitionCol .trans-ms { display: flex; align-items: center; gap: 4px; justify-content: center; }
+#transitionCol .trans-ms input { width: 70px; padding: 6px 6px; text-align: center; border-radius: 10px; border: 1px solid var(--line); background: rgba(4,10,24,0.55); color: var(--text); font-weight: 700; }
+#transitionCol .trans-ms input:disabled { opacity: 0.4; }
+#transitionCol .trans-ms span { font-size: 11px; color: var(--muted); font-weight: 700; }

@@ -86,6 +86,7 @@
               <option value="slide">Luncur</option>
               <option value="cut">Potong</option>
             </select>
+            <label class="trans-ms" title="Tempoh peralihan (ms)"><input type="number" id="inpTransMs" min="50" max="10000" step="50" aria-label="Tempoh peralihan (ms)"><span>ms</span></label>
           </div>
           <div class="screen" id="screenProgram">
             <div class="screen-label"><b class="pgm">PROGRAM</b><span>Apa yang penonton nampak</span></div>
@@ -133,7 +134,7 @@
         <div class="dock-body mixer" id="mixer"></div>
       </section>
       <section class="dock" id="dockTemplates">
-        <div class="dock-head"><h3>Template</h3><div class="tpl-cats" id="tplCats" role="tablist" aria-label="Jenis template"><button type="button" data-c="gaming" role="tab">Gaming</button><button type="button" data-c="formal" role="tab">Formal</button><button type="button" data-c="soon" role="tab">Sebentar Lagi</button><i class="thumb"></i></div><div class="seg-mini" id="tplTabs" role="tablist" aria-label="Format template">
+        <div class="dock-head"><h3>Template</h3><div class="tpl-cats" id="tplCats" role="tablist" aria-label="Jenis template"><button type="button" data-c="gaming" role="tab">Gaming</button><button type="button" data-c="formal" role="tab">Formal</button><button type="button" data-c="soon" role="tab">Sebentar Lagi</button><button type="button" data-c="present" role="tab">Presentasi</button><i class="thumb"></i></div><div class="seg-mini" id="tplTabs" role="tablist" aria-label="Format template">
           <button type="button" data-o="portrait" role="tab" title="TikTok LIVE (menegak 9:16)">TikTok</button><button type="button" data-o="landscape" role="tab" title="YouTube / Facebook (mendatar 16:9)">YouTube</button></div></div>
         <div class="dock-body tpl-strip" id="tplBody"></div>
       </section>
@@ -155,6 +156,7 @@
   <script src="games/mlbb/game.js"></script>
   <script src="games/mlbb/templates2d.js"></script>
   <script src="games/mlbb/layoutfix.js"></script>
+  <script src="games/mlbb/presenttpl.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/media.js"></script>
   <script src="js/fonts.js"></script>

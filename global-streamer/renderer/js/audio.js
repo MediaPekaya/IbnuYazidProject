@@ -67,12 +67,44 @@
   const trackUrl = (t) => (t.yt || t.list ? '' : t.url || t.link || (t.path ? GS.media.clipFileUrl(t.path) : ''));
   const isYt = (t) => !!(t && (t.yt || t.list));
   /* ---- YouTube / album melalui pelayar terbenam (dimainkan melalui pembesar suara komputer; guna "Audio skrin" untuk masukkan ke siaran) ---- */
-  const YT = { frames: {} };
-  function ytSend(ch, func, args) { const f = YT.frames[ch.id]; if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: args || '' }), '*'); }
+  const YT = { frames: {}, nat: {} };
+  const nat = () => !!(window.gsNative && window.gsNative.yt);
+  const ytActive = (ch) => !!(YT.frames[ch.id] || YT.nat[ch.id]);
+  const ytUrl = (t) => 'https://www.youtube.com/watch?' + [t.yt ? 'v=' + encodeURIComponent(t.yt) : '', t.list ? 'list=' + encodeURIComponent(t.list) : ''].filter(Boolean).join('&');
+  function ytSend(ch, func, args) {
+    if (YT.nat[ch.id]) {
+      const map = { pauseVideo: ['pause'], playVideo: ['play'], setVolume: ['vol', (args && args[0] != null ? args[0] : 100) / 100], seekTo: ['seek', args && args[0]], nextVideo: ['next'] }[func];
+      if (map) window.gsNative.yt.cmd(ch.id, map[0], map[1]).catch(() => {});
+      return;
+    }
+    const f = YT.frames[ch.id]; if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: args || '' }), '*');
+  }
   function ytVol(ch) { ytSend(ch, 'setVolume', [ch.muted ? 0 : Math.round(ch.vol * 100)]); }
-  function ytStop(ch) { const f = YT.frames[ch.id]; if (f) { f.remove(); delete YT.frames[ch.id]; } }
+  function ytStop(ch) {
+    const f = YT.frames[ch.id]; if (f) { f.remove(); delete YT.frames[ch.id]; }
+    const n = YT.nat[ch.id]; if (n) { clearInterval(n.timer); delete YT.nat[ch.id]; if (nat()) window.gsNative.yt.stop(ch.id).catch(() => {}); }
+  }
+  /** Pemain asli (app Windows): halaman tonton YouTube sebenar dalam tetingkap tersembunyi. Tempoh, masa dan tamat dibaca setiap 0.5 saat. */
+  function ytNative(ch, t) {
+    const rec = { timer: 0, volSent: 0, lastTrack: t };
+    YT.nat[ch.id] = rec; ch.playing = true; ch.dur = 0; ch.cur = 0; GS.emit('audio:changed');
+    window.gsNative.yt.load(ch.id, ytUrl(t)).then((r) => { if (!r || !r.ok) GS.toast(GS.t('Lagu tidak dapat dimainkan. Cuba fail lain.'), 'warn'); }).catch(() => {});
+    rec.timer = setInterval(async () => {
+      if (YT.nat[ch.id] !== rec) return;
+      let st = null; try { st = await window.gsNative.yt.state(ch.id); } catch (e) { /* abaikan */ }
+      if (!st || YT.nat[ch.id] !== rec) return;
+      ch.dur = st.dur || 0; ch.cur = st.cur || 0;
+      const playing = !st.paused; if (playing !== ch.playing) { ch.playing = playing; GS.emit('audio:changed'); }
+      if (rec.volSent < 6 || ch._volDirty) { ytVol(ch); rec.volSent++; ch._volDirty = false; }
+      const tr = ch.tracks[ch.idx || 0];
+      if (tr && st.title && st.title !== 'YouTube' && tr.name !== st.title && (/^YouTube/.test(tr.name) || tr.list)) { tr.name = st.title; persist(); GS.emit('audio:changed'); }
+      if (st.ended && !(tr && tr.list)) { ytStop(ch); A.musicNext(ch.id, true); }
+    }, 500);
+  }
   function ytPlay(ch, t) {
     ytStop(ch);
+    if (nat()) { ytNative(ch, t); return; }
+    // versi web: pemain terbenam (mungkin dihalang bagi sesetengah video)
     const src = 'https://www.youtube-nocookie.com/embed/' + (t.yt || '') + '?enablejsapi=1&autoplay=1&controls=0&playsinline=1&origin=' + encodeURIComponent(location.origin === 'null' ? 'https://localhost' : location.origin) + (t.list ? '&listType=playlist&list=' + encodeURIComponent(t.list) : '');
     const f = document.createElement('iframe');
     f.setAttribute('allow', 'autoplay; encrypted-media'); f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
@@ -86,11 +118,36 @@
     const id = Object.keys(YT.frames).find((k) => YT.frames[k].contentWindow === e.source);
     if (!id) return;
     const ch = A.channels.find((c) => c.id === id); if (!ch) return;
-    const st = d.event === 'onStateChange' ? d.info : d.info && d.info.playerState;
+    const info = d.info || {};
+    if (info.duration) ch.dur = info.duration;
+    if (info.currentTime != null) ch.cur = info.currentTime;
+    const st = d.event === 'onStateChange' ? d.info : info.playerState;
     if (st === 0) { const t = ch.tracks[ch.idx || 0]; if (t && t.list) return; A.musicNext(ch.id, true); }
     else if (st === 1) { if (!ch.playing) { ch.playing = true; GS.emit('audio:changed'); } }
     else if (st === 2) { if (ch.playing) { ch.playing = false; GS.emit('audio:changed'); } }
   });
+  /** Cari kedudukan lagu (saat). */
+  A.musicSeek = function (id, sec) {
+    const ch = A.channels.find((c) => c.id === id); if (!ch) return;
+    const t = ch.tracks[ch.idx || 0];
+    if (isYt(t)) { ytSend(ch, 'seekTo', [sec, true]); ch.cur = sec; } else if (ch.el && isFinite(ch.el.duration)) ch.el.currentTime = sec;
+  };
+  const fmtT = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s2 = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s2).padStart(2, '0'); };
+  let seekDrag = '';
+  // kemas kini bar kemajuan dan tempoh lagu (0.5 saat)
+  setInterval(() => {
+    A.channels.forEach((ch) => {
+      if (ch.kind !== 'music') return;
+      const t = ch.tracks && ch.tracks[ch.idx || 0]; if (!t) return;
+      let cur = 0, dur = 0;
+      if (isYt(t)) { cur = ch.cur || 0; dur = ch.dur || 0; } else if (ch.el) { cur = ch.el.currentTime || 0; dur = isFinite(ch.el.duration) ? ch.el.duration : 0; }
+      const seek = document.querySelector('[data-seek="' + ch.id + '"]'), lab = document.querySelector('[data-time="' + ch.id + '"]');
+      if (seek && seekDrag !== ch.id) { seek.disabled = !dur; seek.value = dur ? Math.round((cur / dur) * 1000) : 0; }
+      if (lab) lab.textContent = fmtT(cur) + ' / ' + (dur ? fmtT(dur) : '--:--');
+    });
+  }, 500);
+  A._seekDrag = (id) => { seekDrag = id || ''; };
+  A._seekFrac = (id, f) => { const ch = A.channels.find((c) => c.id === id); if (!ch) return; const t = ch.tracks[ch.idx || 0]; const dur = isYt(t) ? ch.dur : (ch.el && ch.el.duration); if (dur && isFinite(dur)) A.musicSeek(id, f * dur); };
   const playTrack = (ch) => { const t = ch.tracks[ch.idx || 0]; if (!t) return; if (isYt(t)) { if (ch.el) ch.el.pause(); ytPlay(ch, t); } else { ytStop(ch); ch.el.src = trackUrl(t); ch.el.play().catch(() => {}); } };
   /** Tambah lagu daripada link: fail audio terus (mp3/m4a/ogg/wav/aliran) atau YouTube (video atau album/playlist). */
   A.musicAddLink = function (id) {
@@ -104,7 +161,7 @@
         if (/(^|\.)(youtube\.com|youtu\.be|music\.youtube\.com)$/i.test(u.hostname)) {
           const vid = u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v') || '', list = u.searchParams.get('list') || '';
           if (!vid && !list) { GS.toast(GS.t('Link tidak sah.'), 'warn'); return; }
-          tr = { name: list && !vid ? 'YouTube · ' + GS.t('Album') : 'YouTube · ' + vid, link: raw, yt: vid, list: list && !vid ? list : '' };
+          tr = { name: list ? 'YouTube · ' + GS.t('Album') : 'YouTube · ' + vid, link: raw, yt: vid, list };
           fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(raw)).then((r) => r.json()).then((j) => { if (j && j.title) { tr.name = j.title; persist(); GS.emit('audio:changed'); } }).catch(() => {});
         } else tr = { name: decodeURIComponent((u.pathname.split('/').pop() || u.hostname).replace(/\.[^.]+$/, '')) || u.hostname, link: raw };
         ch.tracks.push(tr); persist(); GS.emit('audio:changed'); m.close();
@@ -168,7 +225,7 @@
     A.ensure();
     if (!ch.tracks.length) { A.musicPick(id); return; }
     const t0 = ch.tracks[ch.idx || 0];
-    if (isYt(t0)) { if (!YT.frames[ch.id]) { playTrack(ch); return; } ytSend(ch, ch.playing ? 'pauseVideo' : 'playVideo'); ch.playing = !ch.playing; GS.emit('audio:changed'); return; }
+    if (isYt(t0)) { if (!ytActive(ch)) { playTrack(ch); return; } ytSend(ch, ch.playing ? 'pauseVideo' : 'playVideo'); ch.playing = !ch.playing; GS.emit('audio:changed'); return; }
     if (!ch.el.src) ch.el.src = trackUrl(t0);
     if (ch.el.paused) ch.el.play().catch(() => GS.toast(GS.t('Lagu tidak dapat dimainkan. Cuba fail lain.'), 'warn')); else ch.el.pause();
   };
@@ -320,7 +377,7 @@
     const ch = A.channels.find((c) => c.id === id);
     if (!ch) return;
     ch.vol = GS.clamp(v, 0, 1);
-    if (ch.kind === 'music' && YT.frames[ch.id]) ytVol(ch);
+    if (ch.kind === 'music' && ytActive(ch)) { ytVol(ch); ch._volDirty = true; }
     if (ch.gain) ch.gain.gain.value = ch.muted ? 0 : ch.vol;
     if (ch.kind === 'sfx' && A.sfxBus) A.sfxBus.gain.value = ch.muted ? 0 : ch.vol * 1.2;
     persist();
@@ -330,7 +387,7 @@
     const ch = A.channels.find((c) => c.id === id);
     if (!ch) return;
     ch.muted = !ch.muted;
-    if (ch.kind === 'music' && YT.frames[ch.id]) ytVol(ch);
+    if (ch.kind === 'music' && ytActive(ch)) { ytVol(ch); ch._volDirty = true; }
     if (ch.gain) ch.gain.gain.value = ch.muted ? 0 : ch.vol;
     if (ch.kind === 'sfx' && A.sfxBus) A.sfxBus.gain.value = ch.muted ? 0 : ch.vol * 1.2;
     persist();
@@ -439,6 +496,10 @@
           : ch.kind === 'sfx' ? GS.h('div', { class: 'strip-note' }, 'Dalaman')
           : ch.kind === 'music' ? GS.h('div', { class: 'music-box' },
               GS.h('div', { class: 'music-title', title: (ch.tracks[ch.idx || 0] || {}).name || '' }, (ch.tracks[ch.idx || 0] || {}).name || GS.t('Tiada lagu')),
+              GS.h('div', { class: 'music-prog' },
+                GS.h('input', { type: 'range', min: 0, max: 1000, value: 0, class: 'music-seek', 'data-seek': ch.id, disabled: true, 'aria-label': GS.t('Kedudukan lagu'),
+                  onPointerdown: () => A._seekDrag(ch.id), onInput: (e) => A._seekFrac(ch.id, e.target.value / 1000), onChange: () => A._seekDrag('') }),
+                GS.h('span', { class: 'music-time', 'data-time': ch.id }, '0:00 / --:--')),
               GS.h('div', { class: 'music-ctl' },
                 GS.h('button', { class: 'icon-btn sm', title: GS.t('Lagu sebelum'), onClick: () => A.musicPrev(ch.id), html: GS.icon('up', 14) }),
                 GS.h('button', { class: 'icon-btn sm' + (ch.playing ? ' on' : ''), title: ch.playing ? GS.t('Jeda') : GS.t('Main'), onClick: () => A.musicToggle(ch.id), html: ch.playing ? '&#10074;&#10074;' : '&#9654;' }),
