@@ -127,7 +127,7 @@
 
   /* ikon butang statik */
   function staticIcons() {
-    [['btnSettings', 'gear', 20], ['btnSceneAdd', 'plus'], ['btnSourceAdd', 'plus'], ['btnSourceUp', 'up'], ['btnSourceDown', 'down'], ['btnSourceDel', 'trash']].forEach(([id, name, size]) => {
+    [['btnSettings', 'gear', 20], ['btnSceneAdd', 'plus'], ['btnSceneUp', 'up'], ['btnSceneDown', 'down'], ['btnSourceAdd', 'plus'], ['btnSourceUp', 'up'], ['btnSourceDown', 'down'], ['btnSourceDel', 'trash']].forEach(([id, name, size]) => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = GS.icon(name, size || 18);
     });

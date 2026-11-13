@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Scene boleh diseret ke atas atau bawah, dan anak panah naik/turun ditambah di sebelah butang tambah scene.',
       'Lagu daripada link YouTube kini kekal selepas aplikasi ditutup dan dibuka semula, dan dimainkan tanpa memerlukan pelayar anda.',
       'Ad Block ditambah (Tetapan > Umum, butang merah): iklan disekat dan dilangkau supaya lagu terus dimainkan.',
       'Pratonton dan Program diasingkan: perubahan di Pratonton tidak muncul di Program sehingga butang Peralihan ditekan.',
@@ -78,6 +79,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Scenes can be dragged up or down, and up/down arrows were added next to the add-scene button.',
       'Songs from YouTube links now survive closing and reopening the app, and play without needing your browser.',
       'Ad Block added (Settings > General, red button): ads are blocked and skipped so the song keeps playing.',
       'Preview and Program are separated: changes made in Preview do not appear in Program until the Transition button is pressed.',

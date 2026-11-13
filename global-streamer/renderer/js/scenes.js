@@ -566,9 +566,10 @@
     if (!root) return;
     root.innerHTML = '';
     const studio = st().mode === 'studio';
+    const editId = (S.editTarget() || {}).id;
     S.all().forEach((sc) => {
       const isPgm = sc.id === st().programId, isPvw = studio && sc.id === st().previewId;
-      const item = h('div', { class: 'list-item' + (isPgm ? ' pgm' : '') + (isPvw ? ' pvw' : ''), tabindex: 0, role: 'button', onClick: () => S.select(sc.id),
+      const item = h('div', { class: 'list-item' + (isPgm ? ' pgm' : '') + (isPvw ? ' pvw' : '') + (editId === sc.id ? ' sel' : ''), 'data-scid': sc.id, tabindex: 0, role: 'button', onClick: () => { if (Date.now() - lastDragEnd < 250) return; S.select(sc.id); },
         onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.name'); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && inlineRename(nm, sc.name, (v) => S.rename(sc.id, v)) }, { label: 'Salin scene', run: () => S.duplicate(sc.id) }, '-', { label: 'Padam scene', danger: true, run: () => S.remove(sc.id) }]); },
         onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); S.select(sc.id); } } },
         h('span', { class: 'tag' }, isPgm ? 'PGM' : isPvw ? 'PVW' : ''),
@@ -578,7 +579,20 @@
           h('button', { class: 'icon-btn sm', title: 'Padam scene', onClick: (e) => { e.stopPropagation(); S.remove(sc.id); }, html: icon('trash', 14) })));
       root.append(item);
     });
+    bindRowDrag(root, 'scid', (order) => {
+      const byId = {}; S.all().forEach((x) => { byId[x.id] = x; });
+      const arr = order.map((id) => byId[id]).filter(Boolean);
+      S.all().splice(0, S.all().length, ...arr);
+      GS.save(); GS.emit('scenes:changed');
+    });
   }
+  S.moveScene = function (dir) {
+    const t = S.editTarget(); if (!t) return;
+    const a = S.all(), i = a.findIndex((x) => x.id === t.id), j = i + dir;
+    if (i < 0 || j < 0 || j >= a.length) return;
+    [a[i], a[j]] = [a[j], a[i]];
+    GS.save(); GS.emit('scenes:changed');
+  };
 
   // suntingan nama sebaris (ruang/Enter tidak lagi dirampas oleh baris senarai)
   function inlineRename(el, value, done) { GS.inlineEdit(el, value, done, () => changed()); }
@@ -606,7 +620,15 @@
   let lastDragEnd = 0;
   /** Tahan dan seret baris sumber ke atas / bawah untuk menyusun semula (gerakan lembut; tiada keperluan menekan anak panah). */
   function bindSourceDrag(root, sc) {
-    const rows = Array.from(root.querySelectorAll('.list-item[data-sid]'));
+    bindRowDrag(root, 'sid', (order) => {
+      const byId = {}; sc.sources.forEach((x) => { byId[x.id] = x; });
+      sc.sources = order.slice().reverse().map((id) => byId[id]).filter(Boolean);
+      changed('sources:changed'); GS.emit('scenes:changed');
+    });
+  }
+  /** Seret baris (sumber atau scene) ke atas / bawah; onDrop menerima susunan id baharu dari atas ke bawah. */
+  function bindRowDrag(root, key, onDrop) {
+    const rows = Array.from(root.querySelectorAll('.list-item[data-' + key + ']'));
     rows.forEach((row) => {
       row.addEventListener('pointerdown', (e) => {
         if (e.button !== 0 || e.target.closest('button, input, select, textarea')) return;
@@ -652,11 +674,9 @@
           row.classList.remove('dragging'); root.classList.remove('reordering');
           if (target !== idx0) {
             // baris dipaparkan dari atas ke bawah = sumber dari lapisan atas ke bawah
-            const order = rows.map((r) => r.dataset.sid);
+            const order = rows.map((r) => r.dataset[key]);
             const moved = order.splice(idx0, 1)[0]; order.splice(target, 0, moved);
-            const byId = {}; sc.sources.forEach((x) => { byId[x.id] = x; });
-            sc.sources = order.slice().reverse().map((id) => byId[id]).filter(Boolean);
-            changed('sources:changed'); GS.emit('scenes:changed');
+            onDrop(order);
           } else { rows.forEach((r) => { r.style.transform = ''; }); row.style.transform = ''; }
         };
         document.addEventListener('pointermove', move); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
@@ -726,6 +746,8 @@
     GS.$('#btnSourceDown').addEventListener('click', () => selectedId && S.moveSource(selectedId, -1));
     GS.$('#btnSourceDel').addEventListener('click', () => selectedId && S.removeSource(selectedId));
     GS.$('#btnSceneAdd').addEventListener('click', S.add);
+    GS.$('#btnSceneUp').addEventListener('click', () => S.moveScene(-1));
+    GS.$('#btnSceneDown').addEventListener('click', () => S.moveScene(1));
   }
 
   /* ---------- UI: sifat ---------- */
