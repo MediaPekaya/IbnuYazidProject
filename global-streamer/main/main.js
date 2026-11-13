@@ -265,7 +265,11 @@ ipcMain.handle('rec:shot-screen', async () => {
     const k = fs_.width / d.bounds.width;
     const crop = { x: Math.max(0, Math.round(rect.x * k)), y: Math.max(0, Math.round(rect.y * k)), width: Math.max(1, Math.round(rect.w * k)), height: Math.max(1, Math.round(rect.h * k)) };
     crop.width = Math.min(crop.width, fs_.width - crop.x); crop.height = Math.min(crop.height, fs_.height - crop.y);
-    return { ok: true, file: saveShot(full.crop(crop)) };
+    // kualiti: kawasan dipilih disimpan pada resolusi asal skrin (tanpa mampatan, PNG), dan dibesarkan dengan penyisipan terbaik sehingga sisi terpanjang sekurang-kurangnya 4K (3840 px), supaya kekal licin apabila dizum rapat
+    let img = full.crop(crop);
+    const sz = img.getSize(), longSide = Math.max(sz.width, sz.height);
+    if (longSide < 3840) { const f = Math.min(12, 3840 / longSide); img = img.resize({ width: Math.round(sz.width * f), height: Math.round(sz.height * f), quality: 'best' }); }
+    return { ok: true, file: saveShot(img) };
   } catch (e) { if (was && win && !win.isDestroyed()) { try { win.restore(); } catch (e2) { /* abaikan */ } } return { ok: false, error: String((e && e.message) || e) }; }
 });
 ipcMain.handle('rec:shot-save', (_e, buf) => {

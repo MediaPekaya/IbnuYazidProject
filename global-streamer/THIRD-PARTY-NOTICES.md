@@ -29,3 +29,6 @@ Global Streamer menyertakan atau menggunakan perisian pihak ketiga berikut. Noti
 
 ## Klip suara pengumum
 Suara pengumum Inggeris US (build/announcer, renderer/data/announcer-clips.js) dijana dengan Piper TTS (MIT, https://github.com/rhasspy/piper) menggunakan model en_US-john-medium, dilatih daripada rakaman LibriVox domain awam. Boleh diedarkan secara komersial.
+
+## Penapis bunyi latar rakaman
+- RNNoise (Xiph.Org Foundation, BSD-3-Clause) dan @sapphi-red/web-noise-suppressor (MIT, sapphi-red), dibenamkan dalam `renderer/vendor/noise/` (lesen: `LICENSE-web-noise-suppressor.txt`).

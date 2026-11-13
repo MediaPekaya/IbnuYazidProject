@@ -36,26 +36,48 @@
   const micLike = (c) => c.kind === 'input' && c.id !== 'ch_game' && !/capture card/i.test(c.label || '');
   R.micId = 'ch_mic';
   R.mics = () => GS.audio.channels.filter(micLike).map((c) => ({ id: c.id, label: c.label || 'Mikrofon' }));
+  R._mix = () => recAudioMix();
   function recAudioMix() {
     const A = GS.audio; A.ensure();
     const dest = A.ctx.createMediaStreamDestination(), taps = [];
+    const dn = GS.denoise && GS.denoise.ok;
     A.channels.forEach((c) => {
       if (!c.analyser) return;
-      const g = A.ctx.createGain(); g.gain.value = micLike(c) ? (c.id === R.micId ? 1 : 0) : 1;
-      c.analyser.connect(g); g.connect(dest); taps.push({ c, g, mic: micLike(c) });
+      const mic = micLike(c);
+      const g = A.ctx.createGain(); g.connect(dest);
+      const tap = { c, g, mic, on: false, filt: null };
+      // mikrofon: melalui penapis bunyi latar (hanya suara bercakap), disambung hanya apabila mikrofon dihidupkan. Senyap = terputus sepenuhnya.
+      tap.attach = () => {
+        if (tap.on) return;
+        if (mic && dn) { tap.filt = tap.filt || GS.denoise.build(A.ctx); }
+        try {
+          if (tap.filt) { c.analyser.connect(tap.filt.input); tap.filt.output.connect(g); } else c.analyser.connect(g);
+        } catch (e) { /* abaikan */ }
+        g.gain.value = 1; tap.on = true;
+        if (tap.filt && tap.filt.reset) tap.filt.reset();
+      };
+      tap.detach = () => {
+        if (!tap.on) return;
+        g.gain.value = 0;
+        try { if (tap.filt) { c.analyser.disconnect(tap.filt.input); tap.filt.output.disconnect(g); } else c.analyser.disconnect(g); } catch (e) { /* abaikan */ }
+        tap.on = false;
+      };
+      if (!mic || c.id === R.micId) tap.attach(); else g.gain.value = 0;
+      taps.push(tap);
     });
     try { A.voiceBus.connect(dest); } catch (e) { /* abaikan */ }
     if (GS.state.audio.sfxInStream && A.sfxBus) { try { A.sfxBus.connect(dest); } catch (e) { /* abaikan */ } }
     return {
       dest, stream: dest.stream,
-      setMic(id) { taps.forEach((t) => { if (t.mic) t.g.gain.value = t.c.id === id ? 1 : 0; }); },
-      cleanup() { taps.forEach((t) => { try { t.c.analyser.disconnect(t.g); } catch (e) { /* abaikan */ } try { t.g.disconnect(); } catch (e) { /* abaikan */ } }); try { A.voiceBus.disconnect(dest); } catch (e) { /* abaikan */ } try { if (A.sfxBus) A.sfxBus.disconnect(dest); } catch (e) { /* abaikan */ } },
+      setMic(id) { taps.forEach((t) => { if (!t.mic) return; if (t.c.id === id) t.attach(); else t.detach(); }); },
+      cleanup() { taps.forEach((t) => { t.detach(); if (t.filt) { try { t.filt.destroy(); } catch (e) { /* abaikan */ } } try { t.g.disconnect(); } catch (e) { /* abaikan */ } }); try { A.voiceBus.disconnect(dest); } catch (e) { /* abaikan */ } try { if (A.sfxBus) A.sfxBus.disconnect(dest); } catch (e) { /* abaikan */ } },
     };
   }
 
   /** Aliran video+audio untuk mod yang dipilih. Mengembalikan {stream, cleanup}. */
   async function recordingSource(mode) {
     GS.audio.ensure();
+    if (GS.denoise) await GS.denoise.prepare(GS.audio.ctx);   // penapis bunyi latar (RNNoise)
     if (mode === 'program') {
       // rakaman paparan penonton: sekurang-kurangnya 1080 (naik skala jika saiz output lebih kecil), paling banyak 2K (2560x1440)
       const cv = GS.app.programComp.canvas, fps = GS.state.settings.fps;

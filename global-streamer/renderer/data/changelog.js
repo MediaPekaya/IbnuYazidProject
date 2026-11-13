@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Rakaman membuang bunyi latar secara automatik (RNNoise dan pintu bunyi pintar): kipas, hujan dan kenderaan dibuang, hanya suara yang bercakap kekal, dan di antara perkataan menjadi senyap. Boleh dimatikan di Tetapan > Audio.',
+      'Senyap mikrofon pada rakaman kini memutuskan mikrofon sepenuhnya: tiada bunyi langsung sehingga mikrofon dihidupkan semula.',
+      'Gambar skrin disimpan sebagai PNG tanpa mampatan dan dibesarkan dengan kualiti terbaik sehingga sekurang-kurangnya 4K supaya licin apabila dizum.',
       'Gambar skrin kini terus diambil dan disimpan sebaik tetikus dilepaskan selepas menarik kotak (tiada lagi butang Ambil gambar / Batal). Garis kotak berwarna merah, bulatan sudut putih.',
       'Gambar skrin kini memilih kawasan: skrin dibekukan, tarik kotak dari mana-mana titik, laras saiz dengan sudut atau tepi, seret kotak untuk alih, kemudian tekan Ambil gambar (atau Enter). Esc untuk batal.',
       'Butang tong sampah pada bar REC kini cukup satu klik untuk membuang rakaman.',
@@ -97,6 +100,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Recording automatically removes background noise (RNNoise and a smart noise gate): fans, rain and traffic are removed, only speech remains, and between words is fully silent. Can be turned off in Settings > Audio.',
+      'Muting the microphone in a recording now disconnects the microphone completely: no sound at all until it is unmuted.',
+      'Screenshots are saved as uncompressed PNG and enlarged with best quality to at least 4K so they stay smooth when zoomed in.',
       'Screenshots are now taken and saved as soon as you release the mouse after dragging the box (no more Take picture / Cancel buttons). The box outline is red and the corner dots are white.',
       'Screenshots now select an area: the screen freezes, drag a box from any point, resize it by the corners or edges, drag the box to move it, then press Take picture (or Enter). Esc cancels.',
       'The trash button on the REC bar now discards the recording with a single click.',

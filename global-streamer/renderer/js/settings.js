@@ -94,6 +94,7 @@
         GS.state.audio.voiceClean = e.target.checked; GS.save();
         GS.audio.channels.forEach((c) => { if (c.kind === 'input' && c.stream) GS.audio.connectDevice(c.id, c.deviceId, true); });
       } }), 'Suara jelas: tapis bunyi latar, gema dan kelantangan mikrofon (disyorkan)'),
+      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'optRecDenoise', checked: GS.state.audio.recDenoise !== false, onChange: (e) => { GS.state.audio.recDenoise = e.target.checked; GS.save(); } }), 'Rakaman: buang semua bunyi latar secara automatik, hanya suara anda yang kekal (disyorkan)'),
       h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'optSfxStream', checked: !!GS.state.audio.sfxInStream, onChange: (e) => { GS.state.audio.sfxInStream = e.target.checked; GS.save(); GS.audio.applyRouting(); } }), 'Masukkan bunyi efek (beep) ke dalam siaran dan rakaman'),
       h('p', { class: 'muted note' }, 'Lalai: bunyi efek hanya didengar oleh anda, supaya suara dalam siaran dan rakaman kekal jelas. Suara bot/pengumum sentiasa masuk. Jika anda menggunakan pembesar suara (bukan fon kepala), mikrofon boleh menangkap bunyi dari pembesar suara dan menyebabkan suara bergema; gunakan fon kepala untuk kejelasan terbaik.'),
       h('p', { class: 'muted note' }, 'Lagu sendiri: tekan "+ Lagu" pada Audio Mixer untuk memilih lagu daripada komputer.'));
