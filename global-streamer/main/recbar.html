@@ -20,7 +20,6 @@
   #m svg, #d svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   #m.off { background: #5a2330; }
   #d:hover { background: #7a2335; }
-  #d.arm { background: #ff3b5c; animation: p 0.6s ease-in-out infinite; }
   /* pil merah apabila disembunyikan: klik untuk buka semula bar */
   /* bulatan merah kecil apabila disembunyikan: seret untuk alih, klik untuk buka semula bar */
   #pill { display: none; width: 100%; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; background: #e0213f; border-radius: 50%; box-shadow: 0 2px 10px rgba(224, 33, 63, .65); cursor: grab; }
@@ -35,7 +34,7 @@
   <button id="h" type="button" title="Sembunyikan bar ini. Klik pil merah REC untuk buka semula (atau Ctrl+Alt+H)">Hide</button>
   <button id="m" type="button" title="Mikrofon: klik untuk senyap / dengar"><svg id="mI" viewBox="0 0 24 24"></svg></button>
   <button id="s" type="button" title="Tamatkan rakaman dan simpan fail">Simpan rakaman</button>
-  <button id="d" type="button" title="Buang rakaman (batal, fail dipadam)"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13M10.5 11v6M13.5 11v6"/></svg></button>
+  <button id="d" type="button" title="Buang rakaman (satu klik: rakaman dibatalkan dan fail dipadam)"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13M10.5 11v6M13.5 11v6"/></svg></button>
 </div>
 <div id="pill" title="Klik untuk buka bar rakaman. Seret untuk alih."><i></i></div>
 <script>
@@ -63,11 +62,7 @@
   paintMic(true);
   window.recbar.onState((st) => { if (st && st.micOn != null) paintMic(!!st.micOn); });
   el('m').addEventListener('click', () => window.recbar.mic());
-  let arm = 0;
-  el('d').addEventListener('click', () => {
-    if (!arm) { el('d').classList.add('arm'); el('d').title = 'Klik sekali lagi untuk buang rakaman'; arm = setTimeout(() => { arm = 0; el('d').classList.remove('arm'); el('d').title = 'Buang rakaman (batal, fail dipadam)'; }, 3000); return; }
-    clearTimeout(arm); arm = 0; window.recbar.discard();
-  });
+  el('d').addEventListener('click', () => window.recbar.discard());   // satu klik sahaja
   window.recbar.onCollapsed((c) => document.body.classList.toggle('collapsed', c));
   el('s').addEventListener('click', () => window.recbar.stop());
   el('p').addEventListener('click', () => window.recbar.pause());

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><title>Pilih kawasan</title>
+<style>
+  :root { --ease: cubic-bezier(0.32, 0.72, 0, 1); }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; cursor: crosshair; user-select: none; font: 600 13px "Segoe UI", system-ui, sans-serif; }
+  #bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #sel { position: absolute; display: none; border: 2px dashed #fff; box-sizing: border-box; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); cursor: move; outline: 1px solid rgba(0, 0, 0, 0.5); }
+  #sel .h { position: absolute; width: 11px; height: 11px; background: #fff; border: 1px solid #1296b4; border-radius: 50%; box-sizing: border-box; }
+  #dim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); }
+  #badge { position: absolute; left: 0; top: calc(100% + 8px); padding: 4px 9px; border-radius: 8px; background: rgba(250, 251, 254, 0.97); color: #1b2433; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); cursor: default; }
+  #tools { position: absolute; display: none; gap: 6px; padding: 6px; border-radius: 12px; background: rgba(247, 249, 253, 0.98); box-shadow: 0 8px 24px rgba(0, 0, 0, .4); cursor: default; animation: pop 0.4s var(--ease) both; }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.95); } to { opacity: 1; transform: none; } }
+  #tools button { border: 0; border-radius: 9px; padding: 8px 16px; font: 800 13px "Segoe UI", system-ui, sans-serif; cursor: pointer; transition: transform .25s var(--ease), filter .2s; }
+  #tools button:hover { filter: brightness(1.1); } #tools button:active { transform: scale(.95); }
+  #ok { background: #1296b4; color: #fff; } #no { background: #e8ecf4; color: #1b2433; }
+  #hint { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); padding: 8px 16px; border-radius: 12px; background: rgba(247, 249, 253, 0.97); color: #1b2433; font-weight: 700; box-shadow: 0 6px 20px rgba(0, 0, 0, .35); cursor: default; animation: pop .5s var(--ease) both; }
+</style></head>
+<body>
+<canvas id="bg"></canvas>
+<div id="dim"></div>
+<div id="hint">Tarik pada skrin untuk pilih kawasan. Laras dengan sudut, seret kotak untuk alih. Enter = ambil, Esc = batal.</div>
+<div id="sel"><span id="badge"></span></div>
+<div id="tools"><button id="ok" type="button">Ambil gambar</button><button id="no" type="button">Batal</button></div>
+<script>
+  const $ = (i) => document.getElementById(i);
+  const sel = $('sel'), tools = $('tools'), badge = $('badge'), dim = $('dim');
+  let r = null, mode = null, sx = 0, sy = 0, orig = null, sf = 1, imgW = 0, imgH = 0, ready = false;
+  const HS = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+  HS.forEach((k) => { const h = document.createElement('i'); h.className = 'h'; h.dataset.k = k; sel.append(h); });
+  const place = () => {
+    const pos = { nw: [0, 0], n: [50, 0], ne: [100, 0], e: [100, 50], se: [100, 100], s: [50, 100], sw: [0, 100], w: [0, 50] };
+    const cur = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize' };
+    sel.querySelectorAll('.h').forEach((h) => { const p = pos[h.dataset.k]; h.style.left = 'calc(' + p[0] + '% - 5.5px)'; h.style.top = 'calc(' + p[1] + '% - 5.5px)'; h.style.cursor = cur[h.dataset.k]; });
+  };
+  place();
+  function paint() {
+    if (!r) return;
+    sel.style.display = 'block'; dim.style.display = 'none';
+    sel.style.left = r.x + 'px'; sel.style.top = r.y + 'px'; sel.style.width = r.w + 'px'; sel.style.height = r.h + 'px';
+    badge.textContent = Math.round(r.w * sf) + ' × ' + Math.round(r.h * sf);
+    $('hint').style.display = 'none';
+  }
+  function showTools() {
+    tools.style.display = 'flex';
+    const tw = tools.offsetWidth, th = tools.offsetHeight;
+    let x = r.x + r.w - tw, y = r.y + r.h + 46;
+    if (y + th > innerHeight - 6) y = Math.max(6, r.y - th - 10);
+    tools.style.left = Math.max(6, Math.min(innerWidth - tw - 6, x)) + 'px'; tools.style.top = y + 'px';
+  }
+  const clampRect = (a) => { let { x, y, w, h } = a; w = Math.max(8, Math.min(innerWidth, w)); h = Math.max(8, Math.min(innerHeight, h)); x = Math.max(0, Math.min(innerWidth - w, x)); y = Math.max(0, Math.min(innerHeight - h, y)); return { x, y, w, h }; };
+  window.addEventListener('pointerdown', (e) => {
+    if (!ready || e.button !== 0 || e.target.closest('#tools')) return;
+    tools.style.display = 'none';
+    const hk = e.target.closest('.h');
+    if (r && hk) { mode = hk.dataset.k; orig = { ...r }; }
+    else if (r && e.target.closest('#sel')) { mode = 'move'; orig = { ...r }; }
+    else { mode = 'new'; r = { x: e.clientX, y: e.clientY, w: 0, h: 0 }; orig = { ...r }; }
+    sx = e.clientX; sy = e.clientY;
+    document.body.setPointerCapture && document.body.setPointerCapture(e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!mode) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (mode === 'new') {
+      r = clampRect({ x: Math.min(sx, e.clientX), y: Math.min(sy, e.clientY), w: Math.abs(dx), h: Math.abs(dy) });
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+    } else if (mode === 'move') {
+      r = { ...orig, x: Math.max(0, Math.min(innerWidth - orig.w, orig.x + dx)), y: Math.max(0, Math.min(innerHeight - orig.h, orig.y + dy)) };
+    } else {
+      let x1 = orig.x, y1 = orig.y, x2 = orig.x + orig.w, y2 = orig.y + orig.h;
+      if (mode.includes('w')) x1 = Math.min(x2 - 8, orig.x + dx);
+      if (mode.includes('e')) x2 = Math.max(x1 + 8, orig.x + orig.w + dx);
+      if (mode.includes('n')) y1 = Math.min(y2 - 8, orig.y + dy);
+      if (mode.includes('s')) y2 = Math.max(y1 + 8, orig.y + orig.h + dy);
+      r = clampRect({ x: x1, y: y1, w: x2 - x1, h: y2 - y1 });
+    }
+    paint();
+  });
+  window.addEventListener('pointerup', () => { if (!mode) return; mode = null; if (r && r.w >= 8 && r.h >= 8) showTools(); else { r = null; sel.style.display = 'none'; dim.style.display = 'block'; $('hint').style.display = ''; } });
+  const confirm = () => { if (r && r.w >= 8 && r.h >= 8) window.shotsel.done({ x: r.x, y: r.y, w: r.w, h: r.h }); };
+  const cancel = () => window.shotsel.done(null);
+  $('ok').onclick = confirm; $('no').onclick = cancel;
+  sel.addEventListener('dblclick', confirm);
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') cancel(); else if (e.key === 'Enter') confirm(); });
+  window.addEventListener('contextmenu', (e) => { e.preventDefault(); cancel(); });
+  window.shotsel.onInit((d) => {
+    sf = d.scale || 1;
+    const im = new Image();
+    im.onload = () => { const c = $('bg'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); ready = true; };
+    im.src = d.image;
+  });
+</script></body></html>

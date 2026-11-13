@@ -137,6 +137,7 @@
         const blob = await new Promise((ok) => cv.toBlob(ok, 'image/png'));
         r = blob ? await rec.shotSave(await blob.arrayBuffer()) : { ok: false, error: 'tiada imej' };
       } else r = await rec.shotScreen();
+      if (r && r.cancelled) return;
       if (r && r.ok) GS.toast(GS.t('Gambar skrin disimpan: {0}', r.file), 'ok', 9000);
       else GS.toast(GS.t('Gagal simpan gambar skrin: {0}', (r && r.error) || ''), 'warn');
     } catch (e) { GS.toast(GS.t('Gagal simpan gambar skrin: {0}', e.message), 'warn'); }

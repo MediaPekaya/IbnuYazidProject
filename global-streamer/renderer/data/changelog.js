@@ -2,6 +2,8 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Gambar skrin kini memilih kawasan: skrin dibekukan, tarik kotak dari mana-mana titik, laras saiz dengan sudut atau tepi, seret kotak untuk alih, kemudian tekan Ambil gambar (atau Enter). Esc untuk batal.',
+      'Butang tong sampah pada bar REC kini cukup satu klik untuk membuang rakaman.',
       'Rakaman gaya Snipping Tool: menekan REC kini memaparkan panel putih dahulu dengan butang kamera (gambar skrin) dan video, mikrofon (senyap atau pilih) dan Mula. Belum merakam sehingga Mula ditekan. Kualiti video dipilih dalam app.',
       'Bar REC ditambah butang mikrofon (senyap / dengar semasa merakam) dan butang tong sampah untuk membuang rakaman. Bunyi komputer dan aplikasi kekal dirakam walaupun mikrofon disenyapkan.',
       'Label Ally (hijau) dan Enemy (merah) pada borang draft dan kad pengesan kini berwarna dan tebal: hijau/merah cerah pada mod gelap, hijau tua/maroon pada mod cerah. Termasuk Ban Ally dan Ban Enemy.',
@@ -94,6 +96,8 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Screenshots now select an area: the screen freezes, drag a box from any point, resize it by the corners or edges, drag the box to move it, then press Take picture (or Enter). Esc cancels.',
+      'The trash button on the REC bar now discards the recording with a single click.',
       'Snipping Tool style recording: pressing REC now first shows a white panel with a camera (screenshot) button, a video button, microphone (mute or choose) and Start. Nothing records until Start is pressed. Video quality is chosen in the app.',
       'The REC bar gained a microphone button (mute / unmute while recording) and a trash button to discard the recording. Computer and app sound is still recorded when the microphone is muted.',
       'Ally (green) and Enemy (red) labels on the draft form and detector cards are now coloured and bold: bright green/red in dark modes, dark green/maroon in light modes. Includes Ban Ally and Ban Enemy.',

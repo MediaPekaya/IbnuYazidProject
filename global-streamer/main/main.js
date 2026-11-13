@@ -234,18 +234,39 @@ function saveShot(img) {
   try { shell.showItemInFolder(f); } catch (e) { /* abaikan */ }
   return f;
 }
+/* tangkapan skrin dengan PILIH KAWASAN: skrin dibekukan, pengguna tarik kotak (boleh dilaras / dialih), Enter atau butang Ambil gambar */
+let shotWin = null, shotResolve = null;
+ipcMain.on('shot:done', (_e, rect) => { const r = shotResolve; shotResolve = null; if (shotWin && !shotWin.isDestroyed()) shotWin.close(); shotWin = null; if (r) r(rect && typeof rect === 'object' ? rect : null); });
 ipcMain.handle('rec:shot-screen', async () => {
+  let was = false;
   try {
     const d = electronScreen.getPrimaryDisplay();
-    const was = win && !win.isDestroyed() && win.isVisible() && !win.isMinimized();
+    was = !!(win && !win.isDestroyed() && win.isVisible() && !win.isMinimized());
     if (was) { win.minimize(); await new Promise((r) => setTimeout(r, 650)); }
     const size = { width: Math.round(d.size.width * d.scaleFactor), height: Math.round(d.size.height * d.scaleFactor) };
     const srcs = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: size });
     const src = srcs.find((x) => String(x.display_id) === String(d.id)) || srcs[0];
-    if (was && win && !win.isDestroyed()) { win.restore(); win.focus(); }
     if (!src || src.thumbnail.isEmpty()) return { ok: false, error: 'tiada tangkapan skrin' };
-    return { ok: true, file: saveShot(src.thumbnail) };
-  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+    const full = src.thumbnail, fs_ = full.getSize();
+    // tetingkap penuh skrin yang memaparkan tangkapan beku, untuk memilih kawasan
+    const rect = await new Promise((resolve) => {
+      shotResolve = resolve;
+      shotWin = new BrowserWindow({ x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height, frame: false, resizable: false, movable: false, alwaysOnTop: true, skipTaskbar: true, show: false, hasShadow: false, fullscreenable: false, backgroundColor: '#000000', title: 'Pilih kawasan',
+        webPreferences: { preload: path.join(__dirname, 'shotsel-preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+      shotWin.setAlwaysOnTop(true, 'screen-saver');
+      shotWin.webContents.on('will-navigate', (e) => e.preventDefault());
+      shotWin.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+      shotWin.loadFile(path.join(__dirname, 'shotsel.html'));
+      shotWin.webContents.once('did-finish-load', () => { if (shotWin && !shotWin.isDestroyed()) { shotWin.webContents.send('shot:init', { image: 'data:image/jpeg;base64,' + full.toJPEG(88).toString('base64'), scale: fs_.width / d.bounds.width }); shotWin.show(); shotWin.focus(); } });
+      shotWin.on('closed', () => { shotWin = null; if (shotResolve) { const r = shotResolve; shotResolve = null; r(null); } });
+    });
+    if (was && win && !win.isDestroyed()) { win.restore(); win.focus(); }
+    if (!rect) return { ok: false, cancelled: true };
+    const k = fs_.width / d.bounds.width;
+    const crop = { x: Math.max(0, Math.round(rect.x * k)), y: Math.max(0, Math.round(rect.y * k)), width: Math.max(1, Math.round(rect.w * k)), height: Math.max(1, Math.round(rect.h * k)) };
+    crop.width = Math.min(crop.width, fs_.width - crop.x); crop.height = Math.min(crop.height, fs_.height - crop.y);
+    return { ok: true, file: saveShot(full.crop(crop)) };
+  } catch (e) { if (was && win && !win.isDestroyed()) { try { win.restore(); } catch (e2) { /* abaikan */ } } return { ok: false, error: String((e && e.message) || e) }; }
 });
 ipcMain.handle('rec:shot-save', (_e, buf) => {
   try {
