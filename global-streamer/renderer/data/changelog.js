@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Nama scene yang ditukar kini kekal dan tidak lagi kembali kepada nama asal selepas butang Peralihan ditekan.',
       'Scene boleh diseret ke atas atau bawah, dan anak panah naik/turun ditambah di sebelah butang tambah scene.',
       'Lagu daripada link YouTube kini kekal selepas aplikasi ditutup dan dibuka semula, dan dimainkan tanpa memerlukan pelayar anda.',
       'Ad Block ditambah (Tetapan > Umum, butang merah): iklan disekat dan dilangkau supaya lagu terus dimainkan.',
@@ -79,6 +80,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Renamed scenes now keep their name and no longer revert to the old name after the Transition button is pressed.',
       'Scenes can be dragged up or down, and up/down arrows were added next to the add-scene button.',
       'Songs from YouTube links now survive closing and reopening the app, and play without needing your browser.',
       'Ad Block added (Settings > General, red button): ads are blocked and skipped so the song keeps playing.',

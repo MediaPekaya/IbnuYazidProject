@@ -172,7 +172,7 @@
   };
   S.rename = function (id, name) {
     const sc = byId(id);
-    if (sc && name.trim()) { sc.name = name.trim(); changed(); }
+    if (sc && name.trim()) { sc.name = name.trim(); if (drafts[sc.id]) drafts[sc.id].name = sc.name; changed(); }
   };
 
   S.setProgram = function (id) {
@@ -206,7 +206,7 @@
     const dropped = target.sources.filter((o) => !draft.sources.some((n) => n.id === o.id));
     target.sources = draft.sources;
     if (!same) dropped.forEach((o) => { if (!st().scenes.some((x) => x.sources.some((y) => y.id === o.id))) { GS.media.close(o.id); if (o.type === 'clip') GS.media.removeClip(o.id); } });
-    ['name', 'theme', 'fxStyle', 'fxAnchor', 'alertY', 'templateId'].forEach((k) => { if (draft[k] !== undefined) target[k] = draft[k]; });
+    ['theme', 'fxStyle', 'fxAnchor', 'alertY', 'templateId'].forEach((k) => { if (draft[k] !== undefined) target[k] = draft[k]; });
     delete drafts[target.id];
     const oldProgramId = pg.id;
     if (same) {
@@ -617,6 +617,13 @@
     if (s.type === 'text') return 'text';
     return WIDGET_ICON[s.props && s.props.widget] || 'widget';
   };
+  /** Nama sumber disimpan juga pada scene sebenar (draf Pratonton tidak disimpan), supaya nama kekal selepas peralihan dan mula semula. */
+  function setSrcName(s, v) {
+    const nm = (v || '').trim() || s.name; s.name = nm;
+    const t = S.editTarget(), real = t && byId(t.id);
+    if (real && real.sources !== t.sources) { const r = real.sources.find((x) => x.id === s.id); if (r) r.name = nm; }
+    changed('sources:changed');
+  }
   let lastDragEnd = 0;
   /** Tahan dan seret baris sumber ke atas / bawah untuk menyusun semula (gerakan lembut; tiada keperluan menekan anak panah). */
   function bindSourceDrag(root, sc) {
@@ -694,10 +701,10 @@
     for (let i = sc.sources.length - 1; i >= 0; i--) {
       const s = sc.sources[i];
       root.append(h('div', { class: 'list-item' + (s.id === selectedId ? ' sel' : '') + (s.visible ? '' : ' off'), 'data-sid': s.id, tabindex: 0, role: 'button', onClick: () => { if (Date.now() - lastDragEnd < 250) return; S.selectSource(s.id); },
-        onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.name'); S.selectSource(s.id); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && inlineRename(nm, s.name, (v) => { s.name = v.trim() || s.name; changed('sources:changed'); }) }, { label: 'Salin (Ctrl+C)', run: () => GS.keys.copy() }, { label: 'Tampal (Ctrl+V)', run: () => GS.keys.paste() }, '-', { label: s.locked ? 'Buka kunci' : 'Kunci', run: () => { s.locked = !s.locked; changed('sources:changed'); } }, { label: s.visible ? 'Sembunyi' : 'Papar', run: () => { s.visible = !s.visible; changed('sources:changed'); } }, '-', { label: 'Padam sumber', danger: true, run: () => S.removeSource(s.id) }]); },
+        onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.name'); S.selectSource(s.id); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && inlineRename(nm, s.name, (v) => { setSrcName(s, v); }) }, { label: 'Salin (Ctrl+C)', run: () => GS.keys.copy() }, { label: 'Tampal (Ctrl+V)', run: () => GS.keys.paste() }, '-', { label: s.locked ? 'Buka kunci' : 'Kunci', run: () => { s.locked = !s.locked; changed('sources:changed'); } }, { label: s.visible ? 'Sembunyi' : 'Papar', run: () => { s.visible = !s.visible; changed('sources:changed'); } }, '-', { label: 'Padam sumber', danger: true, run: () => S.removeSource(s.id) }]); },
         onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); S.selectSource(s.id); } } },
         h('span', { class: 'ico', html: icon(typeIcon(s), 15) }),
-        h('span', { class: 'name', onDblclick: (e) => { e.stopPropagation(); inlineRename(e.currentTarget, s.name, (v) => { s.name = v.trim() || s.name; changed('sources:changed'); }); } }, s.name),
+        h('span', { class: 'name', onDblclick: (e) => { e.stopPropagation(); inlineRename(e.currentTarget, s.name, (v) => { setSrcName(s, v); }); } }, s.name),
         h('span', { class: 'row-actions always' },
           h('button', { class: 'icon-btn sm' + (s.locked ? ' on' : ''), title: s.locked ? 'Buka kunci' : 'Kunci', onClick: (e) => { e.stopPropagation(); s.locked = !s.locked; changed('sources:changed'); }, html: icon(s.locked ? 'lock' : 'unlock', 14) }),
           h('button', { class: 'icon-btn sm', title: s.visible ? 'Sembunyi' : 'Papar', onClick: (e) => { e.stopPropagation(); s.visible = !s.visible; changed('sources:changed'); }, html: icon(s.visible ? 'eye' : 'eyeoff', 14) }))));
