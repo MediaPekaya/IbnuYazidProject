@@ -51,7 +51,7 @@
     const adOn = () => GS.state.settings.adBlock !== false;
     const adBtn = h('button', { type: 'button', class: 'btn danger', id: 'btnAdBlock', style: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#d62b2b', borderColor: '#d62b2b', color: '#fff' } });
     const adPaint = () => {
-      adBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#fff"/><text x="12" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="#d62b2b">AD</text><path d="M6 6l12 12" stroke="#d62b2b" stroke-width="2.2" stroke-linecap="round"/></svg><span>' + GS.t('Ad Block') + ' · ' + GS.t(adOn() ? 'HIDUP' : 'MATI') + '</span>';
+      adBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" fill="#fff"/><text x="12" y="15.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="900" fill="#d62b2b">AD</text><path d="M6 6l12 12" stroke="#d62b2b" stroke-width="2.2" stroke-linecap="round"/></svg><span>' + GS.t('Ad Block') + ' · ' + GS.t(adOn() ? 'Suis hidup' : 'Suis mati') + '</span>';
       adBtn.style.opacity = adOn() ? '1' : '0.6';
     };
     adBtn.addEventListener('click', () => {

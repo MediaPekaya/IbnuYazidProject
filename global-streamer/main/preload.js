@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld('gsNative', {
     state: (key) => ipcRenderer.invoke('yt:state', key),
     cmd: (key, cmd, val) => ipcRenderer.invoke('yt:cmd', key, cmd, val),
     stop: (key) => ipcRenderer.invoke('yt:stop', key),
+    monitor: (on, label) => ipcRenderer.invoke('yt:monitor', on, label),
   },
   deck: {
     read: (file) => ipcRenderer.invoke('deck:read', file),

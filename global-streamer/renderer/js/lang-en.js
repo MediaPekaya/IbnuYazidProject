@@ -587,6 +587,10 @@
     'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.': 'Drag the dividers between panels (Scenes, Sources, Properties, Audio Mixer, Templates, right panel) to resize them, and drag a panel title to move it. Panels stay inside the app and cannot be removed or hidden. Double-click a divider for the default.',
     'Tetapkan semula susun atur panel': 'Reset the panel layout',
     'Ad Block': 'Ad Block',
+    'Mikrofon': 'Microphone', 'Mikrofon dipilih': 'Selected microphone', 'DIPILIH': 'SELECTED', 'Output': 'Output', 'Pembesar suara anda (bukan penonton)': 'Your speakers (not the viewers)', 'Pembesar suara output': 'Output speaker', 'Lalai sistem': 'System default', 'Pembesar suara {0}': 'Speaker {0}',
+    'Uji bunyi': 'Test sound', 'Mainkan beberapa saat untuk menguji bunyi': 'Play for a few seconds to test the sound', 'Output dimatikan: hidupkan output untuk mendengar.': 'Output is off: turn the output on to hear.',
+    'Tiada lagu. Nada ujian dimainkan melalui output anda.': 'No song. A test tone is played through your output.', 'Menguji bunyi: {0}': 'Testing sound: {0}', 'Bunyi lagu berjaya: lagu dimainkan.': 'Song sound works: the song is playing.', 'Tiada bunyi dikesan. Semak link, kelantangan dan output.': 'No sound detected. Check the link, volume and output.',
+
     'Rakaman: buang semua bunyi latar secara automatik, hanya suara anda yang kekal (disyorkan)': 'Recording: automatically remove all background noise so only your voice remains (recommended)',
     'Gambar skrin disimpan: {0}': 'Screenshot saved: {0}', 'Gagal simpan gambar skrin: {0}': 'Failed to save screenshot: {0}', 'Rakaman dibuang.': 'Recording discarded.',
     'Garisan kamera (stroke)': 'Camera stroke', 'Auto (putih pada template gelap, hitam pada template cerah)': 'Auto (white on dark templates, black on light templates)', 'Putih': 'White', 'Hitam': 'Black', 'Tiada': 'None',
@@ -597,8 +601,7 @@
     'Formal Hitam Emas': 'Formal Black Gold', 'Hitam dengan aksen emas, rata tanpa cahaya (2D).': 'Black with gold accents, flat, no glow (2D).',
 
     'Naik satu tempat': 'Move up one place', 'Turun satu tempat': 'Move down one place',
-    'HIDUP': 'ON',
-    'MATI': 'OFF',
+    'Suis hidup': 'ON', 'Suis mati': 'OFF',
 
 
     /* ---- siaran dalam panel chat ---- */

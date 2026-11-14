@@ -2,6 +2,10 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Audio Mixer: mikrofon yang dipilih kini memaparkan namanya dengan penanda kuning "DIPILIH" dan sempadan kuning; nama juga muncul pada butang pangkah.',
+      'Kad Output baharu dalam Audio Mixer: pilih pembesar suara anda, hidup/matikan output, dan Uji bunyi. Penonton tidak terjejas.',
+      'Bunyi video dan Browser hanya kedengaran apabila scene berada di Program (seperti OBS); di Pratonton ia senyap. Bunyi video sendiri masuk siaran dan rakaman.',
+      'Butang Uji bunyi pada setiap lagu: mainkan beberapa saat dan beritahu sama ada bunyi dikesan.',
       'Dibaiki ralat "Object has been destroyed" yang muncul apabila lagu YouTube ditukar atau ditutup: pemasa pemain tersembunyi kini disemak dahulu, dan ralat proses utama tidak lagi memaparkan kotak ralat.',
       'Rakaman membuang bunyi latar secara automatik (RNNoise dan pintu bunyi pintar): kipas, hujan dan kenderaan dibuang, hanya suara yang bercakap kekal, dan di antara perkataan menjadi senyap. Boleh dimatikan di Tetapan > Audio.',
       'Senyap mikrofon pada rakaman kini memutuskan mikrofon sepenuhnya: tiada bunyi langsung sehingga mikrofon dihidupkan semula.',
@@ -101,6 +105,10 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Audio Mixer: the selected microphone now shows its name with a yellow SELECTED marker and yellow border; the name also appears on the close button tooltip.',
+      'New Output card in the Audio Mixer: choose your speakers, turn the output on/off, and Test sound. Viewers are not affected.',
+      'Video and Browser sound is heard only when the scene is in Program (like OBS); in Preview it is silent. Own-video sound goes into the stream and recording.',
+      'A Test sound button on every song: plays a few seconds and tells you whether sound was detected.',
       'Fixed the "Object has been destroyed" error that appeared when a YouTube song was changed or closed: the hidden player timers are now checked first, and main-process errors no longer show an error box.',
       'Recording automatically removes background noise (RNNoise and a smart noise gate): fans, rain and traffic are removed, only speech remains, and between words is fully silent. Can be turned off in Settings > Audio.',
       'Muting the microphone in a recording now disconnects the microphone completely: no sound at all until it is unmuted.',

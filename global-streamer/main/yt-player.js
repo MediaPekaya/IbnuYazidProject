@@ -5,6 +5,7 @@
 const wins = new Map();
 /* Ad Block: sekat permintaan iklan pada tetingkap tersembunyi YouTube dan Browser source, dan langkau iklan dalam video. Lalai: hidup. */
 let adBlockOn = true;
+let monOn = true, monLabel = '';   // output streamer: hidup/mati dan nama pembesar suara yang dipilih
 const AD_RE = /(^|\.)(doubleclick\.net|googlesyndication\.com|googleadservices\.com|adservice\.google\.[a-z.]+|googletagservices\.com|google-analytics\.com|2mdn\.net|moatads\.com|adnxs\.com|taboola\.com|outbrain\.com|criteo\.com|rubiconproject\.com|pubmatic\.com|amazon-adsystem\.com|adsrvr\.org|scorecardresearch\.com)$/i;
 const AD_PATH = /(\/pagead\/|\/api\/stats\/ads|\/ptracking|\/get_midroll_|\/youtubei\/v1\/player\/ad_break|\/api\/stats\/atr|[?&]adformat=|\/ads\/(?:ga-audiences|measurement))/i;
 const hooked = new Set();
@@ -34,6 +35,10 @@ function setAdBlock(on) { adBlockOn = on !== false; }
 function register({ ipcMain, BrowserWindow }) {
   ipcMain.handle('adblock:set', (_e, on) => { setAdBlock(on); return adBlockOn; });
   ipcMain.handle('adblock:get', () => adBlockOn);
+  // output streamer: matikan bunyi tetingkap lagu apabila output dimatikan; cuba pilih pembesar suara mengikut nama (jika pelayar mendedahkan nama peranti)
+  const sinkScript = () => monLabel ? "(function(){var L=" + JSON.stringify(monLabel) + ";navigator.mediaDevices.enumerateDevices().then(function(ds){var d=ds.filter(function(x){return x.kind==='audiooutput'&&x.label&&(x.label===L||x.label.indexOf(L)>=0||L.indexOf(x.label)>=0);})[0];var v=document.querySelector('video');if(d&&v&&v.setSinkId)v.setSinkId(d.deviceId);}).catch(function(){});})()" : '';
+  const applyMon = (w) => { if (!live(w)) return; try { w.webContents.setAudioMuted(!monOn); } catch (e) { /* abaikan */ } const sc = sinkScript(); if (sc) run(w, sc); };
+  ipcMain.handle('yt:monitor', (_e, on, label) => { monOn = on !== false; monLabel = typeof label === 'string' ? label.slice(0, 200) : ''; wins.forEach((w) => applyMon(w)); return true; });
   try { const { session } = require('electron'); hookSession(session.fromPartition('persist:gs-yt')); hookSession(session.fromPartition('persist:gs-browser')); } catch (e) { /* abaikan */ }
   const alive = (key) => { const w = wins.get(key); return w && !w.isDestroyed() && w.webContents && !w.webContents.isDestroyed() ? w : null; };
   const stop = (key) => { const w = wins.get(key); if (w && !w.isDestroyed()) w.destroy(); wins.delete(key); };
@@ -46,13 +51,14 @@ function register({ ipcMain, BrowserWindow }) {
     stop(key);
     const w = new BrowserWindow({ show: false, width: 1280, height: 720, webPreferences: { partition: 'persist:gs-yt', backgroundThrottling: false, autoplayPolicy: 'no-user-gesture-required', contextIsolation: true, nodeIntegration: false, sandbox: true } });
     w.webContents.setUserAgent(UA);
-    w.webContents.setAudioMuted(false);
+    w.webContents.setAudioMuted(!monOn);
     w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     w.webContents.on('did-finish-load', () => { try { if (live(w)) w.webContents.insertCSS(AD_CSS).catch(() => {}); } catch (e) { /* abaikan */ } });
     wins.set(key, w);
     try { await w.loadURL(url, { userAgent: UA }); } catch (e) { /* halaman mungkin dialihkan; teruskan */ }
     // cuba main (halaman kadang-kadang menunggu)
     [800, 2500, 5000].forEach((ms) => setTimeout(() => { if (live(w)) run(w, CONSENT); }, ms));
+    setTimeout(() => applyMon(w), 2500);
     setTimeout(() => { if (live(w)) run(w, "(function(){var v=document.querySelector('video');if(v&&v.paused)v.play().catch(function(){});var b=document.querySelector('.ytp-large-play-button');if(v&&v.paused&&b)b.click();})()"); }, 1500);
     return { ok: true };
   });
