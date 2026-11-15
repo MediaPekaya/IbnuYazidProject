@@ -67,4 +67,37 @@ async function transcribe(p) {
   } finally { clearTimeout(to); }
 }
 
-module.exports = { chat, transcribe, PROVIDERS };
+/** Claude (Anthropic Messages API): otak bot. op 'chat' = jawapan; op 'check' = semak kunci (senarai model, tiada kos token). */
+async function claude(op, p) {
+  p = p || {};
+  const key = String(p.key || '').trim();
+  if (!key || key.length > 300 || /[\r\n]/.test(key)) return bad('kunci tidak sah');
+  const base = process.env.GS_ANTHROPIC_BASE || 'https://api.anthropic.com';
+  const headers = { 'x-api-key': key, 'anthropic-version': '2023-06-01', Accept: 'application/json' };
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), op === 'chat' ? 40000 : 15000);
+  try {
+    let res;
+    if (op === 'check') res = await fetch(base + '/v1/models?limit=5', { headers, signal: ctl.signal });
+    else if (op === 'chat') {
+      const model = String(p.model || 'claude-sonnet-5-5');
+      if (!/^[A-Za-z0-9._:\/-]{2,80}$/.test(model)) return bad('nama model tidak sah');
+      const msgs = Array.isArray(p.messages) ? p.messages.slice(-14) : [];
+      if (!msgs.length || msgs.some((m) => !m || !['user', 'assistant'].includes(m.role) || typeof m.content !== 'string' || m.content.length > 12000)) return bad('mesej tidak sah');
+      const body = { model, max_tokens: Math.max(16, Math.min(1000, parseInt(p.max_tokens, 10) || 220)), messages: msgs, temperature: Math.max(0, Math.min(1, Number(p.temperature) || 0.8)) };
+      if (typeof p.system === 'string' && p.system) body.system = p.system.slice(0, 16000);
+      res = await fetch(base + '/v1/messages', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, headers), body: JSON.stringify(body), signal: ctl.signal });
+    } else return bad('operasi tidak dikenali');
+    const txt = await res.text();
+    let j = null; try { j = JSON.parse(txt); } catch (e) { /* bukan JSON */ }
+    if (!res.ok) { const d = (j && j.error) || {}; return { ok: false, status: res.status, code: String(d.type || ''), message: String(d.message || txt).slice(0, 300) }; }
+    if (op === 'check') return { ok: true, models: ((j && j.data) || []).map((m) => m.id).slice(0, 5) };
+    const out = (j.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('').trim();
+    if (!out) return { ok: false, status: res.status, code: 'empty', message: 'jawapan kosong' };
+    return { ok: true, text: out, usage: { input: (j.usage && j.usage.input_tokens) || 0, output: (j.usage && j.usage.output_tokens) || 0 } };
+  } catch (e) {
+    return { ok: false, status: 0, code: e && e.name === 'AbortError' ? 'timeout' : 'network', message: String((e && e.message) || e) };
+  } finally { clearTimeout(to); }
+}
+
+module.exports = { chat, transcribe, claude, PROVIDERS };

@@ -121,7 +121,7 @@
         textsMs: { kill: 'Bunuh!', 'first blood': 'Darah pertama!', 'double kill': 'Bunuh dua!', 'triple kill': 'Bunuh tiga!', maniac: 'Maniak!', savage: 'Ganas!', 'killing spree': 'Tak boleh dihentikan!', legendary: 'Legenda!', shutdown: 'Tamatkan dia!', death: 'Kau dah mati.', victory: 'Kita menang! Syabas semua!', defeat: 'Kita kalah... tak apa, lain kali kita cuba lagi.', fullitem: 'Item penuh!' },
       },
       bot: {
-        enabled: false, name: 'Jarvis', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
+        enabled: false, name: 'Hyper', aliases: '', voiceOn: true, inStream: false, voiceName: '', rate: 0, listenMs: 8000,
         fallback: 'Maaf, saya tak faham soalan itu.', ack: 'Ya?', ai: { provider: 'groq', model: '', extra: '' },
         tts: { provider: 'system', gender: 'female', model: 'eleven_multilingual_v2', maleVoice: 'pNInz6obpgDQGcFmaJgB', femaleVoice: '21m00Tcm4TlvDq8ikWAM',
           azure: { region: 'southeastasia', maleMs: 'ms-MY-OsmanNeural', femaleMs: 'ms-MY-YasminNeural', maleEn: 'en-US-GuyNeural', femaleEn: 'en-US-JennyNeural' } },
@@ -160,7 +160,7 @@
     ],
     tiers: { label: 'TIER LIST', S: [], A: [], B: [], C: [], D: [] },
     // Bot AI (ElevenLabs): ejen, ejen suara, analisis game dan pemasa spell melalui suara
-    botai: { agentId: '', sig: '', llm: 'gemini-2.0-flash', ears: 'eleven', spellOn: true, spellAnnounce: true, analysisSecs: 16, analysisSpeak: true, usage: { month: '', asks: 0, day: '', dayAsks: 0 } },
+    botai: { model: 'claude-sonnet-5-5', ears: 'eleven', spellOn: true, spellAnnounce: true, analysisSecs: 16, analysisSpeak: true, rm: 4.4, usage: { month: '', asks: 0, mUsd: 0, mChars: 0, day: '', dayAsks: 0, dUsd: 0, dChars: 0 } },
   });
 
   GS.defaultState = defaults;

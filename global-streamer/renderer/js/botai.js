@@ -1,4 +1,4 @@
-/* Global Streamer - Bot AI (ElevenLabs): otak (Agent), suara, telinga (Scribe), pemasa spell musuh melalui suara, dan analisis game.
+/* Global Streamer - Bot AI: otak Claude (kunci Anthropic) + suara dan telinga ElevenLabs, pemasa spell musuh melalui suara, dan analisis game.
  * Semuanya berada di dalam sistem Suara & Bot ("Akan datang"): tidak aktif untuk pelanggan sehingga dibuka oleh pemilik.
  * Buka kunci pemilik: tekan Ctrl+Alt+Shift+V (app dimuat semula). Tekan sekali lagi untuk menutup semula. */
 (function () {
@@ -9,8 +9,8 @@
   const st = () => GS.state.botai;
   const vc = () => GS.state.voice;
   const V = () => GS.voice;
-  const native = () => !!(window.gsNative && window.gsNative.tts && window.gsNative.tts.agent);
-  const norm = (t) => String(t || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+  const native = () => !!(window.gsNative && window.gsNative.ai && window.gsNative.ai.claude);
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
   const unlocked = () => !!(V() && !V().comingSoon);
   B.unlocked = unlocked;
 
@@ -23,118 +23,105 @@
     }
   }, true);
 
-  /* ---------- ElevenLabs: panggilan API ---------- */
-  const agentCall = async (op, params) => {
-    if (!native()) throw new Error(GS.t('Bot AI ElevenLabs hanya tersedia dalam app Windows.'));
-    const key = V().elevenKey();
-    if (!key) throw new Error(GS.t('Kunci API ElevenLabs belum diisi.'));
-    const r = await window.gsNative.tts.agent(op, Object.assign({ key }, params || {}));
+  /* ---------- model otak (Claude) dan anggaran kos ---------- */
+  B.MODELS = [
+    ['claude-opus-5-5', 'Claude Opus 5.5 (paling pandai)', 5, 25],
+    ['claude-sonnet-5-5', 'Claude Sonnet 5.5 (seimbang, disyorkan)', 3, 15],
+    ['claude-haiku-5-5', 'Claude Haiku 5.5 (paling murah dan laju)', 1, 5],
+  ];
+  const price = (id) => { const m = B.MODELS.find((x) => x[0] === id); return m ? [m[2], m[3]] : [3, 15]; };   // USD setiap juta token: anggaran, semak harga rasmi Anthropic
+
+  const monthKey = () => { const n = new Date(); return n.getFullYear() + '-' + GS.pad(n.getMonth() + 1); };
+  const dayKey = () => { const n = new Date(); return monthKey() + '-' + GS.pad(n.getDate()); };
+  const usage = () => {
+    const u = st().usage;
+    if (u.month !== monthKey()) { u.month = monthKey(); u.asks = 0; u.mUsd = 0; u.mChars = 0; }
+    if (u.day !== dayKey()) { u.day = dayKey(); u.dayAsks = 0; u.dUsd = 0; u.dChars = 0; }
+    return u;
+  };
+  B.usage = usage;
+  const addUse = (model, tin, tout) => {
+    const u = usage(), p = price(model), usd = (tin * p[0] + tout * p[1]) / 1e6;
+    u.asks++; u.dayAsks++; u.mUsd += usd; u.dUsd += usd; GS.save();
+  };
+  B.addChars = (n) => { const u = usage(); u.mChars += n; u.dChars += n; GS.save(); GS.emit('botai:changed'); };
+
+  /* ---------- Claude: panggilan API ---------- */
+  const errText = (r) => {
+    const m = String(r.message || '').slice(0, 160);
+    if (r.status === 401 || r.status === 403) return GS.t('Kunci Anthropic tidak sah atau tiada kebenaran. Semak kunci di console.anthropic.com > API Keys.');
+    if (r.status === 429) return GS.t('Anthropic: terlalu banyak permintaan atau had dicapai. Cuba sebentar lagi.');
+    if (r.status === 402 || /credit|billing/i.test(m)) return GS.t('Kredit Anthropic tidak mencukupi. Tambah kredit di console.anthropic.com > Billing.');
+    if (r.status === 404 || (r.status === 400 && /model/i.test(m))) return GS.t('Anthropic: model otak tidak diterima. Pilih model lain.') + (m ? ' (' + m + ')' : '');
+    if (r.code === 'timeout') return GS.t('Anthropic tidak menjawab (tamat masa).');
+    if (r.code === 'network' || r.status === 0) return GS.t('Tidak dapat menghubungi Anthropic. Semak sambungan internet.');
+    return GS.t('Anthropic gagal (kod {0}): {1}', r.status, m);
+  };
+  const elErr = (r) => {
+    const m = String(r.message || '').slice(0, 160);
+    if (r.status === 401 || r.status === 403) return GS.t('Kunci ElevenLabs tidak sah atau tiada kebenaran (hidupkan kebenaran Speech to Text atau beri akses penuh).');
+    if (r.status === 429) return GS.t('ElevenLabs: terlalu banyak permintaan atau had dicapai. Cuba sebentar lagi.');
+    if (r.status === 402 || /quota|limit/i.test(String(r.code))) return GS.t('Kredit ElevenLabs tidak mencukupi.');
+    if (r.code === 'timeout') return GS.t('ElevenLabs tidak menjawab (tamat masa).');
+    if (r.code === 'network' || r.status === 0) return GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.');
+    return GS.t('ElevenLabs gagal (kod {0}): {1}', r.status, m);
+  };
+  const claude = async (op, params) => {
+    if (!native()) throw new Error(GS.t('Bot AI hanya tersedia dalam app Windows.'));
+    const key = V().claudeKey();
+    if (!key) throw new Error(GS.t('Kunci Anthropic belum diisi.'));
+    const r = await window.gsNative.ai.claude(op, Object.assign({ key }, params || {}));
     if (!r || !r.ok) { const e = new Error(errText(r || {})); e.status = r && r.status; throw e; }
     return r;
   };
-  const errText = (r) => {
-    const m = String(r.message || '').slice(0, 160);
-    if (r.status === 401 || r.status === 403) return GS.t('Kunci ElevenLabs tidak sah atau tiada kebenaran. Buat kunci baharu dan hidupkan kebenaran "ElevenLabs Agents" dan "Speech to Text" (atau akses penuh).') + (m ? ' (' + m + ')' : '');
-    if (r.status === 429) return GS.t('ElevenLabs: terlalu banyak permintaan atau had penggunaan dicapai. Cuba sebentar lagi.');
-    if (r.status === 402 || /quota|limit/i.test(String(r.code))) return GS.t('Kredit ElevenLabs tidak mencukupi untuk operasi ini.');
-    if (r.code === 'timeout') return GS.t('ElevenLabs tidak menjawab (tamat masa).');
-    if (r.code === 'network' || r.status === 0) return GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.') + (m && r.code !== 'network' ? ' (' + m + ')' : '');
-    return GS.t('ElevenLabs gagal (kod {0}): {1}', r.status, m);
+  const eleven = async (op, params) => {
+    if (!(window.gsNative && window.gsNative.tts && window.gsNative.tts.agent)) throw new Error(GS.t('Bot AI hanya tersedia dalam app Windows.'));
+    const key = V().elevenKey();
+    if (!key) throw new Error(GS.t('Kunci ElevenLabs belum diisi.'));
+    const r = await window.gsNative.tts.agent(op, Object.assign({ key }, params || {}));
+    if (!r || !r.ok) { const e = new Error(elErr(r || {})); e.status = r && r.status; throw e; }
+    return r;
   };
-  B.quota = async () => { const r = await agentCall('subscription'); const j = r.json || {}; return { used: j.character_count, limit: j.character_limit, tier: j.tier, reset: j.next_character_count_reset_unix }; };
+  B.checkClaude = async () => { await claude('check'); return true; };
+  B.quota = async () => { const r = await eleven('subscription'); const j = r.json || {}; return { used: j.character_count, limit: j.character_limit, tier: j.tier }; };
 
-  /* ---------- arahan otak (disimpan pada ejen) ---------- */
-  const SYS_VERSION = 4;
-  const botName = () => (vc().bot.name || 'Jarvis').trim() || 'Jarvis';
-  const voiceId = () => vc().bot.tts.femaleVoice || '21m00Tcm4TlvDq8ikWAM';
+  /* ---------- arahan otak ---------- */
+  const botName = () => (vc().bot.name || 'Hyper').trim() || 'Hyper';
   const sysPrompt = () => 'Kamu ialah ' + botName() + ', pembantu suara AI yang menemani seorang streamer game Mobile Legends dalam siaran langsung; penonton turut mendengar. '
     + 'JAWAB TEPAT APA YANG DITANYA, mengikut topik soalan, walau apa pun topiknya (game, ilmu am, makanan, anime, perasaan, lawak). Jangan lari topik. '
     + 'Kamu AI: jangan berpura-pura manusia, tetapi tetap beri pendapat dan jawapan sebenar. '
     + 'Bercakap Bahasa Melayu Malaysia yang santai (boleh sedikit slanga seperti "wei", "bro", "lah"). Jawab dalam bahasa yang SAMA dengan soalan (jika soalan English, jawab English). '
     + 'Jawapan pendek: 1-2 ayat, paling banyak 30 patah perkataan, KECUALI diminta analisis game. Tanpa emoji, tanpa senarai, tanpa markdown, kerana jawapan akan disebut kuat. '
-    + 'Mesej pengguna boleh bermula dengan blok [DATA GAME] (data sebenar yang dikesan app) dan [SOALAN]. Gunakan DATA itu hanya untuk soalan tentang game/siaran; jangan mereka nama pemain, pasukan atau statistik yang tiada dalam DATA. '
+    + 'Mesej pengguna boleh bermula dengan blok [DATA GAME] (data sebenar yang dikesan app). Gunakan DATA itu hanya untuk soalan tentang game/siaran; jangan mereka nama pemain, pasukan atau statistik yang tiada dalam DATA. '
     + 'Jika mesej meminta ANALISIS GAME dengan format WIN/POINT/TIP, balas TEPAT dalam format itu sahaja. '
     + 'Untuk soalan siapa noob atau troll, bergurau dengan mesra; jangan menghina atau guna kata kesat.';
 
-  const sigNow = () => [botName(), voiceId(), SYS_VERSION, st().llm].join('|');
-  /** Pastikan ejen wujud dan sepadan dengan nama/suara semasa (dicipta atau dikemas kini secara automatik). */
-  B.ensureAgent = async (force) => {
-    const s = st();
-    if (s.agentId && s.sig === sigNow() && !force) return s.agentId;
-    const params = { name: 'Global Streamer ' + botName(), voice: voiceId(), prompt: sysPrompt(), llm: s.llm, language: 'ms' };
-    let r;
-    if (s.agentId) {
-      try { r = await agentCall('update', Object.assign({ agent_id: s.agentId }, params)); }
-      catch (e) { if (e.status === 404) { s.agentId = ''; r = await agentCall('create', params); } else throw e; }
-    } else r = await agentCall('create', params);
-    s.agentId = r.agent_id || s.agentId; s.sig = sigNow(); GS.save();
-    if (!s.agentId) throw new Error(GS.t('ElevenLabs tidak memulangkan ID ejen.'));
-    return s.agentId;
-  };
-
-  /* ---------- tanya otak melalui WebSocket (mod teks) ---------- */
   const clean = (t, lim) => {
     let x = String(t || '').replace(/[*_`#>~]/g, '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').replace(/[ \t]+/g, ' ').trim();
     if (lim && x.length > lim) { const cut = x.slice(0, lim); const p = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? ')); x = p > 60 ? cut.slice(0, p + 1) : cut.replace(/\s+\S*$/, '') + '…'; }
     return x;
   };
-  const useCount = () => {
-    const u = st().usage, now = new Date(), mk = now.getFullYear() + '-' + GS.pad(now.getMonth() + 1), dk = mk + '-' + GS.pad(now.getDate());
-    if (u.month !== mk) { u.month = mk; u.asks = 0; }
-    if (u.day !== dk) { u.day = dk; u.dayAsks = 0; }
-    u.asks++; u.dayAsks++; GS.save();
-  };
   const GAMEQ = /\b(game|main|kill|kda|hero|draft|team|pasukan|musuh|match|perlawanan|menang|kalah|rank|analis|analys|mati|item|ban|pick|lane)\b/i;
-  const wsOnce = (url, message, timeoutMs) => new Promise((resolve, reject) => {
-    let ws, done = false, parts = '', ready = false;
-    const end = (err, text) => { if (done) return; done = true; clearTimeout(tm); try { ws.close(); } catch (e) { /* abaikan */ } err ? reject(err) : resolve(text); };
-    const tm = setTimeout(() => end(new Error(GS.t('ElevenLabs tidak menjawab (tamat masa).'))), timeoutMs || 25000);
-    try { ws = new WebSocket(url); } catch (e) { end(new Error(GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.'))); return; }
-    ws.onopen = () => { try { ws.send(JSON.stringify({ type: 'conversation_initiation_client_data' })); } catch (e) { /* abaikan */ } };
-    ws.onmessage = (ev) => {
-      let j; try { j = JSON.parse(ev.data); } catch (e) { return; }
-      switch (j.type) {
-        case 'conversation_initiation_metadata':
-          ready = true; ws.send(JSON.stringify({ type: 'user_message', text: message })); break;
-        case 'ping': ws.send(JSON.stringify({ type: 'pong', event_id: j.ping_event && j.ping_event.event_id })); break;
-        case 'agent_chat_response_part': {
-          const p = j.text_response_part || {};
-          if (p.type === 'delta' && p.text) parts += p.text;
-          if (p.type === 'stop' && parts) end(null, parts);
-          break;
-        }
-        case 'agent_response': { const t = j.agent_response_event && j.agent_response_event.agent_response; if (t) end(null, t); break; }
-        case 'error': case 'internal_error': end(new Error(GS.t('ElevenLabs gagal: {0}', String((j.error && (j.error.message || j.error)) || j.message || j.code || 'ralat').slice(0, 160)))); break;
-        default: break;   // audio, transkrip, dan lain-lain diabaikan (suara disebut melalui TTS app)
-      }
-    };
-    ws.onerror = () => end(new Error(GS.t('Tidak dapat menghubungi ElevenLabs. Semak sambungan internet.')));
-    ws.onclose = (e) => { if (!done) { if (parts) end(null, parts); else end(new Error(GS.t('Sambungan ElevenLabs ditutup{0}.', ready ? '' : ' (' + (e.reason || e.code) + ')'))); } };
-  });
-  /** Tanya otak ElevenLabs. Mengembalikan teks jawapan. */
+  /** Tanya otak Claude. Mengembalikan teks jawapan. */
   B.ask = async (question, o) => {
     o = o || {};
-    const id = await B.ensureAgent();
-    const s = await agentCall('signed', { agent_id: id });
-    const url = s.json && s.json.signed_url;
-    if (!url) throw new Error(GS.t('ElevenLabs tidak memulangkan pautan sambungan.'));
     const q = String(question).slice(0, 500);
     const withData = o.analysis || GAMEQ.test(q);
-    const hist = B.mem.slice(-4).map((m) => m.q + ' -> ' + m.a).join('\n');
-    const msg = (withData ? '[DATA GAME]\n' + V().gameContext() + '\n\n' : '') + (hist && !o.analysis ? '[SEBELUM INI]\n' + hist + '\n\n' : '') + '[SOALAN]\n' + q;
-    useCount();
-    const raw = await wsOnce(url, msg, o.analysis ? 35000 : 25000);
-    const text = clean(raw, o.analysis ? 900 : 300);
-    if (!text) throw new Error(GS.t('ElevenLabs tidak memberi jawapan.'));
-    if (!o.analysis) { B.mem.push({ q: q.slice(0, 120), a: text.slice(0, 160) }); B.mem = B.mem.slice(-6); }
+    const msgs = [];
+    if (!o.analysis) B.mem.slice(-4).forEach((m) => { msgs.push({ role: 'user', content: m.q }); msgs.push({ role: 'assistant', content: m.a }); });
+    msgs.push({ role: 'user', content: (withData ? '[DATA GAME]\n' + V().gameContext() + '\n\n' : '') + (withData ? '[SOALAN]\n' : '') + q });
+    const model = st().model || 'claude-sonnet-5-5';
+    const r = await claude('chat', { model, system: sysPrompt(), messages: msgs, max_tokens: o.analysis ? 420 : 200, temperature: 0.8 });
+    addUse(model, r.usage ? r.usage.input : 0, r.usage ? r.usage.output : 0);
+    GS.emit('botai:changed');
+    const text = clean(r.text, o.analysis ? 900 : 300);
+    if (!text) throw new Error(GS.t('Anthropic tidak memberi jawapan.'));
+    if (!o.analysis) { B.mem.push({ q: q.slice(0, 160), a: text.slice(0, 200) }); B.mem = B.mem.slice(-6); }
     return text;
   };
 
   /* ---------- telinga: ElevenLabs Scribe ---------- */
-  B.transcribe = async (wav) => {
-    const r = await agentCall('stt', { wav });
-    return String(r.text || '').trim();
-  };
+  B.transcribe = async (wav) => { const r = await eleven('stt', { wav }); return String(r.text || '').trim(); };
   B.earsEleven = () => unlocked() && native() && st().ears === 'eleven' && !!V().elevenKey();
 
   /* ==================== PEMASA SPELL MUSUH MELALUI SUARA ==================== */
@@ -233,7 +220,13 @@
     if (!lines.length) lines.push(GS.t('Belum ada data game dikesan. Isi draft atau hidupkan pengesan kejadian.'));
     let win = D.win;
     if (win == null && k) { const sc = (k.k + k.a * 0.6) - k.d * 0.9; win = Math.max(25, Math.min(75, Math.round(50 + sc * 2.5))); }
-    return { win: win == null ? null : Math.round(win), lines: lines.slice(0, 4), tip };
+    const owned = (E.state && E.state.owned) || [];
+    const chips = [];
+    if (k) { chips.push(['KDA', k.k + '/' + k.d + '/' + k.a]); }
+    if (D.ally.length || D.enemy.length) chips.push(['DRAFT', D.ally.length + ' v ' + D.enemy.length]);
+    if (S.winloss && (S.winloss.win || S.winloss.loss)) chips.push(['RECORD', S.winloss.win + '-' + S.winloss.loss]);
+    if (owned.length) chips.push(['ITEMS', owned.length + '/6']);
+    return { win: win == null ? null : Math.round(win), lines: lines.slice(0, 4), tip, kda: k ? { k: k.k, d: k.d, a: k.a } : null, chips };
   };
   const ANALYSIS_ASK = 'ANALISIS GAME: berdasarkan DATA game di atas, analisis perlawanan yang sedang berlangsung. Balas HANYA dalam format ini (tanpa markdown, tanpa teks lain):\n'
     + 'WIN: <anggaran peluang menang kita, nombor 0 hingga 100, jika tidak boleh dikira tulis ->\n'
@@ -261,18 +254,18 @@
     B.analyzing = true; GS.emit('botai:changed');
     try {
       const local = B.localAnalysis();
-      showAnalysis({ state: 'think', win: local.win, lines: [], tip: '', source: o.source });
+      showAnalysis({ state: 'think', win: local.win, lines: [], tip: '', kda: local.kda, chips: local.chips, source: o.source });
       let res = local, ai = false;
       if (V().aiConfigured()) {
         try {
           const text = await B.ask(ANALYSIS_ASK, { analysis: true });
           const p = parseAnalysis(text);
-          if (p.lines.length || p.tip) { res = { win: p.win != null ? p.win : local.win, lines: p.lines.length ? p.lines.slice(0, 3) : local.lines, tip: p.tip || local.tip }; ai = true; }
-          else if (text) res = { win: local.win, lines: [clean(text, 120)], tip: local.tip };
+          if (p.lines.length || p.tip) { res = Object.assign({}, local, { win: p.win != null ? p.win : local.win, lines: p.lines.length ? p.lines.slice(0, 3) : local.lines, tip: p.tip || local.tip }); ai = true; }
+          else if (text) res = Object.assign({}, local, { lines: [clean(text, 120)] });
         } catch (e) { B.lastErr = String((e && e.message) || e); GS.toast(B.lastErr, 'warn', 6000); }
       }
       const speak = (res.win != null ? GS.t('Peluang menang dianggar {0} peratus.', res.win) + ' ' : '') + res.lines.slice(0, 2).join(' ') + ' ' + res.tip;
-      showAnalysis({ state: 'done', win: res.win, lines: res.lines, tip: res.tip, ai, source: o.source, skipIn: true });
+      showAnalysis({ state: 'done', win: res.win, lines: res.lines, tip: res.tip, kda: res.kda, chips: res.chips, ai, source: o.source, skipIn: true });
       V().note({ source: 'mic', text: o.source === 'key' ? 'Ctrl+Shift+A' : (o.text || 'analisis'), result: 'analisis game' + (ai ? ' (AI)' : ' (tempatan)') });
       if (st().analysisSpeak !== false) V().speak(speak.trim(), { force: true });
       return true;
@@ -287,75 +280,96 @@
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && (e.key === 'A' || e.key === 'a') && unlocked()) { e.preventDefault(); e.stopImmediatePropagation(); B.analyze({ source: 'key' }); }
   }, true);
 
-  /* ==================== PANEL BESAR ==================== */
+  /* ==================== PANEL BESAR: SETUP BOT AI (OTAK + SUARA PREMIUM) ==================== */
   const mask = (k) => (k ? '…' + k.slice(-4) : '');
-  const monthNum = () => { const u = st().usage; return u.month === new Date().getFullYear() + '-' + GS.pad(new Date().getMonth() + 1) ? u.asks : 0; };
-  const dayNum = () => { const u = st().usage, n = new Date(); return u.day === n.getFullYear() + '-' + GS.pad(n.getMonth() + 1) + '-' + GS.pad(n.getDate()) ? u.dayAsks : 0; };
   const field = (label, ctl, hint) => h('label', { class: 'field' }, h('span', null, label), ctl, hint ? h('small', { class: 'muted' }, hint) : null);
+  const rm = (usd) => (usd * (st().rm || 4.4)).toFixed(2);
   B.panel = null;
   B.openPanel = function () {
     if (!unlocked()) return;
     if (B.panel && B.panel.card && B.panel.card.isConnected) return;
-    const v = V(), c = vc(), s = st();
+    const v = V(), c = vc(), s = st(), t = c.bot.tts;
     const status = h('div', { class: 'ba-status', id: 'baStatus' });
     const out = h('div', { class: 'ba-out', id: 'baOut' });
     const spellsBox = h('div', { class: 'ba-spells', id: 'baSpells' });
     const say = (txt, cls) => { out.className = 'ba-out ' + (cls || ''); out.textContent = txt; };
+    const btn = (id, label, cls, fn) => h('button', { type: 'button', class: 'btn ' + (cls || ''), id, onClick: fn }, label);
 
-    const keyIn = h('input', { type: 'password', id: 'baKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk_…', value: v.elevenKey() });
-    const nameIn = h('input', { type: 'text', id: 'baName', maxlength: 24, value: c.bot.name, placeholder: 'Jarvis', onInput: (e) => { c.bot.name = e.target.value.trim(); GS.save(); } });
-    const voiceSel = h('select', { id: 'baVoice', onChange: (e) => { const id = e.target.value; if (id) { c.bot.tts.femaleVoice = id; c.bot.tts.maleVoice = id; GS.save(); v.prewarm(); } } },
-      h('option', { value: '' }, GS.t('Auto (suara lalai ElevenLabs)')));
+    const claudeIn = h('input', { type: 'password', id: 'baClaudeKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk-ant-…', value: v.claudeKey() });
+    const modelSel = h('select', { id: 'baModel', onChange: (e) => { s.model = e.target.value; GS.save(); } },
+      B.MODELS.map(([id, l]) => h('option', { value: id, selected: s.model === id }, l)));
+    const elevenIn = h('input', { type: 'password', id: 'baElevenKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk_…', value: v.elevenKey() });
+    const voiceIn = h('input', { type: 'text', id: 'baVoiceId', spellcheck: 'false', placeholder: 'cth 21m00Tcm4TlvDq8ikWAM', value: t.femaleVoice || '', list: 'baVoiceList' });
+    const voiceList = h('datalist', { id: 'baVoiceList' });
+    const ttsModelSel = h('select', { id: 'baTtsModel', onChange: (e) => { t.model = e.target.value; GS.save(); v.prewarm(); } },
+      [['eleven_multilingual_v2', GS.t('Multilingual v2 (paling cantik)')], ['eleven_flash_v2_5', GS.t('Flash v2.5 (laju dan murah)')]].map(([id, l]) => h('option', { value: id, selected: t.model === id }, l)));
+    const provSel = h('select', { id: 'baProv', onChange: (e) => { t.provider = e.target.value; GS.save(); v.prewarm(); } },
+      [['eleven', GS.t('ElevenLabs (premium)')], ['system', GS.t('Suara sistem (percuma)')]].map(([id, l]) => h('option', { value: id, selected: t.provider === id }, l)));
+    const nameIn = h('input', { type: 'text', id: 'baName', maxlength: 24, value: c.bot.name, placeholder: 'Hyper', onInput: (e) => { c.bot.name = e.target.value.trim(); GS.save(); paint(); } });
+    const earsSel = h('select', { id: 'baEars', onChange: (e) => { s.ears = e.target.value; GS.save(); if (v.running) { v.stop(); GS.toast(GS.t('Tekan Hidupkan mic semula untuk guna telinga baharu.'), 'info'); } } },
+      [['eleven', GS.t('ElevenLabs Scribe: faham Melayu dan English (guna kredit)')], ['windows', GS.t('Windows luar talian: percuma, English sahaja')]].map(([id, l]) => h('option', { value: id, selected: s.ears === id }, l)));
+    const extraIn = h('textarea', { id: 'baExtra', rows: 2, maxlength: 600, placeholder: GS.t('cth: Nama streamer saya Ali. Pasukan kami Team X. Saya main jungle.'), onInput: (e) => { c.bot.ai.extra = e.target.value; GS.save(); } }, c.bot.ai.extra || '');
+
     const loadVoices = async () => {
       if (!v.elevenKey()) return;
       try {
         const j = await v.elevenApi('voices');
-        (j.voices || []).slice(0, 80).forEach((x) => { const g = x.labels && x.labels.gender ? ' · ' + x.labels.gender : ''; voiceSel.append(h('option', { value: x.voice_id, selected: x.voice_id === c.bot.tts.femaleVoice }, x.name + g)); });
-      } catch (e) { /* senarai suara pilihan; abaikan */ }
+        voiceList.innerHTML = '';
+        (j.voices || []).slice(0, 80).forEach((x) => voiceList.append(h('option', { value: x.voice_id }, x.name + (x.labels && x.labels.gender ? ' · ' + x.labels.gender : ''))));
+      } catch (e) { /* senarai pilihan; abaikan */ }
     };
-    const earsSel = h('select', { id: 'baEars', onChange: (e) => { s.ears = e.target.value; GS.save(); if (v.running) { v.stop(); GS.toast(GS.t('Tekan Hidupkan bot semula untuk guna telinga baharu.'), 'info'); } } },
-      [['eleven', GS.t('ElevenLabs Scribe: faham Melayu dan English (guna kredit)')], ['windows', GS.t('Windows luar talian: percuma, English sahaja')]].map(([val, l]) => h('option', { value: val, selected: s.ears === val }, l)));
-    const llmSel = h('select', { id: 'baLlm', onChange: (e) => { s.llm = e.target.value; GS.save(); } },
-      [['gemini-2.0-flash', GS.t('Gemini 2.0 Flash (laju dan murah, disyorkan)')], ['gpt-4o-mini', 'GPT-4o mini'], ['claude-3-5-sonnet', 'Claude 3.5 Sonnet']].map(([val, l]) => h('option', { value: val, selected: s.llm === val }, l)));
-
-    const saveKey = () => { const k = keyIn.value.trim(); v.setElevenKey(k); if (k) { c.bot.tts.provider = 'eleven'; c.bot.ai.provider = 'eleven'; c.bot.voiceOn = true; c.bot.inStream = true; GS.save(); v.prewarm(); } return k; };
+    const saveAll = () => {
+      v.setClaudeKey(claudeIn.value.trim()); v.setElevenKey(elevenIn.value.trim());
+      const id = voiceIn.value.trim(); if (/^[A-Za-z0-9]{10,40}$/.test(id)) { t.femaleVoice = id; t.maleVoice = id; }
+      c.bot.name = nameIn.value.trim() || 'Hyper';
+      if (v.claudeKey()) c.bot.ai.provider = 'claude';
+      c.bot.voiceOn = true; c.bot.inStream = true; if (!c.bot.ack || c.bot.ack === 'Ya?') c.bot.ack = 'Sedia, cakap je.';
+      GS.save(); v.prewarm();
+    };
     const paint = () => {
-      const k = v.elevenKey();
+      const ck = v.claudeKey(), ek = v.elevenKey(), u = B.usage();
       status.innerHTML = '';
-      const row = (ok, txt) => status.append(h('div', { class: 'ba-row ' + (ok ? 'ok' : 'no') }, h('i', null, ok ? '✓' : '•'), h('span', null, txt)));
-      row(!!k, k ? GS.t('Kunci ElevenLabs: {0}', mask(k)) : GS.t('Kunci ElevenLabs belum diisi'));
-      row(!!s.agentId, s.agentId ? GS.t('Otak AI (ejen) sedia: {0}', botName()) : GS.t('Otak AI akan dicipta secara automatik apabila anda tekan Simpan'));
-      row(v.running, v.running ? GS.t('Bot mendengar: sebut "{0}" kemudian soalan anda', botName()) : GS.t('Bot belum dihidupkan'));
-      status.append(h('div', { class: 'ba-use' }, GS.t('Guna hari ini: {0} soalan AI · bulan ini: {1} soalan AI', dayNum(), monthNum()), h('span', { id: 'baQuota' }, '')));
+      const on = !!(ck && ek);
+      status.append(h('div', { class: 'ba-line' }, h('b', null, GS.t('Status') + ': '),
+        h('span', { class: ck ? 'ok' : 'no' }, GS.t('Otak AI') + (ck ? ' ✓ key ' + mask(ck) : ' ✗')), ' · ',
+        h('span', { class: ek ? 'ok' : 'no' }, 'ElevenLabs' + (ek ? ' ✓ key ' + mask(ek) : ' ✗')), ' · ',
+        h('span', { class: on ? 'ok' : 'no' }, on ? 'AI ON' : 'AI OFF')));
+      status.append(h('div', { class: 'ba-line' }, h('b', null, GS.t('Guna hari ni') + ': '), GS.t('{0} soalan AI · USD {1} (≈ RM {2}) · ElevenLabs {3} aksara', u.dayAsks, u.dUsd.toFixed(3), rm(u.dUsd), u.dChars)));
+      status.append(h('div', { class: 'ba-line' }, h('b', null, GS.t('Bulan ni') + ': '), GS.t('{0} soalan AI · USD {1} (≈ RM {2}) · ElevenLabs {3} aksara', u.asks, u.mUsd.toFixed(3), rm(u.mUsd), u.mChars), h('span', { id: 'baQuota' }, '')));
+      status.append(h('div', { class: 'ba-mic ' + (v.running ? 'on' : '') }, h('i', null), h('b', null, 'VOICE MIC ' + (v.running ? GS.t('berjalan') : GS.t('mati'))), ' · ', v.running ? GS.t('{0} sedia', botName()) : GS.t('tekan Hidupkan mic')));
     };
-    const showQuota = async () => { const el = GS.$('#baQuota'); if (!el) return; try { const q = await B.quota(); el.textContent = ' · ' + GS.t('Kredit ElevenLabs: {0} / {1} aksara digunakan', q.used, q.limit) + (q.tier ? ' (' + q.tier + ')' : ''); } catch (e) { el.textContent = ''; } };
-    const btn = (id, label, cls, fn) => h('button', { type: 'button', class: 'btn ' + (cls || ''), id, onClick: fn }, label);
+    const showQuota = async () => { const el = GS.$('#baQuota'); if (!el || !v.elevenKey()) return; try { const q = await B.quota(); el.textContent = ' · ' + GS.t('Kredit ElevenLabs: {0} / {1} aksara digunakan', q.used, q.limit); } catch (e) { el.textContent = ''; } };
 
     const onSave = async () => {
-      const k = saveKey(); if (!k) { say(GS.t('Tampal kunci API ElevenLabs dahulu.'), 'bad'); return; }
-      say(GS.t('Menyimpan dan menyediakan otak AI…'));
-      try { await B.ensureAgent(true); say(GS.t('Siap. Otak AI dan suara disediakan. Tekan Uji suara atau Uji audio.'), 'ok'); } catch (e) { say(String(e.message || e), 'bad'); }
-      paint(); showQuota(); loadVoices();
+      saveAll(); paint(); loadVoices(); showQuota();
+      say(GS.t('Disimpan. Kunci disimpan disulitkan dalam PC ini sahaja.'), 'ok');
     };
     const onCheck = async () => {
-      saveKey(); say(GS.t('Menyemak kunci…'));
-      try { const q = await B.quota(); say(GS.t('Kunci sah. Pelan {0}: {1} / {2} aksara digunakan bulan ini.', q.tier || '-', q.used, q.limit), 'ok'); }
-      catch (e) { say(String(e.message || e), 'bad'); }
-      paint(); showQuota();
+      saveAll(); say(GS.t('Menyemak kunci…'));
+      const res = [];
+      try { await B.checkClaude(); res.push('✓ Anthropic'); } catch (e) { res.push('✗ Anthropic: ' + (v.claudeKey() ? e.message : GS.t('belum diisi'))); }
+      try { const q = await B.quota(); res.push('✓ ElevenLabs (' + (q.tier || '-') + ', ' + q.used + '/' + q.limit + ')'); } catch (e) { res.push('✗ ElevenLabs: ' + (v.elevenKey() ? e.message : GS.t('belum diisi'))); }
+      say(res.join('\n'), res.every((x) => x[0] === '✓') ? 'ok' : 'bad'); paint(); showQuota();
     };
-    const onVoice = async () => { saveKey(); say(GS.t('Menyebut ujian suara…')); try { await v.speak(GS.t('Hai, saya {0}. Ini ujian suara saya.', botName()), { force: true }); say(GS.t('Jika anda mendengar suara, suara berfungsi.'), 'ok'); } catch (e) { say(String(e.message || e), 'bad'); } };
+    const onVoice = async () => { saveAll(); say(GS.t('Menyebut ujian suara…')); try { await v.speak(GS.t('Hai, saya {0}. Ini ujian suara saya.', botName()), { force: true }); say(GS.t('Jika anda mendengar suara, suara berfungsi.'), 'ok'); paint(); } catch (e) { say(String(e.message || e), 'bad'); } };
+    const onAi = async () => {
+      saveAll(); say(GS.t('Bot berfikir…'));
+      try { const a = await B.ask(GS.t('Hai, kau siapa? Jawab pendek.')); say('🤖 ' + a, 'ok'); v.say(a, true); paint(); } catch (e) { say(String(e.message || e), 'bad'); }
+    };
     const askIn = h('input', { type: 'text', id: 'baAsk', placeholder: GS.t('Taip soalan apa-apa untuk menguji (cth: terangkan hero Granger)'), onKeydown: (e) => { if (e.key === 'Enter') onAsk(); } });
-    const onAsk = async () => {
-      const q = askIn.value.trim(); if (!q) return; saveKey(); say(GS.t('Bot berfikir…'));
-      try { const a = await B.ask(q); say('🤖 ' + a, 'ok'); v.say(a, true); paint(); showQuota(); } catch (e) { say(String(e.message || e), 'bad'); }
+    const onAsk = async () => { const q = askIn.value.trim(); if (!q) return; saveAll(); say(GS.t('Bot berfikir…')); try { const a = await B.ask(q); say('🤖 ' + a, 'ok'); v.say(a, true); paint(); } catch (e) { say(String(e.message || e), 'bad'); } };
+    const onMic = async () => {
+      saveAll();
+      if (v.running) { v.stop(); paint(); return; }
+      say(GS.t('Menghidupkan mic…')); const ok = await v.start(); if (!ok) say(v.error || GS.t('Bot tidak dapat dihidupkan.'), 'bad'); else say(GS.t('Mic hidup. Sebut "{0}" kemudian soalan, atau "{0} analisis game ni".', botName()), 'ok');
+      paint();
     };
     const onListen = async () => {
-      saveKey();
-      if (!v.elevenKey()) { say(GS.t('Tampal dan simpan kunci ElevenLabs dahulu.'), 'bad'); return; }
-      if (!v.running) { say(GS.t('Menghidupkan bot dan mikrofon…')); const ok = await v.start(); if (!ok) { say(v.error || GS.t('Bot tidak dapat dihidupkan.'), 'bad'); paint(); return; } }
-      v.awaitUntil = Date.now() + 12000;
-      say(GS.t('Mendengar… cakap sekarang (contoh: "siapa kau?"). Jawapan akan disebut.'), 'ok');
-      paint();
+      saveAll();
+      if (!v.claudeKey() || !v.elevenKey()) { say(GS.t('Isi dan simpan kedua-dua kunci (Anthropic dan ElevenLabs) dahulu.'), 'bad'); return; }
+      if (!v.running) { say(GS.t('Menghidupkan mic…')); const ok = await v.start(); if (!ok) { say(v.error || GS.t('Bot tidak dapat dihidupkan.'), 'bad'); paint(); return; } }
+      v.awaitUntil = Date.now() + 12000; v.say(c.bot.ack || 'Sedia, cakap je.');
+      say(GS.t('Mendengar… cakap sekarang (contoh: "siapa kau?"). Jawapan akan disebut.'), 'ok'); paint();
     };
 
     const spellChk = h('input', { type: 'checkbox', checked: s.spellOn !== false, onChange: (e) => { s.spellOn = e.target.checked; GS.save(); } });
@@ -368,28 +382,39 @@
       if (!act.length) { spellsBox.append(h('div', { class: 'muted note' }, GS.t('Tiada pemasa spell aktif.'))); return; }
       act.forEach((r) => { const left = Math.max(0, Math.ceil((r.until - now) / 1000)); spellsBox.append(h('div', { class: 'ba-sp' }, h('b', null, r.hero), h('span', null, r.spell), h('em', null, left > 0 ? GS.pad(Math.floor(left / 60)) + ':' + GS.pad(left % 60) : 'READY'))); });
     };
-    const anSecs = h('input', { type: 'range', min: 8, max: 40, value: s.analysisSecs, onInput: (e) => { s.analysisSecs = Number(e.target.value); secLbl.textContent = s.analysisSecs + ' s'; GS.save(); } });
     const secLbl = h('b', null, s.analysisSecs + ' s');
+    const anSecs = h('input', { type: 'range', min: 8, max: 40, value: s.analysisSecs, onInput: (e) => { s.analysisSecs = Number(e.target.value); secLbl.textContent = s.analysisSecs + ' s'; GS.save(); } });
     const anSpeak = h('input', { type: 'checkbox', checked: s.analysisSpeak !== false, onChange: (e) => { s.analysisSpeak = e.target.checked; GS.save(); } });
 
     const body = h('div', { class: 'ba-panel' },
-      h('div', { class: 'ba-top' }, status, btn('baToggle', v.running ? GS.t('Matikan bot') : GS.t('Hidupkan bot'), v.running ? '' : 'primary', async () => { saveKey(); const ok = await v.toggle(); if (!ok && v.error) say(v.error, 'bad'); paint(); b2.textContent = v.running ? GS.t('Matikan bot') : GS.t('Hidupkan bot'); })),
-      h('h3', null, GS.t('Setup Bot AI (otak + suara ElevenLabs)')),
-      h('p', { class: 'muted note' }, GS.t('Satu kunci API ElevenLabs sahaja untuk otak, suara dan telinga bot. Daftar di elevenlabs.io, kemudian Profile > API Keys > Create, dan tampal di bawah. Pelan paling murah sudah memadai. Kunci disimpan disulitkan oleh Windows dalam PC ini sahaja. Kunci yang sama digunakan untuk semua suara (lelaki atau perempuan): suara dipilih di bawah, bukan dengan kunci berbeza.')),
-      h('div', { class: 'grid2' },
-        field(GS.t('Nama bot (kata panggilan)'), nameIn, GS.t('Cth Jarvis atau Chester. Sebut nama ini, kemudian soalan atau arahan.')),
-        field(GS.t('Kunci API ElevenLabs'), keyIn)),
-      h('div', { class: 'grid2' }, field(GS.t('Suara bot'), voiceSel), field(GS.t('Telinga bot (mendengar suara anda)'), earsSel)),
-      h('details', { class: 'dev-adv' }, h('summary', null, GS.t('Model otak (lanjutan)')), field(GS.t('Model AI dalam ejen'), llmSel)),
-      h('div', { class: 'btn-row' },
-        btn('baSave', GS.t('Simpan'), 'primary', onSave), btn('baCheck', GS.t('Semak kunci'), '', onCheck), btn('baVoiceTest', GS.t('Uji suara'), '', onVoice), btn('baListen', GS.t('Uji audio (cakap terus)'), '', onListen),
-        btn('baClear', GS.t('Padam kunci'), 'ghost', () => { v.setElevenKey(''); keyIn.value = ''; s.agentId = ''; s.sig = ''; GS.save(); say(GS.t('Kunci dipadam.')); paint(); })),
+      h('div', { class: 'ba-card' },
+        h('h3', { class: 'ba-title' }, '🔑 ' + GS.t('Setup {0} AI (otak + suara premium)', botName().toUpperCase())),
+        h('p', { class: 'muted note' }, GS.t('Kunci disimpan dalam PC ini sahaja (disulitkan oleh Windows). Yang ditunjuk balik cuma 4 huruf terakhir. Satu kunci ElevenLabs sama untuk semua suara (lelaki atau perempuan): suara dipilih dengan Voice ID.')),
+        h('div', { class: 'grid2' },
+          field('Anthropic API key', claudeIn, 'console.anthropic.com → API Keys'),
+          field(GS.t('Model otak'), modelSel)),
+        h('div', { class: 'grid2' },
+          field('ElevenLabs API key', elevenIn, 'elevenlabs.io → Profile → API Keys'),
+          field('ElevenLabs Voice ID', voiceIn, 'Voices → Copy Voice ID'), voiceList),
+        h('div', { class: 'grid2' },
+          field(GS.t('Model suara'), ttsModelSel),
+          field(GS.t('Suara jawapan'), provSel)),
+        h('div', { class: 'grid2' },
+          field(GS.t('Nama assistant'), nameIn, GS.t('Ikut suka (cth Hyper, Jarvis, Chester). Sebut nama ini untuk memanggil bot.')),
+          field(GS.t('Telinga bot (mendengar suara anda)'), earsSel)),
+        h('div', { class: 'btn-row' }, btn('baSave', '💾 ' + GS.t('SIMPAN'), 'primary', onSave), btn('baCheck', '✓ ' + GS.t('SEMAK KEY'), '', onCheck), btn('baVoiceTest', '🔊 ' + GS.t('UJI SUARA'), '', onVoice), btn('baAiTest', '● ' + GS.t('UJI AI'), '', onAi),
+          btn('baClear', GS.t('Padam kunci'), 'ghost', () => { v.setClaudeKey(''); v.setElevenKey(''); claudeIn.value = ''; elevenIn.value = ''; say(GS.t('Kunci dipadam.')); paint(); })),
+        status, out),
+
+      h('h3', null, GS.t('PANGGIL {0}', botName().toUpperCase())),
+      h('p', { class: 'muted note' }, GS.t('Sebut nama bot kemudian soalan atau arahan, cth "{0}, siapa noob?". Bot menjawab apa-apa soalan dan boleh menganalisis game.', botName())),
+      h('div', { class: 'btn-row' }, btn('baToggle', v.running ? GS.t('Matikan mic') : GS.t('Hidupkan mic'), v.running ? '' : 'primary', onMic), btn('baListen', GS.t('Uji audio (cakap terus)'), '', onListen)),
       h('div', { class: 'voice-test' }, askIn, btn('baAskBtn', GS.t('Tanya'), '', onAsk)),
-      out,
+      field(GS.t('Maklumat tambahan untuk bot (pilihan)'), extraIn),
 
       h('h3', null, GS.t('Analisis game')),
       h('p', { class: 'muted note' }, GS.t('Dua cara, fungsi yang sama: tekan Ctrl + Shift + A, atau sebut nama bot diikuti "analisis game ni" (cth "Chester, tolong analisis game ni"). Satu paparan analisis keluar secara automatik di atas capture card dan bot menyebut keputusannya. Analisis menggunakan data sebenar yang dikesan app (hero draft, K/D/A, item, rekod, meta).')),
-      h('div', { class: 'btn-row' }, btn('baAnalyze', GS.t('Analisis game sekarang'), 'primary', () => { saveKey(); B.analyze({ source: 'key' }); }), h('kbd', null, 'Ctrl + Shift + A')),
+      h('div', { class: 'btn-row' }, btn('baAnalyze', GS.t('Analisis game sekarang'), 'primary', () => { saveAll(); B.analyze({ source: 'key' }); }), h('kbd', null, 'Ctrl + Shift + A')),
       h('div', { class: 'grid2' }, h('label', { class: 'check' }, anSpeak, GS.t('Bot menyebut keputusan analisis')), field(GS.t('Lama paparan analisis'), h('div', { class: 'ba-sec' }, anSecs, secLbl))),
 
       h('h3', null, GS.t('Spell musuh melalui suara')),
@@ -398,11 +423,11 @@
       h('div', { class: 'voice-test' }, spellTest, btn('baSpellBtn', GS.t('Uji spell'), '', runSpellTest)),
       spellsBox,
       h('div', { class: 'btn-row' }, btn('baAdv', GS.t('Tetapan lanjutan (suara, efek, pengumum)…'), 'ghost', () => { if (GS.voiceui && GS.voiceui.openAdvanced) GS.voiceui.openAdvanced(); })));
-    const b2 = body.querySelector('#baToggle');
     B.panel = GS.modal({ title: GS.t('Suara & Bot AI'), body, wide: true, onClose: () => { clearInterval(B.panelTimer); B.panel = null; } });
     loadVoices(); paint(); paintSpells(); showQuota();
-    clearInterval(B.panelTimer); B.panelTimer = setInterval(() => { paintSpells(); }, 1000);
-    GS.on('voice:status', () => { if (B.panel && B.panel.card && B.panel.card.isConnected) { paint(); const bb = GS.$('#baToggle'); if (bb) bb.textContent = V().running ? GS.t('Matikan bot') : GS.t('Hidupkan bot'); } });
+    clearInterval(B.panelTimer); B.panelTimer = setInterval(paintSpells, 1000);
+    const live = () => { if (B.panel && B.panel.card && B.panel.card.isConnected) { paint(); const bb = GS.$('#baToggle'); if (bb) { bb.textContent = V().running ? GS.t('Matikan mic') : GS.t('Hidupkan mic'); bb.classList.toggle('primary', !V().running); } } };
+    GS.on('voice:status', live); GS.on('botai:changed', live);
   };
 
   B.init = function () {

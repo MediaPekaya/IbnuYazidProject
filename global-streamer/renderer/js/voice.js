@@ -167,7 +167,7 @@
   const aiProv = () => (AI[cfg().bot.ai.provider] ? cfg().bot.ai.provider : 'gemini');
   V.aiKey = () => ((GS.platforms && GS.platforms.getKey('ai-' + aiProv())) || '').trim();
   V.setAiKey = (k) => GS.platforms.setKey('ai-' + aiProv(), String(k || '').trim());
-  V.aiConfigured = () => (cfg().bot.ai.provider === 'eleven' ? !!V.elevenKey() : !!V.aiKey());
+  V.aiConfigured = () => (cfg().bot.ai.provider === 'claude' ? !!V.claudeKey() : !!V.aiKey());
   V.chatMem = [];
   const heroInfo = (n) => { const x = ((GS.data && GS.data.mlbbHeroes) || []).find((h) => h.name === n); return x ? n + ' (' + (x.roles || []).join('/') + ')' : n; };
   const EV_LABEL = { kill: 'kill', death: 'mati', item: 'beli item', fullitem: 'item penuh', victory: 'VICTORY', defeat: 'DEFEAT', newmatch: 'perlawanan baharu' };
@@ -230,7 +230,7 @@
   };
   /** Tanya AI. Melontar Error dengan mesej BM jika gagal. */
   V.askAI = async function (question) {
-    if (cfg().bot.ai.provider === 'eleven' && GS.botai) return GS.botai.ask(question);   // otak ElevenLabs (ejen)
+    if (cfg().bot.ai.provider === 'claude' && GS.botai) return GS.botai.ask(question);   // otak Claude (Anthropic)
     const key = V.aiKey();
     if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', AI[aiProv()].name));
     const b = cfg().bot.ai, pv = AI[aiProv()];
@@ -268,6 +268,8 @@
   // setiap mesej ralat dipaparkan paling kerap sekali setiap 20 saat (tidak membanjiri skrin apabila bot menjawab berulang kali)
   const warn = (msg) => { const n = Date.now(); if (n - (warned.get(msg) || 0) > 20000) { warned.set(msg, n); GS.toast(msg, 'warn', 6000); } };
   V.resetWarn = () => warned.clear();
+  V.claudeKey = () => ((GS.platforms && GS.platforms.getKey('ai-anthropic')) || '').trim();
+  V.setClaudeKey = (k) => GS.platforms.setKey('ai-anthropic', String(k || '').trim());
   V.elevenKey = () => ((GS.platforms && GS.platforms.getKey('tts-elevenlabs')) || '').trim();
   V.setElevenKey = (k) => GS.platforms.setKey('tts-elevenlabs', String(k || '').trim());
   V.azureKey = () => ((GS.platforms && GS.platforms.getKey('tts-azure')) || '').trim();
@@ -303,6 +305,7 @@
     if (native() && window.gsNative.tts) {
       const r = await window.gsNative.tts.fetch(prov, params);
       if (!r || !r.ok) throw new Error(errMsg(prov, r && r.status, r && r.code, r && r.message));
+      if (prov === 'eleven' && GS.botai && GS.botai.addChars) GS.botai.addChars(spoken.length);
       return r.audio.buffer.slice(r.audio.byteOffset, r.audio.byteOffset + r.audio.byteLength);
     }
     const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
@@ -623,7 +626,7 @@
       if (w.woke) q = w.question;
       else if (V.awaitUntil > now) q = text;
       if (q !== null) {
-        if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack && st.bot.voiceOn) V.speak(st.bot.ack, {}); GS.emit('voice:status'); return { bot: 'menunggu' }; }
+        if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack && st.bot.voiceOn) V.say(st.bot.ack); GS.emit('voice:status'); return { bot: 'menunggu' }; }
         V.awaitUntil = 0;
         // arahan analisis game melalui suara ("Chester, tolong analisis game ni"): sama seperti Ctrl+Shift+A
         if (GS.botai && GS.botai.isAnalyzeCommand(q)) { V.note({ source, text, result: 'bot: analisis game' }); GS.botai.analyze({ source: 'voice', text }); GS.emit('voice:status'); return { bot: 'analisis' }; }

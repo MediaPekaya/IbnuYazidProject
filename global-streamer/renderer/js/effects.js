@@ -645,56 +645,85 @@
     return out;
   }
   function drawAnalysis(ctx, e, p, now, W, H) {
-    const R = capRect(W, H), P = e.params, think = P.state === 'think';
-    const k = Math.min(1, R.w / 700);
-    const inK = P.skipIn || e.seen ? 1 : easeOut(p * e.dur / 480 > 1 ? 1 : p * e.dur / 480);
+    const R = capRect(W, H), P = e.params, think = P.state === 'think', Wd = GS.widgets;
+    const inK = P.skipIn || e.seen ? 1 : easeOut(Math.min(1, (p * e.dur) / 480));
     if (inK >= 1) e.seen = true;
     const outK = easeOut(Math.max(0, (p - 0.93) / 0.07));
-    const a = Math.min(1, inK) * (1 - outK);
-    const pw = R.w * 0.94, lines = (P.lines || []).slice(0, 3);
-    const fs = Math.max(13, Math.min(26, R.w * 0.032 * (R.w < 500 ? 1.1 : 1)));
-    const ringR = Math.min(R.h * 0.13, R.w * 0.11, 80 * Math.max(0.7, k));
-    const bodyW = pw - ringR * 2 - pw * 0.1;
-    const wrapped = lines.map((t) => wrapText(ctx, t, fs, bodyW, 2));
-    const tipL = P.tip ? wrapText(ctx, P.tip, fs * 0.95, bodyW, 2) : [];
-    const rowsN = wrapped.reduce((n, l) => n + l.length, 0) + tipL.length;
-    const headH = fs * 2.3, ph = Math.max(ringR * 2 + headH + fs * 2.6, headH + (think ? fs * 3 : rowsN * fs * 1.28 + (tipL.length ? fs * 1.2 : 0) + fs * 1.4)), px = R.x + (R.w - pw) / 2, py = R.y + R.h * 0.03 + (1 - inK) * -40;
+    const a = inK * (1 - outK);
+    const fs = Math.max(11, Math.min(26, R.w / 36));
+    const pw = R.w * 0.94, px = R.x + (R.w - pw) / 2;
+    const col = P.win == null ? '#9fb4d6' : P.win >= 55 ? '#46e6a8' : P.win >= 45 ? '#ffd24a' : '#ff5a6e';
+    const lines = (P.lines || []).slice(0, 2), chips = (P.chips || []).slice(0, 4), hasK = !!P.kda && !think;
+    const wrapW = pw - fs * 2.4;
+    const bl = lines.map((t) => wrapText(ctx, t, fs * 0.82, wrapW, 2)), tipL = P.tip ? wrapText(ctx, P.tip, fs * 0.9, wrapW - fs * 6.2, 2) : [];
+    const nb = bl.reduce((n, l) => n + l.length, 0);
+    let ph = think ? fs * 11 : fs * 2.4 + fs * 5.6 + fs * 2.4 + (chips.length ? fs * 2.4 : 0) + nb * fs * 1.1 + (tipL.length ? tipL.length * fs * 1.15 + fs * 1.4 : 0) + fs * 1.6;
+    ph = Math.min(ph, R.h * 0.94);
+    const py = R.y + R.h * 0.04 + (1 - inK) * -50;
     ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, R.h); ctx.clip(); ctx.globalAlpha = a;
-    const g = ctx.createLinearGradient(px, py, px, py + ph); g.addColorStop(0, 'rgba(8,14,34,0.93)'); g.addColorStop(1, 'rgba(4,8,22,0.9)');
-    ctx.fillStyle = g; GS.widgets.rr(ctx, px, py, pw, ph, fs * 0.9); ctx.fill();
-    ctx.lineWidth = 3; ctx.strokeStyle = think ? 'rgba(46,168,255,0.8)' : 'rgba(80,230,170,0.85)'; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 22; ctx.stroke(); ctx.shadowBlur = 0;
-    // pengepala
-    const hx = px + fs * 0.9, hy = py + headH * 0.62, pulse = 0.5 + 0.5 * Math.sin(now * 0.008);
-    ctx.fillStyle = think ? 'rgba(255,200,60,' + (0.5 + 0.5 * pulse) + ')' : '#46e6a8'; ctx.beginPath(); ctx.arc(hx, hy - fs * 0.12, fs * 0.22, 0, Math.PI * 2); ctx.fill();
-    GS.widgets.text(ctx, GS.tov('MATCH ANALYSIS'), hx + fs * 0.6, hy, { size: fs * 0.95, weight: 900, spacing: 3, color: '#ffffff', maxW: pw * 0.6 });
-    GS.widgets.text(ctx, String(P.name || 'BOT').toUpperCase() + (P.ai ? ' · AI' : ''), px + pw - fs * 0.9, hy, { size: fs * 0.72, weight: 800, spacing: 2, color: '#7fb0ff', align: 'right', maxW: pw * 0.34 });
-    ctx.fillStyle = 'rgba(120,170,255,0.25)'; ctx.fillRect(px + fs * 0.9, py + headH, pw - fs * 1.8, 2);
-    // tolok peratus menang
-    const cx = px + fs * 0.9 + ringR, cy = py + headH + fs * 0.7 + ringR;
-    ctx.lineWidth = ringR * 0.22; ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.beginPath(); ctx.arc(cx, cy, ringR, 0, Math.PI * 2); ctx.stroke();
-    const win = P.win; const frac = think ? (0.18 + 0.12 * Math.sin(now * 0.004)) : (win == null ? 0 : win / 100);
-    const col = win == null ? '#9fb4d6' : win >= 55 ? '#46e6a8' : win >= 45 ? '#ffd24a' : '#ff5a6e';
-    ctx.strokeStyle = think ? '#2ea8ff' : col; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, ringR, -Math.PI / 2 + (think ? now * 0.004 : 0), -Math.PI / 2 + (think ? now * 0.004 : 0) + Math.PI * 2 * Math.max(0.02, frac)); ctx.stroke(); ctx.lineCap = 'butt';
-    GS.widgets.text(ctx, think ? '...' : (win == null ? '--' : win + '%'), cx, cy + ringR * 0.18, { size: ringR * 0.62, weight: 900, align: 'center', color: '#fff', maxW: ringR * 1.7 });
-    GS.widgets.text(ctx, GS.tov(think ? 'ANALYSING' : 'WIN CHANCE'), cx, cy + ringR + fs * 1.0, { size: fs * 0.6, weight: 800, spacing: 2, align: 'center', color: '#9fb4d6', maxW: ringR * 3 });
-    // isi
-    const bx = px + fs * 0.9 + ringR * 2 + pw * 0.05; let ry = py + headH + fs * 1.5;
+    const g = ctx.createLinearGradient(px, py, px, py + ph); g.addColorStop(0, 'rgba(24,10,26,0.94)'); g.addColorStop(1, 'rgba(8,6,18,0.94)');
+    ctx.fillStyle = g; Wd.rr(ctx, px, py, pw, ph, fs * 0.6); ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = think ? 'rgba(255,90,110,0.9)' : 'rgba(255,255,255,0.85)'; ctx.stroke();
+    // pengepala: MATCH ANALYSIS + LIVE
+    const hx = px + fs * 1.0, hy = py + fs * 1.7;
+    Wd.text(ctx, GS.tov('MATCH ANALYSIS'), hx, hy, { size: fs * 0.9, weight: 900, spacing: 3, color: '#ffffff', maxW: pw * 0.5 });
+    const lw = 3.2 * fs, lx = hx + Math.min(pw * 0.48, fs * 12.5);
+    ctx.fillStyle = '#e0213f'; Wd.rr(ctx, lx, hy - fs * 0.95, lw, fs * 1.3, fs * 0.2); ctx.fill();
+    Wd.text(ctx, think ? 'SCAN' : 'LIVE', lx + lw / 2, hy - fs * 0.02, { size: fs * 0.72, weight: 900, spacing: 2, align: 'center', color: '#fff' });
+    Wd.text(ctx, String(P.name || 'BOT').toUpperCase() + (P.ai ? ' · AI' : ''), px + pw - fs, hy, { size: fs * 0.72, weight: 800, spacing: 2, color: '#ff9ab0', align: 'right', maxW: pw * 0.3 });
     if (think) {
-      GS.widgets.text(ctx, GS.t('Bot sedang menganalisis game anda…'), bx, ry, { size: fs, weight: 700, color: '#cfe0ff', maxW: bodyW });
-      const bw = bodyW * 0.8, sx = bx + ((now * 0.25) % (bw + 60)) - 60;
-      ctx.save(); ctx.beginPath(); ctx.rect(bx, ry + fs * 0.7, bw, fs * 0.3); ctx.clip(); ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, ry + fs * 0.7, bw, fs * 0.3); ctx.fillStyle = 'rgba(46,168,255,0.9)'; ctx.fillRect(sx, ry + fs * 0.7, 60, fs * 0.3); ctx.restore();
-    } else {
-      wrapped.forEach((ls, i) => {
-        const kk = clamp((p * e.dur - 150 - i * 220) / 260, 0, 1) * (P.skipIn || e.seen ? 1 : 1);
-        ls.forEach((t, j) => { ctx.globalAlpha = a * easeOut(kk); GS.widgets.text(ctx, (j === 0 ? '▸ ' : '   ') + t, bx + (1 - easeOut(kk)) * 24, ry, { size: fs, weight: 700, color: '#eaf4ff', maxW: bodyW }); ry += fs * 1.28; });
-      });
-      ctx.globalAlpha = a;
-      if (tipL.length) {
-        ry += fs * 0.15; const th = tipL.length * fs * 1.25 + fs * 0.5;
-        ctx.fillStyle = 'rgba(255,201,40,0.16)'; GS.widgets.rr(ctx, bx - fs * 0.4, ry - fs * 0.9, bodyW + fs * 0.6, th, fs * 0.4); ctx.fill();
-        tipL.forEach((t, j) => { GS.widgets.text(ctx, (j === 0 ? 'TIP  ' : '        ') + t, bx, ry + j * fs * 1.2, { size: fs * 0.95, weight: 800, color: '#ffd24a', maxW: bodyW }); });
-      }
+      Wd.text(ctx, GS.tov('CAN WE WIN THIS GAME?'), px + pw / 2, py + ph * 0.5, { size: Math.min(fs * 2.6, pw / 11), weight: 900, align: 'center', color: '#ffd24a', shadow: '#000', blur: 10, maxW: pw * 0.92 });
+      Wd.text(ctx, GS.tov('ANALYSING MATCH DATA'), px + pw / 2, py + ph * 0.5 + fs * 2.2, { size: fs * 0.8, weight: 800, spacing: 5, align: 'center', color: '#c9b7ff', maxW: pw * 0.9 });
+      const bw = pw * 0.5, bx = px + (pw - bw) / 2, by = py + ph * 0.5 + fs * 3.2, sx = bx + ((now * 0.3) % (bw + 80)) - 80;
+      ctx.save(); ctx.beginPath(); ctx.rect(bx, by, bw, fs * 0.28); ctx.clip(); ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(bx, by, bw, fs * 0.28); ctx.fillStyle = '#ffd24a'; ctx.fillRect(sx, by, 80, fs * 0.28); ctx.restore();
+      ctx.restore(); return;
     }
+    let y = py + fs * 2.4;
+    // peratus menang di tengah; kill dan mati di kiri dan kanan
+    const mid = px + pw / 2;
+    Wd.text(ctx, GS.tov('WIN PROBABILITY'), mid, y + fs * 0.6, { size: fs * 0.62, weight: 800, spacing: 4, align: 'center', color: '#c9b7ff', maxW: pw * 0.5 });
+    const big = P.win == null ? '--' : P.win + '%';
+    Wd.text(ctx, big, mid, y + fs * 4.0, { size: fs * 4.2, weight: 900, align: 'center', color: col, shadow: col, blur: 18, maxW: pw * 0.4 });
+    const tag = P.win == null ? '' : P.win >= 58 ? 'AHEAD' : P.win >= 45 ? 'EVEN' : 'BEHIND';
+    if (tag) { const tw = fs * 5.2; ctx.fillStyle = col; Wd.rr(ctx, mid - tw / 2, y + fs * 4.5, tw, fs * 1.25, fs * 0.15); ctx.fill(); Wd.text(ctx, tag, mid, y + fs * 5.42, { size: fs * 0.82, weight: 900, spacing: 3, align: 'center', color: '#101018' }); }
+    if (hasK) {
+      Wd.text(ctx, String(P.kda.k), px + pw * 0.16, y + fs * 3.8, { size: fs * 3.6, weight: 900, align: 'center', color: '#4db8ff', maxW: pw * 0.2 });
+      Wd.text(ctx, GS.tov('KILLS'), px + pw * 0.16, y + fs * 5.2, { size: fs * 0.6, weight: 800, spacing: 3, align: 'center', color: '#9fd4ff' });
+      Wd.text(ctx, String(P.kda.d), px + pw * 0.84, y + fs * 3.8, { size: fs * 3.6, weight: 900, align: 'center', color: '#ff6a7e', maxW: pw * 0.2 });
+      Wd.text(ctx, GS.tov('DEATHS'), px + pw * 0.84, y + fs * 5.2, { size: fs * 0.6, weight: 800, spacing: 3, align: 'center', color: '#ffb3bd' });
+    }
+    y += fs * 6.2;
+    // bar peluang: biru (kita) lawan merah (musuh)
+    const bx = px + fs * 1.0, bw = pw - fs * 2.0, wf = P.win == null ? 0.5 : P.win / 100;
+    ctx.fillStyle = '#e0213f'; Wd.rr(ctx, bx, y, bw, fs * 0.5, fs * 0.25); ctx.fill();
+    ctx.save(); Wd.rr(ctx, bx, y, bw * wf, fs * 0.5, fs * 0.25); ctx.clip(); ctx.fillStyle = '#2ea8ff'; ctx.fillRect(bx, y, bw * wf, fs * 0.5); ctx.restore();
+    Wd.text(ctx, GS.tov('OUR TEAM'), bx, y + fs * 1.3, { size: fs * 0.55, weight: 900, spacing: 3, color: '#7fb8ff' });
+    Wd.text(ctx, GS.tov('ENEMY'), bx + bw, y + fs * 1.3, { size: fs * 0.55, weight: 900, spacing: 3, color: '#ff8a9a', align: 'right' });
+    y += fs * 2.2;
+    // cip data
+    if (chips.length) {
+      const cw = (bw - fs * 0.5 * (chips.length - 1)) / chips.length;
+      chips.forEach(([lab, val], i) => {
+        const cx = bx + i * (cw + fs * 0.5); ctx.fillStyle = 'rgba(255,255,255,0.08)'; Wd.rr(ctx, cx, y, cw, fs * 1.9, fs * 0.25); ctx.fill();
+        Wd.text(ctx, lab, cx + fs * 0.5, y + fs * 1.25, { size: fs * 0.55, weight: 800, spacing: 2, color: '#c9b7ff', maxW: cw * 0.48 });
+        Wd.text(ctx, String(val), cx + cw - fs * 0.5, y + fs * 1.3, { size: fs * 0.92, weight: 900, align: 'right', color: '#fff', maxW: cw * 0.55 });
+      });
+      y += fs * 2.4;
+    }
+    bl.forEach((ls, i) => {
+      const kk = clamp((p * e.dur - 200 - i * 240) / 260, 0, 1);
+      ls.forEach((t, j) => { ctx.globalAlpha = a * easeOut(kk); Wd.text(ctx, (j === 0 ? '▸ ' : '   ') + t, bx + (1 - easeOut(kk)) * 20, y + fs * 0.8, { size: fs * 0.82, weight: 700, color: '#eaf4ff', maxW: wrapW }); y += fs * 1.1; });
+    });
+    ctx.globalAlpha = a;
+    if (tipL.length) {
+      y += fs * 0.3; const th = tipL.length * fs * 1.15 + fs * 0.5;
+      ctx.fillStyle = 'rgba(255,201,40,0.18)'; Wd.rr(ctx, bx, y, bw, th, fs * 0.3); ctx.fill();
+      ctx.fillStyle = '#ffc928'; Wd.rr(ctx, bx, y, fs * 5.4, th, fs * 0.3); ctx.fill();
+      Wd.text(ctx, GS.tov('NEXT PLAN'), bx + fs * 2.7, y + th / 2 + fs * 0.25, { size: fs * 0.68, weight: 900, spacing: 2, align: 'center', color: '#1b1200' });
+      tipL.forEach((t, j) => Wd.text(ctx, t, bx + fs * 6.0, y + fs * 0.95 + j * fs * 1.15, { size: fs * 0.9, weight: 800, color: '#ffe08a', maxW: bw - fs * 6.2 }));
+      y += th;
+    }
+    Wd.text(ctx, GS.tov('AGREE? COMMENT YES / NO'), px + pw - fs, py + ph - fs * 0.6, { size: fs * 0.55, weight: 800, spacing: 2, align: 'right', color: '#9fb4d6', maxW: pw * 0.5 });
     ctx.restore();
   }
 

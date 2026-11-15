@@ -9,7 +9,7 @@ const { openLink } = require('./open-link');
 const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
 const { fetchTTS, elevenApi } = require('./tts-net');
-const { chat: aiChat, transcribe: aiStt } = require('./ai-net');
+const { chat: aiChat, transcribe: aiStt, claude: aiClaude } = require('./ai-net');
 const { elevenAgent } = require('./eleven-agent');
 const deck = require('./deck');
 const ytPlayer = require('./yt-player');
@@ -29,7 +29,7 @@ const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.web
 /* ---------- simpanan key disulitkan (OS) ---------- */
 const vaultFile = () => path.join(app.getPath('userData'), 'vault.json');
 function readVault() { try { return JSON.parse(fs.readFileSync(vaultFile(), 'utf8')); } catch (e) { return {}; } }
-const FIXED_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure', 'ai-gemini', 'ai-groq']);
+const FIXED_IDS = new Set(['tiktok', 'facebook', 'youtube', 'custom', 'chat-youtube', 'chat-facebook', 'tts-elevenlabs', 'tts-azure', 'ai-gemini', 'ai-groq', 'ai-anthropic']);
 const VALID_IDS = { has: (id) => typeof id === 'string' && (FIXED_IDS.has(id) || /^x\d{1,3}$/.test(id)) }; // x1, x2... = platform tambahan
 
 ipcMain.handle('vault:get', (_e, id) => {
@@ -78,6 +78,7 @@ ipcMain.handle('deck:read', (_e, file) => deck.readPdf(file));
 ipcMain.handle('deck:convert', (_e, file) => deck.convert(file, path.join(app.getPath('userData'), 'deck-cache')));
 
 ipcMain.handle('ai:stt', (_e, p) => aiStt(p && typeof p === 'object' ? p : {}));
+ipcMain.handle('ai:claude', (_e, op, p) => aiClaude(String(op), p && typeof p === 'object' ? p : {}));
 ipcMain.handle('ai:chat', (_e, p) => aiChat(p && typeof p === 'object' ? p : {}));
 /* pintasan global Ctrl+Shift+A (analisis game) berfungsi walaupun app dikecilkan semasa main game; hanya didaftar apabila Bot AI dibuka oleh pemilik */
 let analyzeHotkey = false;

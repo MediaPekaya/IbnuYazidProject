@@ -65,6 +65,7 @@ contextBridge.exposeInMainWorld('gsNative', {
   },
   ai: {
     chat: (params) => ipcRenderer.invoke('ai:chat', params),
+    claude: (op, params) => ipcRenderer.invoke('ai:claude', op, params),
     stt: (params) => ipcRenderer.invoke('ai:stt', params),
   },
   rec: {
