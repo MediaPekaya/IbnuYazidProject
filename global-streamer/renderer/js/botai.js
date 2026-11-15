@@ -1,6 +1,6 @@
 /* Global Streamer - Bot AI: otak Claude (kunci Anthropic) + suara dan telinga ElevenLabs, pemasa spell musuh melalui suara, dan analisis game.
  * Semuanya berada di dalam sistem Suara & Bot ("Akan datang"): tidak aktif untuk pelanggan sehingga dibuka oleh pemilik.
- * Hanya akaun pemilik yang DISAHKAN (Firebase, emel disahkan) membuka sistem ini. Log masuk pemilik: Ctrl+Alt+Shift+V. Akaun lain: tunggu arahan pemilik. */
+ * Akses dikawal oleh panel admin dalam talian (Firestore config/voicebot). Lalai: hanya akaun admin. Log masuk: Ctrl+Alt+Shift+V. */
 (function () {
   'use strict';
   const GS = window.GS;
@@ -14,38 +14,70 @@
   const unlocked = () => !!(V() && !V().comingSoon);
   B.unlocked = unlocked;
 
-  /* ---------- akses pemilik: hanya akaun pemilik yang disahkan boleh membuka Suara & Bot ---------- */
-  /* Akaun lain tunggu arahan pemilik. Pengesahan menggunakan Firebase Authentication (emel mesti DISAHKAN, supaya tiada orang boleh daftar atas nama emel pemilik). */
-  const OWNERS = ['izzulmedia01@gmail.com', 'izulmedia01@gmail.com'];
-  const ownerOk = (u) => !!u && u.emailVerified === true && OWNERS.includes(String(u.email || '').toLowerCase());
+  /* ---------- akses: dikawal oleh panel admin dalam talian ---------- */
+  /* Suis disimpan di Firestore (config/voicebot) dan dibaca tanpa log masuk:
+   *   enabledAll = HIDUP untuk semua pengguna; ownerOn = HIDUP untuk akaun admin; allowHashes = cincang emel akaun yang dibenarkan.
+   * Lalai (tiada tetapan / tiada talian): hanya akaun admin (UID admin) yang disahkan membukanya. Akaun lain menunggu arahan pemilik. */
+  const CTRL = () => (GS.config && GS.config.control) || null;
+  const REMOTE_KEY = 'gs.botai.remote';
+  const sha = async (s) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(s).trim().toLowerCase())))).map((x) => x.toString(16).padStart(2, '0')).join('');
+  const ownerOk = (u) => !!u && !!CTRL() && u.uid === CTRL().adminUid;
   B.ownerOk = ownerOk;
-  B.owner = false;
+  B.owner = false; B.user = null; B.remote = (() => { try { return JSON.parse(localStorage.getItem(REMOTE_KEY) || 'null'); } catch (e) { return null; } })();
   let sdk = null;
   async function loadSdk() {
     if (sdk) return sdk;
-    const c = GS.config || {};
-    if (!c.firebase || !c.firebase.apiKey) throw new Error(GS.t('Konfigurasi log masuk tiada.'));
-    const base = 'https://www.gstatic.com/firebasejs/' + c.sdkVersion + '/';
+    const c = CTRL();
+    if (!c) throw new Error(GS.t('Konfigurasi log masuk tiada.'));
+    const base = 'https://www.gstatic.com/firebasejs/' + GS.config.sdkVersion + '/';
     const [app, auth] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js')]);
-    const fb = app.getApps().length ? app.getApp() : app.initializeApp(c.firebase);
+    const fb = app.getApps().some((a) => a.name === 'gs-control') ? app.getApp('gs-control') : app.initializeApp(c.firebase, 'gs-control');
     sdk = { auth, inst: auth.getAuth(fb) };
     return sdk;
   }
-  const applyOwner = (u) => {
-    const on = ownerOk(u);
-    B.owner = on;
+  /** Keputusan akses semasa. */
+  B.decide = async () => {
+    const r = B.remote || {};
+    if (r.enabledAll === true) return true;                              // dihidupkan admin untuk semua pengguna
+    const u = B.user;
+    if (!u) return false;
+    if (ownerOk(u)) return r.ownerOn !== false;                          // akaun admin: ikut suis pemilik
+    if (u.emailVerified === true && u.email && Array.isArray(r.allowHashes)) return r.allowHashes.includes(await sha(u.email));   // akaun dibenarkan
+    return false;
+  };
+  const applyAccess = async () => {
+    const on = await B.decide();
+    B.owner = ownerOk(B.user);
     if (V().unlock) V().unlock(on);
     if (on) B.onUnlock(); else B.hotkeyOff();
     GS.emit('botai:changed');
   };
   B.onUnlock = () => { B.hotkeyOn(); if (window.gsNative && window.gsNative.botai && window.gsNative.botai.onAnalyze && !B._analyzeBound) { B._analyzeBound = true; window.gsNative.botai.onAnalyze(() => B.analyze({ source: 'key' })); } };
+  const fsVal = (v) => (v && 'booleanValue' in v ? v.booleanValue : v && 'stringValue' in v ? v.stringValue : v && v.arrayValue ? (v.arrayValue.values || []).map(fsVal) : undefined);
+  /** Baca suis daripada Firestore (REST, tanpa log masuk). Gagal/tiada: guna salinan terakhir, atau lalai (hanya admin). */
+  B.fetchRemote = async () => {
+    const c = CTRL(); if (!c) return;
+    try {
+      const url = 'https://firestore.googleapis.com/v1/projects/' + c.firebase.projectId + '/databases/(default)/documents/config/voicebot?key=' + encodeURIComponent(c.firebase.apiKey);
+      const r = await fetch(url, { cache: 'no-store' });
+      if (r.status === 404 || r.status === 403) { B.remote = null; try { localStorage.removeItem(REMOTE_KEY); } catch (e) { /* abaikan */ } }
+      else if (r.ok) {
+        const f = (await r.json()).fields || {};
+        B.remote = { enabledAll: fsVal(f.enabledAll) === true, ownerOn: fsVal(f.ownerOn) !== false, allowHashes: fsVal(f.allowHashes) || [], at: Date.now() };
+        try { localStorage.setItem(REMOTE_KEY, JSON.stringify(B.remote)); } catch (e) { /* abaikan */ }
+      }
+    } catch (e) { /* tiada talian: guna salinan terakhir */ }
+    await applyAccess();
+  };
   B.verifyOwner = async () => {
     try {
       const x = await loadSdk();
-      x.auth.onAuthStateChanged(x.inst, (u) => applyOwner(u));
-    } catch (e) { console.warn('[GS] pengesahan pemilik tidak tersedia', e); applyOwner(null); }
+      x.auth.onAuthStateChanged(x.inst, (u) => { B.user = u || null; applyAccess(); });
+    } catch (e) { console.warn('[GS] log masuk tidak tersedia', e); }
+    await B.fetchRemote();
+    setInterval(B.fetchRemote, 3 * 60 * 1000);
   };
-  /** Dialog log masuk pemilik (tersembunyi: Ctrl+Alt+Shift+V). Pelanggan yang membukanya tidak akan lulus. */
+  /** Dialog log masuk (tersembunyi: Ctrl+Alt+Shift+V) untuk akaun admin dan akaun yang dibenarkan. */
   B.ownerDialog = async () => {
     if (B.dlg && B.dlg.card && B.dlg.card.isConnected) return;
     const msg = h('div', { class: 'ba-out', id: 'owMsg' });
@@ -53,29 +85,26 @@
     const email = h('input', { type: 'email', id: 'owEmail', autocomplete: 'email', placeholder: 'Emel' });
     const pass = h('input', { type: 'password', id: 'owPass', autocomplete: 'current-password', placeholder: GS.t('Kata laluan') });
     const run = async (fn) => {
-      try { const x = await loadSdk(); const r = await fn(x); return r; }
+      try { const x = await loadSdk(); return await fn(x); }
       catch (e) { say(e && e.code === 'auth/operation-not-allowed' ? GS.t('Log masuk emel belum dihidupkan di Firebase Console > Authentication > Sign-in method.') : e && (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') ? GS.t('Emel atau kata laluan salah (atau akaun belum didaftar).') : GS.t('Ralat: {0}', (e && (e.code || e.message)) || '?'), 'bad'); return null; }
     };
-    const after = (u) => { if (!u) return; if (ownerOk(u)) { say(GS.t('Akaun pemilik disahkan. Suara & Bot dibuka.'), 'ok'); setTimeout(() => B.dlg && B.dlg.close && B.dlg.close(), 900); } else if (u.emailVerified !== true && OWNERS.includes(String(u.email || '').toLowerCase())) say(GS.t('Emel belum disahkan. Buka emel pengesahan, klik pautannya, kemudian tekan Semak semula.'), 'bad'); else say(GS.t('Akaun ini tiada akses. Suara & Bot masih menunggu arahan pemilik.'), 'bad'); };
     const btn = (id, label, cls, fn) => h('button', { type: 'button', class: 'btn ' + (cls || ''), id, onClick: fn }, label);
     const cur = sdk && sdk.inst.currentUser;
     const body = h('div', { class: 'ba-panel' },
-      h('p', { class: 'muted note' }, GS.t('Suara & Bot AI sedang dalam ujian dan hanya dibuka untuk akaun pemilik. Log masuk dengan emel pemilik.')),
+      h('p', { class: 'muted note' }, GS.t('Suara & Bot AI dikawal oleh pemilik. Log masuk dengan akaun admin atau akaun yang dibenarkan.')),
       cur ? h('p', { class: 'note' }, GS.t('Log masuk sebagai {0}', cur.email || '')) : null,
       h('div', { class: 'grid2' }, email, pass),
       h('div', { class: 'btn-row' },
-        btn('owLogin', GS.t('Log masuk'), 'primary', async () => { const u = await run(async (x) => (await x.auth.signInWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user); after(u); }),
-        btn('owSignup', GS.t('Daftar akaun pemilik'), '', async () => {
-          if (!OWNERS.includes(email.value.trim().toLowerCase())) { say(GS.t('Hanya emel pemilik boleh didaftar di sini.'), 'bad'); return; }
-          const u = await run(async (x) => { const r = (await x.auth.createUserWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user; await x.auth.sendEmailVerification(r); return r; });
-          if (u) say(GS.t('Akaun didaftar. Emel pengesahan dihantar: klik pautannya, kemudian tekan Semak semula.'), 'ok');
+        btn('owLogin', GS.t('Log masuk'), 'primary', async () => {
+          const u = await run(async (x) => (await x.auth.signInWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user);
+          if (!u) return;
+          B.user = u; await B.fetchRemote();
+          say(V().comingSoon ? GS.t('Akaun ini tiada akses. Suara & Bot masih menunggu arahan pemilik.') : GS.t('Akaun disahkan. Suara & Bot dibuka.'), V().comingSoon ? 'bad' : 'ok');
         }),
-        btn('owRecheck', GS.t('Semak semula'), '', async () => { const u = await run(async (x) => { const c2 = x.inst.currentUser; if (!c2) throw new Error(GS.t('Belum log masuk.')); await c2.reload(); await c2.getIdToken(true); return c2; }); if (u) { applyOwner(u); after(u); } }),
-        btn('owVerify', GS.t('Hantar emel pengesahan'), 'ghost', async () => { const u = await run(async (x) => { const c2 = x.inst.currentUser; if (!c2) throw new Error(GS.t('Belum log masuk.')); await x.auth.sendEmailVerification(c2); return c2; }); if (u) say(GS.t('Emel pengesahan dihantar.'), 'ok'); }),
         btn('owReset', GS.t('Lupa kata laluan'), 'ghost', async () => { if (!email.value.trim()) { say(GS.t('Masukkan emel dahulu.'), 'bad'); return; } const ok = await run(async (x) => { await x.auth.sendPasswordResetEmail(x.inst, email.value.trim()); return true; }); if (ok) say(GS.t('Emel tetapan semula kata laluan dihantar.'), 'ok'); }),
-        btn('owOut', GS.t('Log keluar'), 'ghost', async () => { await run(async (x) => { await x.auth.signOut(x.inst); return true; }); applyOwner(null); say(GS.t('Dilog keluar. Suara & Bot ditutup.'), 'ok'); })),
+        btn('owOut', GS.t('Log keluar'), 'ghost', async () => { await run(async (x) => { await x.auth.signOut(x.inst); return true; }); B.user = null; await applyAccess(); say(GS.t('Dilog keluar.'), 'ok'); })),
       msg);
-    B.dlg = GS.modal({ title: GS.t('Log masuk pemilik'), body, onClose: () => { B.dlg = null; } });
+    B.dlg = GS.modal({ title: GS.t('Log masuk'), body, onClose: () => { B.dlg = null; } });
     run(async () => true);
   };
   window.addEventListener('keydown', (e) => {
@@ -492,7 +521,7 @@
 
   B.init = function () {
     setInterval(spellTick, 500);
-    B.verifyOwner();   // Suara & Bot dibuka hanya selepas akaun pemilik disahkan
+    B.verifyOwner();   // akses mengikut panel admin (lalai: hanya akaun admin)
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(B.init, 1200)); else setTimeout(B.init, 1200);
 })();
