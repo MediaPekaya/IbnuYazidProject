@@ -626,25 +626,75 @@
     if (d.note) W.text(ctx, d.note, x + w * 0.04, y + h * 0.94, { size: h * 0.062, weight: 600, color: C.gold, maxW: w * 0.92 });
   };
 
-  /* ---------- pemasa spell musuh ---------- */
+  /* ---------- pemasa spell musuh: pil kecil di kanan (gambar hero, ikon spell, nama hero, nama spell, masa) ---------- */
+  const SPELL_COL = { Flicker: '#ffc928', Purify: '#5fe0ff', Aegis: '#7fb0ff', Execute: '#ff6a6a', Retribution: '#7be07a', Inspire: '#ff9a3c', Sprint: '#ffd24a', Petrify: '#b9b0a0', Revitalize: '#ff7aa8', Arrival: '#b58cff', Vengeance: '#ff5a7a', Flameshot: '#ff8a3c' };
+  /** Ikon spell vektor dalam bulatan emas (tanpa fail gambar): glif ringkas bagi setiap spell. */
+  const spellIcon = (ctx, cx, cy, r, name) => {
+    const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
+    g.addColorStop(0, '#fff1b0'); g.addColorStop(0.55, '#e6a91a'); g.addColorStop(1, '#8a5a06');
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = Math.max(1.5, r * 0.1); ctx.strokeStyle = '#fff4c8'; ctx.stroke();
+    ctx.translate(cx, cy); ctx.scale(r / 10, r / 10);
+    ctx.strokeStyle = '#2a1800'; ctx.fillStyle = '#2a1800'; ctx.lineWidth = 1.9; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const P = (pts, close, fill) => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); if (close) ctx.closePath(); fill ? ctx.fill() : ctx.stroke(); };
+    switch (name) {
+      case 'Flicker': P([[-5, 4], [0, -1], [-1, 5]], false); P([[1, -6], [6, -1], [1, 0]], true, true); P([[-6, -3], [-2, -6]], false); break;   // kelip: anak panah melompat
+      case 'Purify': ctx.beginPath(); ctx.moveTo(0, -6.5); ctx.bezierCurveTo(5, -1, 5.5, 2, 0, 6); ctx.bezierCurveTo(-5.5, 2, -5, -1, 0, -6.5); ctx.stroke(); P([[0, -2], [0, 3]], false); P([[-2.5, 0.5], [2.5, 0.5]], false); break;   // titisan + salib
+      case 'Aegis': ctx.beginPath(); ctx.moveTo(0, -6.5); ctx.lineTo(5.5, -4); ctx.lineTo(4.5, 2); ctx.quadraticCurveTo(2.5, 5, 0, 6.5); ctx.quadraticCurveTo(-2.5, 5, -4.5, 2); ctx.lineTo(-5.5, -4); ctx.closePath(); ctx.stroke(); break;   // perisai
+      case 'Execute': P([[-5, 5], [4, -4]], false); P([[2, -6.5], [6.5, -2], [3.5, -1.5], [1.5, -3.5]], true, true); break;   // kapak/pedang
+      case 'Retribution': P([[-5, -5], [-1, 6]], false); P([[0, -6], [1, 6.5]], false); P([[5, -5], [3, 6]], false); break;   // cakaran
+      case 'Inspire': ctx.beginPath(); ctx.moveTo(0, -6.5); ctx.bezierCurveTo(5, -2, 5, 3, 0, 6.5); ctx.bezierCurveTo(-5, 3, -5, -2, 0, -6.5); ctx.stroke(); P([[0, -1], [0, 4]], false); break;   // api semangat
+      case 'Sprint': P([[-5, -4], [0, 0], [-5, 4]], false); P([[0, -4], [5, 0], [0, 4]], false); break;   // dua anak panah laju
+      case 'Petrify': ctx.beginPath(); ctx.moveTo(-5, 2); ctx.lineTo(-3, -4); ctx.lineTo(1, -6); ctx.lineTo(5, -2); ctx.lineTo(4, 4); ctx.lineTo(-1, 6); ctx.closePath(); ctx.stroke(); P([[-3, -4], [0, 0], [4, 4]], false); break;   // batu
+      case 'Revitalize': ctx.beginPath(); ctx.moveTo(0, 6); ctx.bezierCurveTo(-8, 0, -5, -6, 0, -2); ctx.bezierCurveTo(5, -6, 8, 0, 0, 6); ctx.fill(); break;   // hati
+      case 'Arrival': ctx.beginPath(); ctx.ellipse(0, 1, 5.5, 3, 0, 0, Math.PI * 2); ctx.stroke(); P([[0, -6.5], [0, 0.5]], false); P([[-2.5, -2.5], [0, 0.5], [2.5, -2.5]], false); break;   // portal + anak panah
+      case 'Vengeance': ctx.beginPath(); ctx.moveTo(0, -6.5); ctx.lineTo(5, -3); ctx.lineTo(4, 3); ctx.lineTo(0, 6.5); ctx.lineTo(-4, 3); ctx.lineTo(-5, -3); ctx.closePath(); ctx.stroke(); P([[-2, -1], [0, 2], [2, -1]], false); break;
+      case 'Flameshot': ctx.beginPath(); ctx.moveTo(1, -6.5); ctx.bezierCurveTo(6, -1, 4, 5, 0, 6); ctx.bezierCurveTo(-4, 5, -5, 1, -2, -2); ctx.bezierCurveTo(-1, -1, 0, -1, 1, -6.5); ctx.fill(); break;   // peluru api
+      default: P([[0, -6], [1.8, -1.8], [6, -1.5], [2.8, 1.3], [3.8, 5.8], [0, 3.3], [-3.8, 5.8], [-2.8, 1.3], [-6, -1.5], [-1.8, -1.8]], true, true);
+    }
+    ctx.restore();
+  };
+  /** Gambar hero dalam bulatan dengan cincin; jika gambar tiada: huruf awal. */
+  const heroDot = (ctx, cx, cy, r, name, ring) => {
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = '#10182e'; ctx.fill();
+    const img = GS.heroImg && GS.heroImg(name);
+    if (img) { ctx.save(); ctx.clip(); ctx.drawImage(img, cx - r, cy - r, r * 2, r * 2); ctx.restore(); }
+    else W.text(ctx, String(name || '?').slice(0, 2).toUpperCase(), cx, cy + r * 0.3, { size: r * 0.85, weight: 800, align: 'center', color: '#9fb4d6' });
+    ctx.lineWidth = Math.max(2, r * 0.12); ctx.strokeStyle = ring; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  };
+  const spellSeen = {};
   W.spelltimer = function (ctx, s, t) {
     const list = (GS.state.spells || []).filter((r) => r.hero);
     if (!list.length) return;
-    const { x, y, w, h } = s;
-    const rh = h / 5;
-    const hh = list.length * rh * 0.82 + 38;
-    W.panel(ctx, x, y, w, hh, t, { phase: 7, r: 16 });
-    W.text(ctx, 'ENEMY SPELL', x + 18, y + 26, { size: 17, weight: 800, spacing: 2, color: C.muted });
-    const now = Date.now();
+    const now = Date.now(), u = Math.max(0.6, Math.min(1.6, s.w / 340));
+    const pw = Math.min(s.w, 306 * u), ph = 46 * u, gap = 7 * u, rx = s.x + s.w;           // pil kecil, rapat ke kanan kotak
+    // pengepala kecil: ENEMY SPELL
+    const hw = 112 * u, hh = 19 * u, hx = rx - hw;
+    ctx.save(); ctx.fillStyle = '#2a5bd6'; ctx.beginPath(); ctx.moveTo(hx + 6 * u, s.y); ctx.lineTo(rx, s.y); ctx.lineTo(rx - 6 * u, s.y + hh); ctx.lineTo(hx, s.y + hh); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(200,225,255,0.7)'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+    W.text(ctx, GS.tov('ENEMY SPELL'), hx + hw / 2, s.y + hh * 0.72, { size: 11 * u, weight: 900, spacing: 2, align: 'center', color: '#ffffff', maxW: hw - 10 * u });
     list.forEach((r, i) => {
-      const ry = y + 38 + i * rh * 0.82;
-      const left = Math.max(0, Math.ceil(((r.until || 0) - now) / 1000));
-      hexSlot(ctx, x + 36, ry + rh * 0.36, rh * 0.3, r.hero, C.red, true);
-      W.text(ctx, r.hero, x + 76, ry + rh * 0.3, { size: rh * 0.32, weight: 700, color: C.text, maxW: w * 0.4 });
-      W.text(ctx, r.spell, x + 76, ry + rh * 0.62, { size: rh * 0.26, weight: 600, color: C.muted, maxW: w * 0.4 });
-      const txt = left > 0 ? GS.pad(Math.floor(left / 60)) + ':' + GS.pad(left % 60) : 'READY';
-      W.text(ctx, txt, x + w - 18, ry + rh * 0.5, { size: rh * 0.42, weight: 800, align: 'right', color: left > 0 ? C.gold : C.green });
+      const key = r.hero + '|' + r.spell + '|' + (r.until || 0);
+      if (!spellSeen[key]) spellSeen[key] = now;
+      const k = Math.min(1, (now - spellSeen[key] - i * 70) / 380), e = 1 - Math.pow(1 - Math.max(0, k), 3);   // meluncur masuk dari kanan
+      const left = Math.max(0, Math.ceil(((r.until || 0) - now) / 1000)), ready = left <= 0;
+      const x0 = rx - pw + (1 - e) * 60 * u, y0 = s.y + hh + 6 * u + i * (ph + gap), cy = y0 + ph / 2;
+      ctx.save(); ctx.globalAlpha = e;
+      const g = ctx.createLinearGradient(x0, 0, x0 + pw, 0); g.addColorStop(0, 'rgba(14,26,58,0.94)'); g.addColorStop(1, 'rgba(8,14,34,0.94)');
+      ctx.fillStyle = g; W.rr(ctx, x0, y0, pw, ph, ph / 2); ctx.fill();
+      ctx.lineWidth = 2 * u; ctx.strokeStyle = ready ? 'rgba(70,230,168,0.95)' : 'rgba(120,170,255,0.75)'; ctx.stroke();
+      heroDot(ctx, x0 + ph / 2, cy, ph * 0.43, r.hero, ready ? '#46e6a8' : '#cfe0ff');
+      spellIcon(ctx, x0 + ph * 1.12, cy, ph * 0.34, r.spell);
+      const tx = x0 + ph * 1.6, tw = pw - ph * 1.6 - 66 * u;
+      W.text(ctx, r.hero, tx, cy - ph * 0.08, { size: 11 * u, weight: 700, color: '#9fb4d6', maxW: tw });
+      W.text(ctx, r.spell, tx, cy + ph * 0.3, { size: 17 * u, weight: 900, color: '#ffffff', maxW: tw });
+      const txt = !ready ? GS.pad(Math.floor(left / 60)) + ':' + GS.pad(left % 60) : 'READY';
+      const pulse = ready ? 0.65 + 0.35 * Math.sin(now * 0.012) : 1;
+      ctx.globalAlpha = e * pulse;
+      W.text(ctx, txt, x0 + pw - ph * 0.45, cy + ph * 0.18, { size: 16 * u, weight: 900, align: 'right', color: ready ? '#46e6a8' : (left <= 10 ? '#ff6a6a' : '#ffd24a'), maxW: 62 * u });
+      ctx.restore();
     });
+    Object.keys(spellSeen).forEach((k) => { if (now - spellSeen[k] > 900000) delete spellSeen[k]; });
   };
 
   /* ---------- meta board: top pick / top ban tournament ---------- */

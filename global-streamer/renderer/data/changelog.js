@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Pop-up pemasa spell musuh direka semula dan sama di semua template: pil kecil di sebelah kanan dengan tajuk ENEMY SPELL, gambar hero, ikon spell, nama hero, nama spell dan masa. Masa bertukar merah pada 10 saat terakhir dan READY berdenyut hijau.',
       'Audio Mixer: suis HIDUP/MATI ditambah di sebelah nama Mikrofon (dan input lain). MATI melepaskan mikrofon sepenuhnya: siaran dan bot tidak mendengar apa-apa dan tiada kredit digunakan. Tetapan diingat selepas app dibuka semula.',
       'Kotak log masuk Suara & Bot direka semula: kad kemas dengan logo, emel lalai dan ikon mata untuk kata laluan.',
       'Ctrl + Shift + A tidak lagi memilih semua sumber secara tidak sengaja. Pilih semua kekal Ctrl + A.',
@@ -113,6 +114,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'The enemy spell timer pop-up was redesigned and is the same in every template: small pills on the right with an ENEMY SPELL title, hero picture, spell icon, hero name, spell name and time. The time turns red in the last 10 seconds and READY pulses green.',
       'Audio Mixer: an ON/OFF switch was added next to the Microphone name (and other inputs). OFF fully releases the microphone: the stream and the bot hear nothing and no credit is used. The setting is remembered after the app reopens.',
       'The Voice & Bot sign-in box was redesigned: a neat card with the logo, a default email and an eye icon for the password.',
       'Ctrl + Shift + A no longer selects all sources by accident. Select all stays Ctrl + A.',
