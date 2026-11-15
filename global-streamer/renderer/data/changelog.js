@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Suara & Bot AI kini hanya dibuka untuk akaun pemilik yang disahkan (log masuk pemilik tersembunyi). Akaun lain menunggu arahan pemilik. Tiada kunci API disertakan dalam app: setiap pengguna memasukkan kunci sendiri.',
       'Suara & Bot AI (dalam Akan datang): paparan Setup AI baharu: otak Claude (kunci Anthropic) dan suara premium ElevenLabs, dengan Simpan, Semak key, Uji suara, Uji AI, kos penggunaan hari ini dan bulan ini, dan status mic. Soalan dan jawapan manual dibuang.',
       'Spell musuh melalui suara: sebut "Granger flicker" dan pemasa keluar sendiri pada siaran sehingga kosong, kemudian bot menyebut "Granger flicker is ready".',
       'Analisis game dua cara: Ctrl + Shift + A atau sebut nama bot diikuti analisis. Paparan analisis keluar di atas capture card dengan peratus menang dan nasihat.',
@@ -108,6 +109,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Voice & AI Bot is now open only to the verified owner account (hidden owner sign-in). Other accounts wait for the owner\'s instruction. No API key is included in the app: every user enters their own key.',
       'Voice & Bot AI (inside Coming soon): a new AI setup panel: Claude brain (Anthropic key) and ElevenLabs premium voice, with Save, Check key, Test voice, Test AI, today and this month usage cost, and mic status. Manual questions and answers were removed.',
       'Enemy spells by voice: say "Granger flicker" and the timer appears on the stream by itself until it reaches zero, then the bot says "Granger flicker is ready".',
       'Game analysis two ways: Ctrl + Shift + A or say the bot name followed by analyse. The analysis panel appears over the capture card with the win chance and a tip.',

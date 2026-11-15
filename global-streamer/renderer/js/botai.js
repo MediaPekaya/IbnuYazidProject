@@ -1,6 +1,6 @@
 /* Global Streamer - Bot AI: otak Claude (kunci Anthropic) + suara dan telinga ElevenLabs, pemasa spell musuh melalui suara, dan analisis game.
  * Semuanya berada di dalam sistem Suara & Bot ("Akan datang"): tidak aktif untuk pelanggan sehingga dibuka oleh pemilik.
- * Buka kunci pemilik: tekan Ctrl+Alt+Shift+V (app dimuat semula). Tekan sekali lagi untuk menutup semula. */
+ * Hanya akaun pemilik yang DISAHKAN (Firebase, emel disahkan) membuka sistem ini. Log masuk pemilik: Ctrl+Alt+Shift+V. Akaun lain: tunggu arahan pemilik. */
 (function () {
   'use strict';
   const GS = window.GS;
@@ -14,13 +14,72 @@
   const unlocked = () => !!(V() && !V().comingSoon);
   B.unlocked = unlocked;
 
-  /* ---------- kunci pemilik ---------- */
+  /* ---------- akses pemilik: hanya akaun pemilik yang disahkan boleh membuka Suara & Bot ---------- */
+  /* Akaun lain tunggu arahan pemilik. Pengesahan menggunakan Firebase Authentication (emel mesti DISAHKAN, supaya tiada orang boleh daftar atas nama emel pemilik). */
+  const OWNERS = ['izzulmedia01@gmail.com', 'izulmedia01@gmail.com'];
+  const ownerOk = (u) => !!u && u.emailVerified === true && OWNERS.includes(String(u.email || '').toLowerCase());
+  B.ownerOk = ownerOk;
+  B.owner = false;
+  let sdk = null;
+  async function loadSdk() {
+    if (sdk) return sdk;
+    const c = GS.config || {};
+    if (!c.firebase || !c.firebase.apiKey) throw new Error(GS.t('Konfigurasi log masuk tiada.'));
+    const base = 'https://www.gstatic.com/firebasejs/' + c.sdkVersion + '/';
+    const [app, auth] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js')]);
+    const fb = app.getApps().length ? app.getApp() : app.initializeApp(c.firebase);
+    sdk = { auth, inst: auth.getAuth(fb) };
+    return sdk;
+  }
+  const applyOwner = (u) => {
+    const on = ownerOk(u);
+    B.owner = on;
+    if (V().unlock) V().unlock(on);
+    if (on) B.onUnlock(); else B.hotkeyOff();
+    GS.emit('botai:changed');
+  };
+  B.onUnlock = () => { B.hotkeyOn(); if (window.gsNative && window.gsNative.botai && window.gsNative.botai.onAnalyze && !B._analyzeBound) { B._analyzeBound = true; window.gsNative.botai.onAnalyze(() => B.analyze({ source: 'key' })); } };
+  B.verifyOwner = async () => {
+    try {
+      const x = await loadSdk();
+      x.auth.onAuthStateChanged(x.inst, (u) => applyOwner(u));
+    } catch (e) { console.warn('[GS] pengesahan pemilik tidak tersedia', e); applyOwner(null); }
+  };
+  /** Dialog log masuk pemilik (tersembunyi: Ctrl+Alt+Shift+V). Pelanggan yang membukanya tidak akan lulus. */
+  B.ownerDialog = async () => {
+    if (B.dlg && B.dlg.card && B.dlg.card.isConnected) return;
+    const msg = h('div', { class: 'ba-out', id: 'owMsg' });
+    const say = (t, cls) => { msg.className = 'ba-out ' + (cls || ''); msg.textContent = t; };
+    const email = h('input', { type: 'email', id: 'owEmail', autocomplete: 'email', placeholder: 'Emel' });
+    const pass = h('input', { type: 'password', id: 'owPass', autocomplete: 'current-password', placeholder: GS.t('Kata laluan') });
+    const run = async (fn) => {
+      try { const x = await loadSdk(); const r = await fn(x); return r; }
+      catch (e) { say(e && e.code === 'auth/operation-not-allowed' ? GS.t('Log masuk emel belum dihidupkan di Firebase Console > Authentication > Sign-in method.') : e && (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') ? GS.t('Emel atau kata laluan salah (atau akaun belum didaftar).') : GS.t('Ralat: {0}', (e && (e.code || e.message)) || '?'), 'bad'); return null; }
+    };
+    const after = (u) => { if (!u) return; if (ownerOk(u)) { say(GS.t('Akaun pemilik disahkan. Suara & Bot dibuka.'), 'ok'); setTimeout(() => B.dlg && B.dlg.close && B.dlg.close(), 900); } else if (u.emailVerified !== true && OWNERS.includes(String(u.email || '').toLowerCase())) say(GS.t('Emel belum disahkan. Buka emel pengesahan, klik pautannya, kemudian tekan Semak semula.'), 'bad'); else say(GS.t('Akaun ini tiada akses. Suara & Bot masih menunggu arahan pemilik.'), 'bad'); };
+    const btn = (id, label, cls, fn) => h('button', { type: 'button', class: 'btn ' + (cls || ''), id, onClick: fn }, label);
+    const cur = sdk && sdk.inst.currentUser;
+    const body = h('div', { class: 'ba-panel' },
+      h('p', { class: 'muted note' }, GS.t('Suara & Bot AI sedang dalam ujian dan hanya dibuka untuk akaun pemilik. Log masuk dengan emel pemilik.')),
+      cur ? h('p', { class: 'note' }, GS.t('Log masuk sebagai {0}', cur.email || '')) : null,
+      h('div', { class: 'grid2' }, email, pass),
+      h('div', { class: 'btn-row' },
+        btn('owLogin', GS.t('Log masuk'), 'primary', async () => { const u = await run(async (x) => (await x.auth.signInWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user); after(u); }),
+        btn('owSignup', GS.t('Daftar akaun pemilik'), '', async () => {
+          if (!OWNERS.includes(email.value.trim().toLowerCase())) { say(GS.t('Hanya emel pemilik boleh didaftar di sini.'), 'bad'); return; }
+          const u = await run(async (x) => { const r = (await x.auth.createUserWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user; await x.auth.sendEmailVerification(r); return r; });
+          if (u) say(GS.t('Akaun didaftar. Emel pengesahan dihantar: klik pautannya, kemudian tekan Semak semula.'), 'ok');
+        }),
+        btn('owRecheck', GS.t('Semak semula'), '', async () => { const u = await run(async (x) => { const c2 = x.inst.currentUser; if (!c2) throw new Error(GS.t('Belum log masuk.')); await c2.reload(); await c2.getIdToken(true); return c2; }); if (u) { applyOwner(u); after(u); } }),
+        btn('owVerify', GS.t('Hantar emel pengesahan'), 'ghost', async () => { const u = await run(async (x) => { const c2 = x.inst.currentUser; if (!c2) throw new Error(GS.t('Belum log masuk.')); await x.auth.sendEmailVerification(c2); return c2; }); if (u) say(GS.t('Emel pengesahan dihantar.'), 'ok'); }),
+        btn('owReset', GS.t('Lupa kata laluan'), 'ghost', async () => { if (!email.value.trim()) { say(GS.t('Masukkan emel dahulu.'), 'bad'); return; } const ok = await run(async (x) => { await x.auth.sendPasswordResetEmail(x.inst, email.value.trim()); return true; }); if (ok) say(GS.t('Emel tetapan semula kata laluan dihantar.'), 'ok'); }),
+        btn('owOut', GS.t('Log keluar'), 'ghost', async () => { await run(async (x) => { await x.auth.signOut(x.inst); return true; }); applyOwner(null); say(GS.t('Dilog keluar. Suara & Bot ditutup.'), 'ok'); })),
+      msg);
+    B.dlg = GS.modal({ title: GS.t('Log masuk pemilik'), body, onClose: () => { B.dlg = null; } });
+    run(async () => true);
+  };
   window.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'V' || e.key === 'v')) {
-      e.preventDefault();
-      try { const on = localStorage.getItem('gs.voice.unlock') === '1'; localStorage.setItem('gs.voice.unlock', on ? '0' : '1'); } catch (x) { /* abaikan */ }
-      location.reload();
-    }
+    if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'V' || e.key === 'v')) { e.preventDefault(); B.ownerDialog(); }
   }, true);
 
   /* ---------- model otak (Claude) dan anggaran kos ---------- */
@@ -276,6 +335,7 @@
 
   /* ---------- pintasan papan kekunci Ctrl+Shift+A ---------- */
   B.hotkeyOn = () => { if (window.gsNative && window.gsNative.botai) window.gsNative.botai.hotkey(unlocked()).catch(() => {}); };
+  B.hotkeyOff = () => { if (window.gsNative && window.gsNative.botai) window.gsNative.botai.hotkey(false).catch(() => {}); };
   window.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && (e.key === 'A' || e.key === 'a') && unlocked()) { e.preventDefault(); e.stopImmediatePropagation(); B.analyze({ source: 'key' }); }
   }, true);
@@ -299,7 +359,7 @@
     const modelSel = h('select', { id: 'baModel', onChange: (e) => { s.model = e.target.value; GS.save(); } },
       B.MODELS.map(([id, l]) => h('option', { value: id, selected: s.model === id }, l)));
     const elevenIn = h('input', { type: 'password', id: 'baElevenKey', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk_…', value: v.elevenKey() });
-    const voiceIn = h('input', { type: 'text', id: 'baVoiceId', spellcheck: 'false', placeholder: 'cth 21m00Tcm4TlvDq8ikWAM', value: t.femaleVoice || '', list: 'baVoiceList' });
+    const voiceIn = h('input', { type: 'text', id: 'baVoiceId', spellcheck: 'false', placeholder: GS.t('kosong = suara lalai ElevenLabs'), value: (t.femaleVoice && t.femaleVoice !== '21m00Tcm4TlvDq8ikWAM') ? t.femaleVoice : '', list: 'baVoiceList' });
     const voiceList = h('datalist', { id: 'baVoiceList' });
     const ttsModelSel = h('select', { id: 'baTtsModel', onChange: (e) => { t.model = e.target.value; GS.save(); v.prewarm(); } },
       [['eleven_multilingual_v2', GS.t('Multilingual v2 (paling cantik)')], ['eleven_flash_v2_5', GS.t('Flash v2.5 (laju dan murah)')]].map(([id, l]) => h('option', { value: id, selected: t.model === id }, l)));
@@ -320,7 +380,7 @@
     };
     const saveAll = () => {
       v.setClaudeKey(claudeIn.value.trim()); v.setElevenKey(elevenIn.value.trim());
-      const id = voiceIn.value.trim(); if (/^[A-Za-z0-9]{10,40}$/.test(id)) { t.femaleVoice = id; t.maleVoice = id; }
+      const id = voiceIn.value.trim(); if (/^[A-Za-z0-9]{10,40}$/.test(id)) { t.femaleVoice = id; t.maleVoice = id; } else if (!id) { t.femaleVoice = '21m00Tcm4TlvDq8ikWAM'; t.maleVoice = '21m00Tcm4TlvDq8ikWAM'; }
       c.bot.name = nameIn.value.trim() || 'Hyper';
       if (v.claudeKey()) c.bot.ai.provider = 'claude';
       c.bot.voiceOn = true; c.bot.inStream = true; if (!c.bot.ack || c.bot.ack === 'Ya?') c.bot.ack = 'Sedia, cakap je.';
@@ -432,7 +492,7 @@
 
   B.init = function () {
     setInterval(spellTick, 500);
-    if (unlocked()) { B.hotkeyOn(); if (window.gsNative && window.gsNative.botai && window.gsNative.botai.onAnalyze) window.gsNative.botai.onAnalyze(() => B.analyze({ source: 'key' })); }
+    B.verifyOwner();   // Suara & Bot dibuka hanya selepas akaun pemilik disahkan
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(B.init, 1200)); else setTimeout(B.init, 1200);
 })();

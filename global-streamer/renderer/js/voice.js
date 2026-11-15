@@ -11,11 +11,20 @@
   'use strict';
   const GS = window.GS;
   const { h } = GS;
-  /* Suara & Bot ialah "Akan datang" untuk pelanggan. Pemilik membukanya dengan Ctrl+Alt+Shift+V (lihat botai.js) atau window.GS_FORCE_VOICE. */
-  const FORCE = !!window.GS_FORCE_VOICE || (() => { try { return localStorage.getItem('gs.voice.unlock') === '1'; } catch (e) { return false; } })();
+  /* Suara & Bot ialah "Akan datang" untuk semua pengguna. Hanya akaun pemilik yang disahkan (botai.js) membukanya melalui V.unlock(). window.GS_FORCE_VOICE hanya untuk ujian. */
+  const FORCE = !!window.GS_FORCE_VOICE;
   const V = (GS.voice = { comingSoon: !FORCE, running: false, engine: '', speaking: false, awaitUntil: 0, last: null, error: '', info: {}, lastFx: {}, taps: {}, log: [] });
   /** Suara & Bot (mikrofon, bot, AI) ditutup: "Akan datang". Pengumum efek (Inggeris) kekal berfungsi. Ujian boleh membukanya dengan window.GS_FORCE_VOICE. */
-  const COMING_SOON = !FORCE;
+  let COMING_SOON = !FORCE;
+  /** Buka/tutup Suara & Bot (dipanggil oleh botai.js selepas pengesahan akaun pemilik). */
+  V.unlock = function (on) {
+    on = !!on;
+    if (COMING_SOON === !on) return;
+    COMING_SOON = !on; V.comingSoon = !on;
+    if (!on && V.running) V.stop();
+    if (on) V.prewarm();
+    GS.emit('voice:status');
+  };
   const native = () => !!(window.gsNative && window.gsNative.voice);
   const cfg = () => GS.state.voice;
 
