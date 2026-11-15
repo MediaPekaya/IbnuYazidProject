@@ -2,6 +2,8 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Tab jenis template (Gaming, Formal, Sebentar Lagi, Pembentangan): bug penanda biru tersasar dibaiki. Penanda kini sentiasa tepat di bawah tab aktif dan dikira semula bila saiz berubah. Apabila app dibuka, tab sentiasa bermula pada Gaming.',
+      'Audio Mixer: kad Output dan semua kad (mikrofon, lagu, input) boleh dilaraskan lebarnya dengan menyeret tepi kanan; klik dua kali untuk kembali ke saiz asal. Saiz diingat.',
       'Kira Detik: bila ditambah pada Sumber, popup tetapan masa keluar (jam, minit, saat; bukan hanya 10 minit). Tekan Simpan dan kira detik terus berubah. Butang Edit masa tersedia pada Sifat dan kotak PROGRAM.',
       'Kira Detik: butang Mula/Sambung, Jeda dan Set semula kini ikon vektor (bukan tulisan).',
       'Audio Mixer: kad Output disusun selari dengan kad Mikrofon (kepala, nama peranti, meter, pelaras, speaker dan butang bawah di baris yang sama). Butang uji bunyi menjadi ikon kecil di sebelah speaker.',
@@ -120,6 +122,8 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Template type tabs (Gaming, Formal, Countdown, Presentation): fixed the blue indicator sitting in the wrong place. It now always sits under the active tab and is recalculated when the size changes. When the app opens, the tabs always start on Gaming.',
+      'Audio Mixer: the Output card and every card (microphone, music, inputs) can be resized by dragging the right edge; double-click resets the size. The size is remembered.',
       'Countdown: when added to Sources, a time setup popup opens (hours, minutes, seconds; not just 10 minutes). Press Save and the countdown changes right away. An Edit time button is in Properties and the PROGRAM box.',
       'Countdown: the Start/Resume, Pause and Reset buttons are now vector icons (not text).',
       'Audio Mixer: the Output card is aligned with the Microphone card (header, device name, meter, fader, speaker and bottom button on the same rows). The test sound button is a small icon beside the speaker.',

@@ -722,9 +722,8 @@ html[data-appmode="formal-white"] .strip-dev span, html[data-appmode="formal-gra
 .dev-sel i { width: 8px; height: 8px; border-radius: 50%; background: #2a1d00; display: block; }
 .device.sel::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; border-radius: 0 4px 4px 0; background: #ffc928; box-shadow: 0 0 10px #ffc928; }
 /* semua kotak mixer sama lebar; nama peranti panjang dipotong dengan ... */
-.mixer .strip, #mixerRow .strip, .dock .strip { flex: 0 0 170px; width: 170px; min-width: 0; max-width: 170px; box-sizing: border-box; }
 .strip .strip-dev { max-width: 100%; box-sizing: border-box; overflow: hidden; }
-.mixer .strip, #mixerRow .strip, .dock .strip { flex-basis: 190px; width: 190px; max-width: 190px; }
+.dock-body.mixer .strip { flex: 0 0 190px; width: 190px; min-width: 0; max-width: 190px; box-sizing: border-box; }
 .strip .strip-dev b { display: none; }
 .cd-icons { gap: 10px; }
 .btn.cd-ic { width: 44px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }

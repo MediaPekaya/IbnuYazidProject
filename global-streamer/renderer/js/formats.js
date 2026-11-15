@@ -7,7 +7,7 @@
   const F = (GS.formats = {});
   let viewO = null;          // format yang sedang dilihat dalam dock Template
   let viewC = 'gaming';      // jenis template: 'gaming' atau 'formal'
-  try { viewC = sessionStorage.getItem('gs.tplCat') || 'gaming'; } catch (e) { /* abaikan */ }
+  /* sentiasa mula pada Gaming bila app dibuka */
   const thumbs = {};         // cache gambar kecil: id|tema -> canvas
 
   F.syncSwitch = function () {
@@ -98,11 +98,12 @@
     root.innerHTML = '';
     root.dataset.o = viewO;
     // scene "Sebentar Lagi": papar terus template Sebentar Lagi untuk scene itu
-    if (sc && sc.templateId && F._lastScene !== sc.id) { const tcur = (GS.games[GS.state.game] || GS.games.mlbb).templates.find((t) => t.id === sc.templateId); if (tcur && tcur.category) viewC = tcur.category; else if (/sebentar\s*lagi|countdown timer|brb|soon/i.test(sc.name || '')) viewC = 'soon'; }
+    if (sc && F._lastScene === undefined) { /* buka pertama: kekal Gaming */ }
+    else if (sc && sc.templateId && F._lastScene !== sc.id) { const tcur = (GS.games[GS.state.game] || GS.games.mlbb).templates.find((t) => t.id === sc.templateId); if (tcur && tcur.category) viewC = tcur.category; else if (/sebentar\s*lagi|countdown timer|brb|soon/i.test(sc.name || '')) viewC = 'soon'; }
     else if (sc && F._lastScene !== sc.id && /sebentar\s*lagi|countdown timer|brb|soon/i.test(sc.name || '')) viewC = 'soon';
     if (sc) F._lastScene = sc.id;
     $$('#tplCats button').forEach((b) => b.classList.toggle('on', b.dataset.c === viewC));
-    const cats = $('#tplCats'); if (cats) { cats.dataset.c = viewC; const on = cats.querySelector('button.on'); const th = cats.querySelector('.thumb'); if (on && th) { th.style.width = on.offsetWidth + 'px'; th.style.transform = 'translateX(' + (on.offsetLeft - 2) + 'px)'; } }
+    const cats = $('#tplCats'); if (cats) { cats.dataset.c = viewC; F.placeThumb(); requestAnimationFrame(F.placeThumb); }
     templates(viewO).filter((t) => (t.category || 'gaming') === viewC).forEach((t) => {
       const sel = viewO === cur && sc && sc.templateId === t.id;
       root.append(h('button', { type: 'button', class: 'tpl-card ' + t.orientation + (sel ? ' sel' : ''), 'data-tpl': t.id, title: t.desc || t.name, onClick: () => F.use(t) },
@@ -120,15 +121,28 @@
     requestAnimationFrame(() => { root.style.scrollBehavior = ''; });
   };
 
+  /* letak penanda biru tepat di bawah tab aktif (diukur dari kedudukan sebenar; dikira semula bila saiz berubah) */
+  F.placeThumb = function () {
+    const cats = $('#tplCats'); if (!cats) return;
+    const on = cats.querySelector('button.on'), th = cats.querySelector('.thumb');
+    if (!on || !th) return;
+    const w = on.offsetWidth; if (!w) return;   // panel tersembunyi: dikira semula apabila kelihatan
+    th.style.width = w + 'px'; th.style.transform = 'translateX(' + (on.offsetLeft - 2) + 'px)';
+  };
+
   F.init = function () {
     const sw = $('#fmtSwitch');
     if (sw) $$('button', sw).forEach((b) => b.addEventListener('click', () => { F.set(b.dataset.o); viewO = GS.orient(); F.drawDock(); }));
     $$('#tplTabs button').forEach((b) => b.addEventListener('click', () => { viewO = b.dataset.o; F.drawDock(); }));
-    $$('#tplCats button').forEach((b) => b.addEventListener('click', () => { viewC = b.dataset.c; try { sessionStorage.setItem('gs.tplCat', viewC); } catch (e) { /* abaikan */ } F.drawDock(); }));
+    $$('#tplCats button').forEach((b) => b.addEventListener('click', () => { viewC = b.dataset.c; F.drawDock(); }));
     GS.on('scenes:changed', () => { F.syncSwitch(); F.drawDock(); });
     GS.on('format:changed', (o) => { viewO = o; });
     F.syncSwitch();
     F.drawDock();
+    try { const cats = $('#tplCats'); if (cats && window.ResizeObserver) { new ResizeObserver(() => F.placeThumb()).observe(cats); cats.querySelectorAll('button').forEach((b) => new ResizeObserver(() => F.placeThumb()).observe(b)); } } catch (e) { /* abaikan */ }
+    window.addEventListener('resize', F.placeThumb);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(F.placeThumb);
+    setTimeout(F.placeThumb, 600);
     setTimeout(F.prewarm, 1500);
   };
 })();

@@ -597,8 +597,8 @@
               GS.h('button', { class: 'btn tiny test', id: 'btnMusicTest' + ch.id, title: GS.t('Mainkan beberapa saat untuk menguji bunyi'), onClick: () => A.musicTest(ch.id) }, GS.t('Uji bunyi')),
               GS.h('button', { class: 'btn tiny', id: 'btnMusicLink' + ch.id, onClick: () => A.musicAddLink(ch.id) }, '+ ' + GS.t('Pelayar / link')))
           : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
-      // semua kotak sama lebar (lebar tersuai lama dibuang)
-      if (ch.w) ch.w = 0;
+      // pemegang saiz: seret di tepi kanan untuk melaraskan lebar; klik dua kali untuk lebar asal
+      A.addGrip(strip, () => ch.w, (w) => { ch.w = w; }, persist);
       root.append(strip);
     });
     root.append(A.outputStrip());
@@ -626,11 +626,27 @@
   };
 
   /** Kad Output: pilih pembesar suara streamer, hidup/mati, dan uji bunyi. */
+  /* pemegang laras lebar kad mixer (sama untuk semua kad: mikrofon, lagu, output...) */
+  A.addGrip = function (strip, getW, setW, save) {
+    const apply = (w) => { if (w) { strip.style.flex = '0 0 ' + w + 'px'; strip.style.width = w + 'px'; strip.style.maxWidth = w + 'px'; } else { strip.style.flex = ''; strip.style.width = ''; strip.style.maxWidth = ''; } };
+    apply(getW());
+    strip.style.position = 'relative';
+    const grip = GS.h('div', { class: 'strip-grip', title: GS.t('Seret untuk laras saiz') });
+    grip.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const x0 = e.clientX, w0 = strip.getBoundingClientRect().width;
+      const mv = (m) => { const nw = GS.clamp(Math.round(w0 + m.clientX - x0), 120, 640); setW(nw); apply(nw); };
+      const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); save(); };
+      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+    });
+    grip.addEventListener('dblclick', () => { setW(0); apply(0); save(); });
+    strip.append(grip);
+  };
   A.outputStrip = function () {
     const on = outOn(), vol = GS.state.audio.outVol == null ? 1 : GS.state.audio.outVol;
     const name = (GS.state.audio.outId ? GS.state.audio.outLabel : '') || GS.t('Lalai sistem');
     const meter = GS.h('div', { class: 'meter' }, GS.h('i', { dataset: { meter: '__out' } }));
-    return GS.h('div', { class: 'strip out-strip picked' + (on ? '' : ' muted') },
+    const strip = GS.h('div', { class: 'strip out-strip picked' + (on ? '' : ' muted') },
       GS.h('div', { class: 'strip-head' },
         GS.h('span', { class: 'strip-name' }, GS.t('Output')),
         GS.h('button', { type: 'button', class: 'mic-sw ' + (on ? 'on' : 'off'), id: 'btnOutOn', title: on ? GS.t('Output HIDUP: klik untuk matikan') : GS.t('Output MATI: klik untuk hidupkan'), onClick: () => A.setOutputOn(!on) }, on ? GS.t('Suis hidup') : GS.t('Suis mati'))),
@@ -642,6 +658,8 @@
         GS.h('button', { class: 'icon-btn' + (on ? '' : ' on'), title: on ? GS.t('Bisu output') : GS.t('Nyahbisu output'), onClick: () => A.setOutputOn(!on), html: GS.icon(on ? 'volume' : 'mute', 16) }),
         GS.h('button', { class: 'icon-btn', id: 'btnOutTest', title: GS.t('Uji bunyi'), 'aria-label': GS.t('Uji bunyi'), onClick: () => A.testTone(), html: GS.icon('play', 14) }))),
       GS.h('button', { class: 'btn tiny', id: 'btnOutPick', onClick: () => A.pickOutput() }, GS.t('Tukar output')));
+    A.addGrip(strip, () => GS.state.audio.outW || 0, (w) => { GS.state.audio.outW = w; }, () => GS.save());
+    return strip;
   };
   /** Senarai output (pembesar suara / fon kepala / peranti): yang digunakan ditanda titik kuning. */
   A.pickOutput = async function () {

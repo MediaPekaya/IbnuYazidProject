@@ -109,7 +109,6 @@ body.portrait .screens.studio #transitionCol { width: 100px; }
 .tpl-cats button { position: relative; z-index: 1; background: none; border: 0; padding: 3px 10px; border-radius: 8px; color: var(--muted); font-weight: 800; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: color 0.35s var(--ease); }
 .tpl-cats button.on { color: #fff; }
 .tpl-cats .thumb { position: absolute; top: 2px; bottom: 2px; left: 2px; width: 0; transition: transform 0.5s var(--ease), width 0.5s var(--ease), left 0.5s var(--ease); border-radius: 8px; background: var(--blue); transition: transform 0.5s var(--ease); }
-.tpl-cats[data-c="formal"] .thumb { transform: translateX(100%); }
 .tpl-strip.swap .tpl-card { animation: tplIn 0.55s var(--ease) both; }
 .tpl-strip.swap .tpl-card:nth-child(2) { animation-delay: 0.04s; } .tpl-strip.swap .tpl-card:nth-child(3) { animation-delay: 0.08s; }
 .tpl-strip.swap .tpl-card:nth-child(4) { animation-delay: 0.12s; } .tpl-strip.swap .tpl-card:nth-child(5) { animation-delay: 0.16s; } .tpl-strip.swap .tpl-card:nth-child(n+6) { animation-delay: 0.2s; }
