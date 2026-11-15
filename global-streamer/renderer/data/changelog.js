@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Tajuk panel Suara & Bot AI ditukar kepada "Setup AI brain and voice (Claude + ElevenLabs)" (tanpa nama bot).',
       'Suara & Bot AI kini hanya dibuka untuk akaun pemilik yang disahkan (log masuk pemilik tersembunyi). Akaun lain menunggu arahan pemilik. Tiada kunci API disertakan dalam app: setiap pengguna memasukkan kunci sendiri.',
       'Suara & Bot AI (dalam Akan datang): paparan Setup AI baharu: otak Claude (kunci Anthropic) dan suara premium ElevenLabs, dengan Simpan, Semak key, Uji suara, Uji AI, kos penggunaan hari ini dan bulan ini, dan status mic. Soalan dan jawapan manual dibuang.',
       'Spell musuh melalui suara: sebut "Granger flicker" dan pemasa keluar sendiri pada siaran sehingga kosong, kemudian bot menyebut "Granger flicker is ready".',
@@ -109,6 +110,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'The Voice & AI Bot panel title was changed to "Setup AI brain and voice (Claude + ElevenLabs)" (without the bot name).',
       'Voice & AI Bot is now open only to the verified owner account (hidden owner sign-in). Other accounts wait for the owner\'s instruction. No API key is included in the app: every user enters their own key.',
       'Voice & Bot AI (inside Coming soon): a new AI setup panel: Claude brain (Anthropic key) and ElevenLabs premium voice, with Save, Check key, Test voice, Test AI, today and this month usage cost, and mic status. Manual questions and answers were removed.',
       'Enemy spells by voice: say "Granger flicker" and the timer appears on the stream by itself until it reaches zero, then the bot says "Granger flicker is ready".',

@@ -448,7 +448,7 @@
 
     const body = h('div', { class: 'ba-panel' },
       h('div', { class: 'ba-card' },
-        h('h3', { class: 'ba-title' }, '🔑 ' + GS.t('Setup {0} AI (otak + suara premium)', botName().toUpperCase())),
+        h('h3', { class: 'ba-title' }, '🔑 ' + GS.t('Setup AI brain and voice (Claude + ElevenLabs)')),
         h('p', { class: 'muted note' }, GS.t('Kunci disimpan dalam PC ini sahaja (disulitkan oleh Windows). Yang ditunjuk balik cuma 4 huruf terakhir. Satu kunci ElevenLabs sama untuk semua suara (lelaki atau perempuan): suara dipilih dengan Voice ID.')),
         h('div', { class: 'grid2' },
           field('Anthropic API key', claudeIn, 'console.anthropic.com → API Keys'),
@@ -466,7 +466,7 @@
           btn('baClear', GS.t('Padam kunci'), 'ghost', () => { v.setClaudeKey(''); v.setElevenKey(''); claudeIn.value = ''; elevenIn.value = ''; say(GS.t('Kunci dipadam.')); paint(); })),
         status, out),
 
-      h('h3', null, GS.t('PANGGIL {0}', botName().toUpperCase())),
+      h('h3', null, GS.t('PANGGIL BOT')),
       h('p', { class: 'muted note' }, GS.t('Sebut nama bot kemudian soalan atau arahan, cth "{0}, siapa noob?". Bot menjawab apa-apa soalan dan boleh menganalisis game.', botName())),
       h('div', { class: 'btn-row' }, btn('baToggle', v.running ? GS.t('Matikan mic') : GS.t('Hidupkan mic'), v.running ? '' : 'primary', onMic), btn('baListen', GS.t('Uji audio (cakap terus)'), '', onListen)),
       h('div', { class: 'voice-test' }, askIn, btn('baAskBtn', GS.t('Tanya'), '', onAsk)),
