@@ -547,7 +547,7 @@
       GS.updater.section(),
       h('h3', null, 'Peralihan scene (Mod Studio)'),
       h('div', { class: 'grid2' },
-        h('label', { class: 'field' }, h('span', null, 'Jenis'), sel('transition', [['fade', 'Pudar'], ['slide', 'Luncur'], ['cut', 'Potong']], String)),
+        h('label', { class: 'field' }, h('span', null, 'Jenis'), sel('transition', [['ios', 'iOS lembut'], ['fade', 'Pudar'], ['slide', 'Luncur'], ['cut', 'Potong']], String)),
         h('label', { class: 'field' }, h('span', null, 'Tempoh (ms)'), h('input', { type: 'number', min: 50, max: 10000, step: 50, value: s.transitionMs, onChange: (e) => { s.transitionMs = GS.clamp(Number(e.target.value) || 500, 50, 10000); GS.save(); } }))),
       h('h3', null, 'Pintasan papan kekunci'),
       h('ul', { class: 'hotkeys' },

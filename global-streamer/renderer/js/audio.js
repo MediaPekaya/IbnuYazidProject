@@ -622,6 +622,7 @@
   A.bindReorder = function (root) {
     if (root._reorderBound) return;
     root._reorderBound = true;
+    const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';   // lengkung peralihan gaya iOS (spring lembut)
     root.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
       const head = e.target.closest('.strip-head');
@@ -629,24 +630,57 @@
       const strip = head.closest('.strip');
       if (!strip || strip.parentNode !== root) return;
       const x0 = e.clientX, y0 = e.clientY;
-      let drag = false;
+      let drag = false, offL0 = 0, offT0 = 0, cur = null;
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const flipOthers = (change) => {
+        const sibs = [...root.querySelectorAll(':scope > .strip')].filter((n) => n !== strip);
+        const before = new Map(sibs.map((n) => [n, n.getBoundingClientRect()]));
+        change();
+        if (reduce) return;
+        sibs.forEach((n) => {
+          const b0 = before.get(n), a1 = n.getBoundingClientRect(), dx = b0.left - a1.left, dy = b0.top - a1.top;
+          if (Math.abs(dx) < 1 && Math.abs(dy) < 1 || !n.animate) return;
+          if (n._flip) n._flip.cancel();
+          n._flip = n.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }], { duration: 460, easing: EASE });
+        });
+      };
+      const place = (m) => {
+        // kad terangkat mengikut tetikus, tetapi tidak boleh keluar dari kawasan Audio Mixer
+        const rr = root.getBoundingClientRect();
+        let dx = m.clientX - x0 - (strip.offsetLeft - offL0), dy = m.clientY - y0 - (strip.offsetTop - offT0);
+        const sr = strip.getBoundingClientRect(), baseL = sr.left - (cur ? cur.dx : 0), baseT = sr.top - (cur ? cur.dy : 0);
+        dx = Math.max(rr.left - baseL, Math.min(rr.right - strip.offsetWidth - baseL, dx));
+        dy = Math.max(rr.top - baseT, Math.min(rr.bottom - strip.offsetHeight - baseT, dy));
+        cur = { dx, dy };
+        strip.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(1.04)';
+      };
       const move = (m) => {
         if (!drag) {
           if (Math.hypot(m.clientX - x0, m.clientY - y0) < 6) return;
-          drag = true; strip.classList.add('reordering'); root.classList.add('reordering'); document.body.style.cursor = 'grabbing';
+          drag = true; offL0 = strip.offsetLeft; offT0 = strip.offsetTop; cur = null;
+          strip.classList.add('reordering'); root.classList.add('reordering'); document.body.style.cursor = 'grabbing';
+          strip.style.pointerEvents = 'none';
         }
         const under = document.elementsFromPoint(m.clientX, m.clientY).map((n) => n.closest && n.closest('.strip')).find((n) => n && n !== strip && n.parentNode === root);
-        if (!under) return;
-        const r = under.getBoundingClientRect();
-        const before = (m.clientX - r.left) < r.width / 2 ? true : false;
-        const ref = before ? under : under.nextElementSibling;
-        if (ref !== strip && !(before && under.previousElementSibling === strip)) root.insertBefore(strip, ref);
+        if (under) {
+          const r = under.getBoundingClientRect();
+          const before = (m.clientX - r.left) < r.width / 2;
+          const ref = before ? under : under.nextElementSibling;
+          if (ref !== strip && !(before && under.previousElementSibling === strip)) flipOthers(() => root.insertBefore(strip, ref));
+        }
+        place(m);
       };
       const up = () => {
         document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
         document.body.style.cursor = '';
-        strip.classList.remove('reordering'); root.classList.remove('reordering');
         if (!drag) return;
+        root.classList.remove('reordering');
+        strip.style.pointerEvents = '';
+        // letak perlahan ke kedudukan baharu (mendarat lembut)
+        const from = strip.style.transform || 'none';
+        strip.classList.remove('reordering');
+        strip.style.transform = '';
+        if (!reduce && strip.animate) strip.animate([{ transform: from, boxShadow: '0 14px 34px rgba(0,0,0,0.5)' }, { transform: 'none', boxShadow: '0 0 0 rgba(0,0,0,0)' }], { duration: 520, easing: EASE });
         GS.state.audio.order = [...root.querySelectorAll(':scope > .strip')].map((el) => el.dataset.sid).filter(Boolean);
         GS.save();
       };

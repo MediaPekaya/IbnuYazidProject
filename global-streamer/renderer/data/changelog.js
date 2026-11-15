@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Audio Mixer: bila kad dialih, kad terangkat dan mengikut tetikus dengan lembut, kad lain beralih licin memberi ruang, dan kad mendarat perlahan ke tempat baharu (gaya iOS). Kad tidak boleh keluar dari kawasan Audio Mixer. Sama di TikTok dan YouTube, mod Normal dan Studio.',
+      'Peralihan scene lalai kini iOS lembut (zum dan pudar dengan lengkung perlahan di hujung, 760 ms); pilihan iOS lembut ditambah. Tetapan lama yang masih lalai ditukar sekali.',
+      'Kira Detik: hanya 4 butang ikon: Mula/Sambung, Jeda, Set semula dan Edit (pensel), sama di TikTok dan YouTube.',
       'Audio Mixer (TikTok dan YouTube): setiap kad (Mikrofon, Efek Bunyi, Lagu, Output, Suara & Bot) boleh dialih kedudukannya dengan menyeret tajuk kad (kursor tangan). Susunan diingat.',
       'Garis biru laras saiz antara paparan live dan Audio Mixer dalam mod TikTok kini berada di tempat yang betul (atas Audio Mixer); seret ke atas atau bawah untuk besar/kecilkan.',
       'Pop-up Pemasa Spell musuh yang ditambah secara automatik kini sama di TikTok dan YouTube: diletakkan di ruang kosong atas kamera streamer, dan mengelak bertindih dengan bahagian lain.',
@@ -127,6 +130,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Audio Mixer: when you move a card it lifts and follows the mouse smoothly, the other cards glide to make room, and the card lands softly in its new place (iOS style). A card cannot leave the Audio Mixer area. Same on TikTok and YouTube, in Normal and Studio mode.',
+      'The default scene transition is now iOS smooth (zoom and fade with a slow ending curve, 760 ms); an iOS smooth option was added. Old settings that were still on the default are switched once.',
+      'Countdown: only 4 icon buttons: Start/Resume, Pause, Reset and Edit (pencil), the same on TikTok and YouTube.',
       'Audio Mixer (TikTok and YouTube): every card (Microphone, Sound Effects, Music, Output, Voice & Bot) can be moved by dragging its title (hand cursor). The order is remembered.',
       'The blue resize line between the live view and the Audio Mixer in TikTok mode is now in the right place (above the Audio Mixer); drag it up or down to make it bigger or smaller.',
       'The enemy Spell Timer pop-up that is added automatically is now the same on TikTok and YouTube: placed in the empty space above the streamer camera, avoiding overlap with other parts.',

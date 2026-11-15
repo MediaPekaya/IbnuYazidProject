@@ -121,7 +121,7 @@
       h('div', { class: 'grid2' },
         h('label', { class: 'field' }, h('span', null, GS.t('Tempoh setiap slide (ms)')), h('input', { type: 'number', id: 'slInterval', min: 300, max: 120000, step: 100, value: p.intervalMs, onChange: (e) => { p.intervalMs = clamp(Number(e.target.value) || 3000, 300, 120000); } })),
         h('label', { class: 'field' }, h('span', null, GS.t('Tempoh peralihan (ms)')), h('input', { type: 'number', id: 'slTrans', min: 0, max: 5000, step: 50, value: p.transMs, onChange: (e) => { p.transMs = clamp(Number(e.target.value) || 0, 0, 5000); } })),
-        h('label', { class: 'field' }, h('span', null, GS.t('Jenis peralihan')), sel('transition', [['fade', 'Pudar'], ['slide', 'Luncur ke kiri'], ['slideup', 'Luncur ke atas'], ['zoom', 'Zum masuk'], ['zoomout', 'Zum keluar'], ['cut', 'Potong (tanpa peralihan)']])),
+        h('label', { class: 'field' }, h('span', null, GS.t('Jenis peralihan')), sel('transition', [['ios', 'iOS lembut'], ['fade', 'Pudar'], ['slide', 'Luncur ke kiri'], ['slideup', 'Luncur ke atas'], ['zoom', 'Zum masuk'], ['zoomout', 'Zum keluar'], ['cut', 'Potong (tanpa peralihan)']])),
         h('label', { class: 'field' }, h('span', null, GS.t('Kelicinan')), sel('smooth', [['true', 'Licin (lembut)'], ['false', 'Lurus (sekata)']], (v) => v === 'true')),
         h('label', { class: 'field' }, h('span', null, GS.t('Muat gambar')), sel('fit', [['cover', 'Penuhi (potong)'], ['contain', 'Muat (tanpa potong)'], ['stretch', 'Regang']])),
         h('label', { class: 'field' }, h('span', null, GS.t('Ulang')), sel('loop', [['true', 'Ulang sentiasa'], ['false', 'Sekali sahaja (berhenti di akhir)']], (v) => v === 'true'))));

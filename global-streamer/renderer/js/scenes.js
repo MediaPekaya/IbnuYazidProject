@@ -787,12 +787,13 @@
     b.innerHTML = GS.icon(name, 20);
     return b;
   }
-  function cdButtons(p, after, idp) {
+  function cdButtons(p, after, idp, src) {
     const CD = GS.countdown;
     const startBtn = cdIcon('play', CD.remaining(p) > 0 && p.pausedMs != null ? 'Sambung' : 'Mula', () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); after(); }, 'primary', idp + 'Start');
     return h('div', { class: 'btn-row cd-icons' }, startBtn,
       cdIcon('pause', 'Jeda', () => { CD.pause(p); GS.save(); after(); }, '', idp + 'Pause'),
-      cdIcon('reset', 'Set semula', () => { CD.reset(p); GS.save(); after(); }, 'ghost', idp + 'Reset'));
+      cdIcon('reset', 'Set semula', () => { CD.reset(p); GS.save(); after(); }, 'ghost', idp + 'Reset'),
+      cdIcon('edit', 'Edit masa', () => S.cdSetup(src), '', idp + 'Edit'));
   }
   /* popup tetapan masa kira detik: tulis jam/minit/saat, tekan Simpan dan terus berubah */
   S.cdSetup = function (src) {
@@ -826,8 +827,7 @@
       const upd = () => { const ms = CD.remaining(p), pt = CD.parts(ms); state.textContent = String(pt.h).padStart(2, '0') + ':' + String(pt.m).padStart(2, '0') + ':' + String(pt.s).padStart(2, '0') + (CD.running(p) ? ' ▶' : ''); };
       upd(); const iv = setInterval(() => { if (!state.isConnected) { clearInterval(iv); return; } upd(); }, 250);
       box.append(h('div', { class: 'prog-cd-row' }, h('b', null, (src.name || 'Kira Detik') + (cds.length > 1 ? ' ' + (i + 1) : '')), state),
-        cdButtons(p, upd, 'btnProgCd' + i + '_'),
-        h('div', { class: 'btn-row' }, h('button', { class: 'btn ghost', onClick: () => S.cdSetup(src) }, GS.t('Edit masa'))));
+        cdButtons(p, upd, 'btnProgCd' + i + '_', src));
     });
     return box;
   }
@@ -940,12 +940,12 @@
       if (w === 'countdown') {
         const p = s.props, CD = GS.countdown;
         const two = (n) => String(n || 0).padStart(2, '0');
-        root.append(field('Masa kira detik', h('div', { class: 'btn-row' }, h('b', { class: 'cd-sum', id: 'cdSum' }, two(p.hours) + ':' + two(p.minutes) + ':' + two(p.seconds)), h('button', { class: 'btn primary', id: 'btnCdEdit', onClick: () => S.cdSetup(s) }, GS.t('Edit masa')))));
+        root.append(field('Masa kira detik', h('div', { class: 'btn-row' }, h('b', { class: 'cd-sum', id: 'cdSum' }, two(p.hours) + ':' + two(p.minutes) + ':' + two(p.seconds)))));
         root.append(h('div', { class: 'grid2' },
           field('Gaya nombor', h('select', { onChange: (e) => { p.numStyle = e.target.value; GS.save(); } }, CD.styles.map(([v, l]) => h('option', { value: v, selected: (p.numStyle || 'box') === v }, GS.t(l))))),
           h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!p.noPanel, onChange: (e) => { p.noPanel = e.target.checked; GS.save(); } }), h('span', null, 'Tanpa kotak latar'))));
         if (st().mode !== 'studio') {
-          root.append(cdButtons(p, renderProps, 'btnCd'));
+          root.append(cdButtons(p, renderProps, 'btnCd', s));
         } else root.append(h('p', { class: 'muted note' }, 'Tetapkan masa di sini. Kira detik dimulakan dari kotak PROGRAM di bawah selepas scene ini berada di Program.'));
         const clock = h('input', { type: 'time', id: 'cdClock', class: 'cd-in' });
         root.append(field('Kira ke jam tertentu (cth 21:00)', h('div', { class: 'btn-row' }, clock, h('button', { class: 'btn', id: 'btnCdClock', onClick: () => { if (!CD.toClock(p, clock.value)) GS.toast(GS.t('Pilih jam dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Kira ke jam ini'))));

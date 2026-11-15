@@ -96,7 +96,7 @@
     scenes: [],
     programId: null,
     previewId: null,
-    settings: { orientation: 'portrait', width: 1080, height: 1920, fps: 30, vbitrate: 5000, abitrate: 160, encoder: 'auto', transition: 'fade', transitionMs: 500, recMode: 'program', recSystemAudio: false, recMinimize: true },
+    settings: { orientation: 'portrait', width: 1080, height: 1920, fps: 30, vbitrate: 5000, abitrate: 160, encoder: 'auto', transition: 'ios', transitionMs: 760, transitionV: 2, recMode: 'program', recSystemAudio: false, recMinimize: true },
     platforms: {
       tiktok: { enabled: false, server: '' },
       facebook: { enabled: false, server: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
@@ -197,6 +197,7 @@
         merged.templateId = defaults().templateId;
         Object.assign(merged.settings, defaults().settings);
       }
+      if (merged.settings.transitionV !== 2) { merged.settings.transitionV = 2; if (merged.settings.transition === 'fade' && Number(merged.settings.transitionMs) === 500) { merged.settings.transition = 'ios'; merged.settings.transitionMs = 760; } }
       return merged;
     } catch (e) {
       console.warn('[GS] gagal baca state', e);
