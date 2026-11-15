@@ -10,6 +10,7 @@ const { VoiceHost } = require('./voice-win');
 const { execFile } = require('child_process');
 const { fetchTTS, elevenApi } = require('./tts-net');
 const { chat: aiChat, transcribe: aiStt } = require('./ai-net');
+const { elevenAgent } = require('./eleven-agent');
 const deck = require('./deck');
 const ytPlayer = require('./yt-player');
 const browserSrc = require('./browser-src');
@@ -78,6 +79,16 @@ ipcMain.handle('deck:convert', (_e, file) => deck.convert(file, path.join(app.ge
 
 ipcMain.handle('ai:stt', (_e, p) => aiStt(p && typeof p === 'object' ? p : {}));
 ipcMain.handle('ai:chat', (_e, p) => aiChat(p && typeof p === 'object' ? p : {}));
+/* pintasan global Ctrl+Shift+A (analisis game) berfungsi walaupun app dikecilkan semasa main game; hanya didaftar apabila Bot AI dibuka oleh pemilik */
+let analyzeHotkey = false;
+ipcMain.handle('botai:hotkey', (_e, on) => {
+  try {
+    if (on && !analyzeHotkey) { analyzeHotkey = globalShortcut.register('CommandOrControl+Shift+A', () => { if (win && !win.isDestroyed()) win.webContents.send('botai:analyze'); }); }
+    else if (!on && analyzeHotkey) { globalShortcut.unregister('CommandOrControl+Shift+A'); analyzeHotkey = false; }
+  } catch (e) { /* pintasan sudah digunakan oleh aplikasi lain */ }
+  return analyzeHotkey;
+});
+ipcMain.handle('tts:agent', (_e, op, p) => elevenAgent(String(op), p && typeof p === 'object' ? p : {}));
 ipcMain.handle('tts:eleven', (_e, op, p) => elevenApi(String(op), p && typeof p === 'object' ? p : {}));
 
 /* ---------- suara (pengecam luar talian + suara bot) ---------- */

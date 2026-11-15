@@ -11,9 +11,11 @@
   'use strict';
   const GS = window.GS;
   const { h } = GS;
-  const V = (GS.voice = { comingSoon: !window.GS_FORCE_VOICE, running: false, engine: '', speaking: false, awaitUntil: 0, last: null, error: '', info: {}, lastFx: {}, taps: {}, log: [] });
+  /* Suara & Bot ialah "Akan datang" untuk pelanggan. Pemilik membukanya dengan Ctrl+Alt+Shift+V (lihat botai.js) atau window.GS_FORCE_VOICE. */
+  const FORCE = !!window.GS_FORCE_VOICE || (() => { try { return localStorage.getItem('gs.voice.unlock') === '1'; } catch (e) { return false; } })();
+  const V = (GS.voice = { comingSoon: !FORCE, running: false, engine: '', speaking: false, awaitUntil: 0, last: null, error: '', info: {}, lastFx: {}, taps: {}, log: [] });
   /** Suara & Bot (mikrofon, bot, AI) ditutup: "Akan datang". Pengumum efek (Inggeris) kekal berfungsi. Ujian boleh membukanya dengan window.GS_FORCE_VOICE. */
-  const COMING_SOON = !window.GS_FORCE_VOICE;
+  const COMING_SOON = !FORCE;
   const native = () => !!(window.gsNative && window.gsNative.voice);
   const cfg = () => GS.state.voice;
 
@@ -165,7 +167,7 @@
   const aiProv = () => (AI[cfg().bot.ai.provider] ? cfg().bot.ai.provider : 'gemini');
   V.aiKey = () => ((GS.platforms && GS.platforms.getKey('ai-' + aiProv())) || '').trim();
   V.setAiKey = (k) => GS.platforms.setKey('ai-' + aiProv(), String(k || '').trim());
-  V.aiConfigured = () => !!V.aiKey();
+  V.aiConfigured = () => (cfg().bot.ai.provider === 'eleven' ? !!V.elevenKey() : !!V.aiKey());
   V.chatMem = [];
   const heroInfo = (n) => { const x = ((GS.data && GS.data.mlbbHeroes) || []).find((h) => h.name === n); return x ? n + ' (' + (x.roles || []).join('/') + ')' : n; };
   const EV_LABEL = { kill: 'kill', death: 'mati', item: 'beli item', fullitem: 'item penuh', victory: 'VICTORY', defeat: 'DEFEAT', newmatch: 'perlawanan baharu' };
@@ -228,6 +230,7 @@
   };
   /** Tanya AI. Melontar Error dengan mesej BM jika gagal. */
   V.askAI = async function (question) {
+    if (cfg().bot.ai.provider === 'eleven' && GS.botai) return GS.botai.ask(question);   // otak ElevenLabs (ejen)
     const key = V.aiKey();
     if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', AI[aiProv()].name));
     const b = cfg().bot.ai, pv = AI[aiProv()];
@@ -608,6 +611,11 @@
     // hasil sementara (pelayar): hanya untuk efek; bot menunggu hasil akhir supaya soalan lengkap
     if (ev.interim && source === 'mic' && st.bot.enabled && (V.parseWake(text).woke || V.awaitUntil > now)) return { ignored: 'sementara' };
     V.last = { text, source, at: now, conf: ev.conf == null ? null : ev.conf };
+    // pemasa spell musuh melalui suara ("Granger flicker"): hanya ucapan akhir; tidak mengganggu panggilan bot
+    if (!ev.interim && GS.botai && GS.botai.spellFromText && !(source === 'mic' && st.bot.enabled && V.parseWake(text).woke)) {
+      const sp = GS.botai.spellFromText(text);
+      if (sp) { V.note({ source, text, result: 'spell: ' + sp.hero + ' ' + sp.spell + (sp.dup ? ' (sama)' : '') }); GS.emit('voice:status'); return { spell: sp }; }
+    }
     // 1) bot (hanya suara streamer/penonton melalui mikrofon)
     if (source === 'mic' && st.bot.enabled) {
       const w = V.parseWake(text);
@@ -617,6 +625,8 @@
       if (q !== null) {
         if (!q.trim()) { V.awaitUntil = now + st.bot.listenMs; V.note({ source, text, result: 'bot dipanggil, menunggu soalan' }); if (st.bot.ack && st.bot.voiceOn) V.speak(st.bot.ack, {}); GS.emit('voice:status'); return { bot: 'menunggu' }; }
         V.awaitUntil = 0;
+        // arahan analisis game melalui suara ("Chester, tolong analisis game ni"): sama seperti Ctrl+Shift+A
+        if (GS.botai && GS.botai.isAnalyzeCommand(q)) { V.note({ source, text, result: 'bot: analisis game' }); GS.botai.analyze({ source: 'voice', text }); GS.emit('voice:status'); return { bot: 'analisis' }; }
         const a = V.answer(q);
         if (a.entry) { V.note({ source, text, result: 'bot: ' + a.text }); if (a.text) V.say(a.text); GS.emit('voice:status'); return { bot: a.text ? 'jawab' : 'tiada', answer: a.text }; }
         // tiada soalan/jawapan khas: AI (jika kunci diisi) menjawab spontan, jika tidak keperibadian luar talian, kemudian jawapan lalai
@@ -734,7 +744,9 @@
     const b = cfg().bot, names = [b.name].concat(splitList(b.aliases)).filter(Boolean).join(', ');
     return ('Bahasa Melayu Malaysia, sembang game. Nama bot: ' + names + '. Kata: kill, double kill, triple kill, savage, victory, defeat, mati, menang, kalah.').slice(0, 220);
   };
+  V.earsEleven = () => !!(GS.botai && GS.botai.earsEleven && GS.botai.earsEleven());
   V.transcribe = async function (wav) {
+    if (!V.sttKey() && V.earsEleven()) return GS.botai.transcribe(wav);   // telinga ElevenLabs Scribe
     const key = V.sttKey();
     if (!key) throw new Error(GS.t('Kunci API {0} belum diisi.', 'Groq'));
     const body = { key, wav, language: 'ms', prompt: sttPrompt() };
@@ -813,7 +825,7 @@
     const off = tapRaw(ch, (f) => C.feed(f));
     if (!off) { V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); return false; }
     V.taps.cloud = off;
-    V.info.mic = { culture: 'ms', name: 'Groq Whisper', input: 'cloud' };
+    V.info.mic = { culture: 'ms', name: V.sttKey() ? 'Groq Whisper' : 'ElevenLabs Scribe', input: 'cloud' };
     return true;
   }
 
@@ -869,7 +881,7 @@
     let ok = false;
     V.engine = native() ? 'windows' : 'web'; V.cloud = null;
     try {
-      if (V.sttKey() && cfg().mic.on) {
+      if ((V.sttKey() || V.earsEleven()) && cfg().mic.on) {
         V.engine = 'cloud'; ok = startCloud();
         if (ok && native() && cfg().game.on && (await window.gsNative.voice.available())) { try { await startNative(['game']); } catch (e) { /* bunyi game: pilihan */ } }
       }

@@ -159,6 +159,8 @@
       { hero: '', spell: 'Inspire', cd: 75, until: 0 }, { hero: '', spell: 'Flicker', cd: 120, until: 0 },
     ],
     tiers: { label: 'TIER LIST', S: [], A: [], B: [], C: [], D: [] },
+    // Bot AI (ElevenLabs): ejen, ejen suara, analisis game dan pemasa spell melalui suara
+    botai: { agentId: '', sig: '', llm: 'gemini-2.0-flash', ears: 'eleven', spellOn: true, spellAnnounce: true, analysisSecs: 16, analysisSpeak: true, usage: { month: '', asks: 0, day: '', dayAsks: 0 } },
   });
 
   GS.defaultState = defaults;
@@ -176,6 +178,7 @@
       merged.winloss = Object.assign(defaults().winloss, s.winloss || {});
       { const dv = defaults().voice, sv = s.voice || {}; merged.voice = Object.assign(dv, sv); merged.voice.mic = Object.assign(defaults().voice.mic, sv.mic || {}); merged.voice.game = Object.assign(defaults().voice.game, sv.game || {}); merged.voice.bot = Object.assign(defaults().voice.bot, sv.bot || {}); merged.voice.bot.tts = Object.assign(defaults().voice.bot.tts, (sv.bot && sv.bot.tts) || {}); merged.voice.bot.tts.azure = Object.assign(defaults().voice.bot.tts.azure, (sv.bot && sv.bot.tts && sv.bot.tts.azure) || {}); { const da = defaults().voice.announcer, sa = sv.announcer || {}; merged.voice.announcer = Object.assign(da, sa); merged.voice.announcer.textsEn = Object.assign(defaults().voice.announcer.textsEn, sa.textsEn || {}); merged.voice.announcer.textsMs = Object.assign(defaults().voice.announcer.textsMs, sa.textsMs || {}); if (!sa.v || sa.v < 3) { const da3 = defaults().voice.announcer; merged.voice.announcer.v = 3; merged.voice.announcer.on = true; merged.voice.announcer.lang = 'en-US'; merged.voice.announcer.keepBeep = true; merged.voice.announcer.textsEn = da3.textsEn; merged.voice.announcer.textsMs = da3.textsMs; } } if (!Array.isArray(merged.voice.triggers)) merged.voice.triggers = defaults().voice.triggers; if (!Array.isArray(merged.voice.bot.qa)) merged.voice.bot.qa = defaults().voice.bot.qa; merged.voice.bot.ai = Object.assign(defaults().voice.bot.ai, (sv.bot && sv.bot.ai) || {}); merged.voice.bot.qa = merged.voice.bot.qa.filter((e) => !(e && e.q === 'siapa noob | siapa paling noob' && e.a === 'Rahsia! Tapi pasti bukan saya.')); }
       merged.ticker = Object.assign(defaults().ticker, s.ticker || {});
+      merged.botai = Object.assign(defaults().botai, s.botai || {}); merged.botai.usage = Object.assign(defaults().botai.usage, (s.botai && s.botai.usage) || {});
       ['status', 'boss', 'promo', 'queue', 'draft', 'tiers'].forEach((k) => { merged[k] = Object.assign(defaults()[k], s[k] || {}); });
       if (!Array.isArray(merged.toplike)) merged.toplike = defaults().toplike;
       if (!Array.isArray(merged.spells)) merged.spells = defaults().spells;

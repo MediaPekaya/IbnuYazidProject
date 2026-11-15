@@ -140,6 +140,7 @@
         key('Delete', 'Padam sumber dipilih'),
         key('↑  ↓  ←  →', 'Gerak sumber ke atas, bawah, kiri dan kanan (Shift = lebih jauh)'),
         key('Ctrl + Alt + H', 'Sembunyi / papar bar rakaman REC'),
+        key('Ctrl + Shift + A', 'Analisis game (Bot AI)'),
         key('Klik kanan', 'Namakan semula, salin atau padam (scene, sumber, audio)')));
 
     /* ===== tab ===== */

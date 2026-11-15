@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Suara & Bot AI (dalam Akan datang): paparan besar baharu untuk ElevenLabs (nama bot, kunci API, suara, Simpan, Semak kunci, Uji suara, Uji audio). Satu kunci untuk otak, suara dan telinga. Soalan dan jawapan manual dibuang.',
+      'Spell musuh melalui suara: sebut "Granger flicker" dan pemasa keluar sendiri pada siaran sehingga kosong, kemudian bot menyebut "Granger flicker is ready".',
+      'Analisis game dua cara: Ctrl + Shift + A atau sebut nama bot diikuti analisis. Paparan analisis keluar di atas capture card dengan peratus menang dan nasihat.',
       'Audio Mixer: mikrofon yang dipilih kini memaparkan namanya dengan penanda kuning "DIPILIH" dan sempadan kuning; nama juga muncul pada butang pangkah.',
       'Kad Output baharu dalam Audio Mixer: pilih pembesar suara anda, hidup/matikan output, dan Uji bunyi. Penonton tidak terjejas.',
       'Bunyi video dan Browser hanya kedengaran apabila scene berada di Program (seperti OBS); di Pratonton ia senyap. Bunyi video sendiri masuk siaran dan rakaman.',
@@ -105,6 +108,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Voice & Bot AI (inside Coming soon): a new big panel for ElevenLabs (bot name, API key, voice, Save, Check key, Test voice, Test audio). One key for brain, voice and ears. Manual questions and answers were removed.',
+      'Enemy spells by voice: say "Granger flicker" and the timer appears on the stream by itself until it reaches zero, then the bot says "Granger flicker is ready".',
+      'Game analysis two ways: Ctrl + Shift + A or say the bot name followed by analyse. The analysis panel appears over the capture card with the win chance and a tip.',
       'Audio Mixer: the selected microphone now shows its name with a yellow SELECTED marker and yellow border; the name also appears on the close button tooltip.',
       'New Output card in the Audio Mixer: choose your speakers, turn the output on/off, and Test sound. Viewers are not affected.',
       'Video and Browser sound is heard only when the scene is in Program (like OBS); in Preview it is silent. Own-video sound goes into the stream and recording.',

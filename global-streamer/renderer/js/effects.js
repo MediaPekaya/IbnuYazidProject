@@ -633,6 +633,71 @@
     ctx.restore();
   }
 
+
+  /* ================== ANALISIS GAME (Bot AI): paparan di atas capture card ================== */
+  function wrapText(ctx, text, size, maxW, maxLines) {
+    ctx.save(); ctx.font = '700 ' + size + 'px ' + GS.widgets.FONT;
+    const out = []; let cur = '';
+    String(text || '').split(/\s+/).forEach((wd) => { const t = cur ? cur + ' ' + wd : wd; if (ctx.measureText(t).width > maxW && cur) { out.push(cur); cur = wd; } else cur = t; });
+    if (cur) out.push(cur);
+    ctx.restore();
+    if (out.length > maxLines) { const k = out.slice(0, maxLines); k[maxLines - 1] = k[maxLines - 1].replace(/\s+\S*$/, '') + '…'; return k; }
+    return out;
+  }
+  function drawAnalysis(ctx, e, p, now, W, H) {
+    const R = capRect(W, H), P = e.params, think = P.state === 'think';
+    const k = Math.min(1, R.w / 700);
+    const inK = P.skipIn || e.seen ? 1 : easeOut(p * e.dur / 480 > 1 ? 1 : p * e.dur / 480);
+    if (inK >= 1) e.seen = true;
+    const outK = easeOut(Math.max(0, (p - 0.93) / 0.07));
+    const a = Math.min(1, inK) * (1 - outK);
+    const pw = R.w * 0.94, lines = (P.lines || []).slice(0, 3);
+    const fs = Math.max(13, Math.min(26, R.w * 0.032 * (R.w < 500 ? 1.1 : 1)));
+    const ringR = Math.min(R.h * 0.13, R.w * 0.11, 80 * Math.max(0.7, k));
+    const bodyW = pw - ringR * 2 - pw * 0.1;
+    const wrapped = lines.map((t) => wrapText(ctx, t, fs, bodyW, 2));
+    const tipL = P.tip ? wrapText(ctx, P.tip, fs * 0.95, bodyW, 2) : [];
+    const rowsN = wrapped.reduce((n, l) => n + l.length, 0) + tipL.length;
+    const headH = fs * 2.3, ph = Math.max(ringR * 2 + headH + fs * 2.6, headH + (think ? fs * 3 : rowsN * fs * 1.28 + (tipL.length ? fs * 1.2 : 0) + fs * 1.4)), px = R.x + (R.w - pw) / 2, py = R.y + R.h * 0.03 + (1 - inK) * -40;
+    ctx.save(); ctx.beginPath(); ctx.rect(R.x, R.y, R.w, R.h); ctx.clip(); ctx.globalAlpha = a;
+    const g = ctx.createLinearGradient(px, py, px, py + ph); g.addColorStop(0, 'rgba(8,14,34,0.93)'); g.addColorStop(1, 'rgba(4,8,22,0.9)');
+    ctx.fillStyle = g; GS.widgets.rr(ctx, px, py, pw, ph, fs * 0.9); ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = think ? 'rgba(46,168,255,0.8)' : 'rgba(80,230,170,0.85)'; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 22; ctx.stroke(); ctx.shadowBlur = 0;
+    // pengepala
+    const hx = px + fs * 0.9, hy = py + headH * 0.62, pulse = 0.5 + 0.5 * Math.sin(now * 0.008);
+    ctx.fillStyle = think ? 'rgba(255,200,60,' + (0.5 + 0.5 * pulse) + ')' : '#46e6a8'; ctx.beginPath(); ctx.arc(hx, hy - fs * 0.12, fs * 0.22, 0, Math.PI * 2); ctx.fill();
+    GS.widgets.text(ctx, GS.tov('MATCH ANALYSIS'), hx + fs * 0.6, hy, { size: fs * 0.95, weight: 900, spacing: 3, color: '#ffffff', maxW: pw * 0.6 });
+    GS.widgets.text(ctx, String(P.name || 'BOT').toUpperCase() + (P.ai ? ' · AI' : ''), px + pw - fs * 0.9, hy, { size: fs * 0.72, weight: 800, spacing: 2, color: '#7fb0ff', align: 'right', maxW: pw * 0.34 });
+    ctx.fillStyle = 'rgba(120,170,255,0.25)'; ctx.fillRect(px + fs * 0.9, py + headH, pw - fs * 1.8, 2);
+    // tolok peratus menang
+    const cx = px + fs * 0.9 + ringR, cy = py + headH + fs * 0.7 + ringR;
+    ctx.lineWidth = ringR * 0.22; ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.beginPath(); ctx.arc(cx, cy, ringR, 0, Math.PI * 2); ctx.stroke();
+    const win = P.win; const frac = think ? (0.18 + 0.12 * Math.sin(now * 0.004)) : (win == null ? 0 : win / 100);
+    const col = win == null ? '#9fb4d6' : win >= 55 ? '#46e6a8' : win >= 45 ? '#ffd24a' : '#ff5a6e';
+    ctx.strokeStyle = think ? '#2ea8ff' : col; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, ringR, -Math.PI / 2 + (think ? now * 0.004 : 0), -Math.PI / 2 + (think ? now * 0.004 : 0) + Math.PI * 2 * Math.max(0.02, frac)); ctx.stroke(); ctx.lineCap = 'butt';
+    GS.widgets.text(ctx, think ? '...' : (win == null ? '--' : win + '%'), cx, cy + ringR * 0.18, { size: ringR * 0.62, weight: 900, align: 'center', color: '#fff', maxW: ringR * 1.7 });
+    GS.widgets.text(ctx, GS.tov(think ? 'ANALYSING' : 'WIN CHANCE'), cx, cy + ringR + fs * 1.0, { size: fs * 0.6, weight: 800, spacing: 2, align: 'center', color: '#9fb4d6', maxW: ringR * 3 });
+    // isi
+    const bx = px + fs * 0.9 + ringR * 2 + pw * 0.05; let ry = py + headH + fs * 1.5;
+    if (think) {
+      GS.widgets.text(ctx, GS.t('Bot sedang menganalisis game anda…'), bx, ry, { size: fs, weight: 700, color: '#cfe0ff', maxW: bodyW });
+      const bw = bodyW * 0.8, sx = bx + ((now * 0.25) % (bw + 60)) - 60;
+      ctx.save(); ctx.beginPath(); ctx.rect(bx, ry + fs * 0.7, bw, fs * 0.3); ctx.clip(); ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, ry + fs * 0.7, bw, fs * 0.3); ctx.fillStyle = 'rgba(46,168,255,0.9)'; ctx.fillRect(sx, ry + fs * 0.7, 60, fs * 0.3); ctx.restore();
+    } else {
+      wrapped.forEach((ls, i) => {
+        const kk = clamp((p * e.dur - 150 - i * 220) / 260, 0, 1) * (P.skipIn || e.seen ? 1 : 1);
+        ls.forEach((t, j) => { ctx.globalAlpha = a * easeOut(kk); GS.widgets.text(ctx, (j === 0 ? '▸ ' : '   ') + t, bx + (1 - easeOut(kk)) * 24, ry, { size: fs, weight: 700, color: '#eaf4ff', maxW: bodyW }); ry += fs * 1.28; });
+      });
+      ctx.globalAlpha = a;
+      if (tipL.length) {
+        ry += fs * 0.15; const th = tipL.length * fs * 1.25 + fs * 0.5;
+        ctx.fillStyle = 'rgba(255,201,40,0.16)'; GS.widgets.rr(ctx, bx - fs * 0.4, ry - fs * 0.9, bodyW + fs * 0.6, th, fs * 0.4); ctx.fill();
+        tipL.forEach((t, j) => { GS.widgets.text(ctx, (j === 0 ? 'TIP  ' : '        ') + t, bx, ry + j * fs * 1.2, { size: fs * 0.95, weight: 800, color: '#ffd24a', maxW: bodyW }); });
+      }
+    }
+    ctx.restore();
+  }
+
   /* ================== BOT: gelembung komik (cakap) ================== */
   /* Fon komik "Bangers" (SIL OFL, dibundel dalam app: assets/fonts) untuk gelembung bot. Jika gagal dimuat: Comic Sans / sans-serif. */
   const COMIC = '"GSComic","Comic Sans MS","Comic Neue","Chalkboard SE","Segoe Print","Segoe UI",system-ui,sans-serif';
@@ -1010,6 +1075,7 @@
     gift: { dur: 3600, draw: drawGift, sfx: 'alert' },
     draftpick: { dur: 3800, draw: drawDraftPick, sfx: 'alert' },
     draftboard: { dur: 5800, draw: drawDraftBoard, sfx: 'alert' },
+    analysis: { dur: 16000, draw: drawAnalysis, sfx: 'alert' },
     giftbig: { dur: 6500, draw: drawGiftBig, sfx: 'victory' },
   };
   FX.names = Object.keys(defs);

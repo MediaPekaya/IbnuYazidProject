@@ -78,7 +78,7 @@
   }
 
   /* ================= Draft + spell ================= */
-  const SPELLS = [['Flicker', 120], ['Retribution', 35], ['Inspire', 75], ['Sprint', 100], ['Purify', 50], ['Execute', 90], ['Petrify', 90], ['Revitalize', 100], ['Arrival', 75]];
+  const SPELLS = [['Flicker', 120], ['Retribution', 35], ['Inspire', 75], ['Sprint', 100], ['Purify', 50], ['Execute', 90], ['Petrify', 90], ['Revitalize', 100], ['Arrival', 75], ['Aegis', 75], ['Vengeance', 75], ['Flameshot', 50]];
   function draft(root) {
     const d = GS.state.draft;
     const dl = h('datalist', { id: 'heroList' }, GS.data.mlbbHeroes.map((x) => h('option', { value: x.name })));

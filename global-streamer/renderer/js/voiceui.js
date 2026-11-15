@@ -63,7 +63,7 @@
     const v = V();
     const s = statusText();
     if (st) {
-      const eng = v.engine === 'cloud' ? GS.t('Pengecam: Groq Whisper (faham Melayu)') : v.engine === 'windows' ? GS.t(v.info.mic && v.info.mic.input === 'device' ? 'Pengecam: Windows (mikrofon lalai)' : 'Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
+      const eng = v.engine === 'cloud' ? (v.sttKey() ? GS.t('Pengecam: Groq Whisper (faham Melayu)') : GS.t('Pengecam: ElevenLabs Scribe (faham Melayu)')) : v.engine === 'windows' ? GS.t(v.info.mic && v.info.mic.input === 'device' ? 'Pengecam: Windows (mikrofon lalai)' : 'Pengecam: Windows (luar talian)') : v.engine === 'web' ? GS.t('Pengecam: pelayar (internet)') : '';
       const inf = Object.keys(v.info).map((k) => (k === 'mic' ? GS.t('Suara saya') : GS.t('Bunyi game')) + ': ' + (v.info[k].name || v.info[k].culture || '')).join(' · ');
       st.className = 'voice-status big ' + s.cls;
       st.textContent = [s.text, v.running ? eng : '', v.running ? inf : ''].filter(Boolean).join('  ·  ');
@@ -78,7 +78,13 @@
     }
   };
 
+  /** Paparan besar Bot AI (ElevenLabs). Tetapan lanjutan (suara, efek, pengumum) dibuka daripada paparan itu. */
   U.open = function () {
+    if (V().comingSoon) return;
+    if (GS.botai && GS.botai.openPanel) { GS.botai.openPanel(); return; }
+    U.openAdvanced();
+  };
+  U.openAdvanced = function () {
     if (V().comingSoon) return;
     if (U.modal && U.modal.card && U.modal.card.isConnected) return;
     const v = V();
@@ -88,18 +94,6 @@
     /* efek */
     const trig = h('div', { class: 'voice-trig' }, c.triggers.map((t) =>
       field(GS.t(FX_LABEL[t.fx] || t.fx), h('textarea', { rows: 2, 'data-fx': t.fx, spellcheck: 'false', onInput: (e) => { t.phrases = e.target.value; save(); } }, Array.isArray(t.phrases) ? t.phrases.join(', ') : t.phrases))));
-
-    /* soalan & jawapan */
-    const qaBox = h('div', { class: 'qa-list' });
-    const drawQA = () => {
-      qaBox.innerHTML = '';
-      c.bot.qa.forEach((e, i) => qaBox.append(h('div', { class: 'qa-row' },
-        h('input', { type: 'text', value: e.q, 'data-qa': 'q', placeholder: 'soalan (pisahkan dengan |)', 'aria-label': GS.t('Soalan'), onInput: (x) => { e.q = x.target.value; save(); } }),
-        h('input', { type: 'text', value: e.a, 'data-qa': 'a', placeholder: 'jawapan', 'aria-label': GS.t('Jawapan'), onInput: (x) => { e.a = x.target.value; save(); } }),
-        h('button', { type: 'button', class: 'icon-btn sm', title: 'Padam', 'aria-label': GS.t('Padam'), onClick: () => { c.bot.qa.splice(i, 1); save(); drawQA(); }, html: GS.icon('trash', 14) }))));
-      qaBox.append(h('button', { type: 'button', class: 'btn ghost tiny', id: 'btnQaAdd', onClick: () => { c.bot.qa.push({ q: '', a: '' }); save(); drawQA(); } }, 'Tambah soalan'));
-    };
-    drawQA();
 
     /* ujian */
     const testIn = h('input', { type: 'text', id: 'voiceTestIn', placeholder: 'cth: double kill   atau   Jarvis siapa noob', 'aria-label': GS.t('Frasa ujian') });
@@ -306,10 +300,6 @@
       h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn', id: 'btnVoiceSpeak', onClick: () => { keyBlur(); v.say(GS.t('Hai, saya {0}. Ini ujian suara saya.', c.bot.name || 'bot'), true); } }, 'Uji suara bot')),
       check('Masukkan suara bot ke dalam siaran (penonton dengar; app Windows)', () => c.bot.inStream, (x) => { c.bot.inStream = x; }, !nat),
       aiBox,
-      h('h4', null, 'Soalan dan jawapan'),
-      h('p', { class: 'muted note' }, 'Pisahkan beberapa cara bertanya dengan |. Jawapan boleh menggunakan data game: {kill} {mati} {assist} {menang} {kalah} {streak} {toppick} {topban} {nama}.'),
-      qaBox,
-      field('Jawapan jika tidak faham (kosong = diam)', h('input', { type: 'text', value: c.bot.fallback, onInput: (e) => { c.bot.fallback = e.target.value; save(); } })),
 
       h('h3', null, 'Pengumum efek (efek BERCAKAP)'),
       h('p', { class: 'muted note' }, 'Apabila efek kill, double kill, victory, defeat dan lain-lain keluar (melalui butang, pengesan skrin atau suara), pengumum menyebut perkataan itu menggunakan suara yang dipilih di atas, dan bunyi beep tidak dimainkan. Jika suara gagal, bunyi beep digunakan sebagai sandaran.'),

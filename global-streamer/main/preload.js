@@ -57,6 +57,11 @@ contextBridge.exposeInMainWorld('gsNative', {
   tts: {
     fetch: (kind, params) => ipcRenderer.invoke('tts:fetch', kind, params),
     eleven: (op, params) => ipcRenderer.invoke('tts:eleven', op, params),
+    agent: (op, params) => ipcRenderer.invoke('tts:agent', op, params),
+  },
+  botai: {
+    hotkey: (on) => ipcRenderer.invoke('botai:hotkey', !!on),
+    onAnalyze: (cb) => ipcRenderer.on('botai:analyze', () => cb()),
   },
   ai: {
     chat: (params) => ipcRenderer.invoke('ai:chat', params),
