@@ -708,3 +708,8 @@ html[data-appmode="formal-white"] .strip-dev span, html[data-appmode="formal-gra
 .ow-link { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
 .ow-link:hover { color: var(--text); }
 .ow-card .ba-out { width: 100%; text-align: left; }
+
+/* suis HIDUP/MATI mikrofon dalam Audio Mixer */
+.mic-sw { border: 0; border-radius: 99px; padding: 2px 9px; font-size: 10px; font-weight: 900; letter-spacing: 0.06em; cursor: pointer; transition: transform 0.25s var(--ease), filter 0.2s; flex: none; }
+.mic-sw.on { background: #1fa86a; color: #fff; } .mic-sw.off { background: #6b2433; color: #ffc2cc; }
+.mic-sw:hover { filter: brightness(1.15); } .mic-sw:active { transform: scale(0.93); }

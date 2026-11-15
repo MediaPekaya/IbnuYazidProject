@@ -104,7 +104,7 @@
 
   /* ---------- saluran ---------- */
   function persist() {
-    GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, deviceLabel: c.deviceLabel || undefined, vol: c.vol, muted: c.muted, w: c.w || undefined,
+    GS.state.audio.channels = A.channels.map((c) => ({ id: c.id, label: c.label, kind: c.kind, deviceId: c.deviceId, deviceLabel: c.deviceLabel || undefined, off: c.off || undefined, vol: c.vol, muted: c.muted, w: c.w || undefined,
       // lagu sendiri: hanya laluan fail (app Windows) disimpan; URL sementara pelayar tidak kekal
       tracks: c.kind === 'music' ? (c.tracks || []).filter((t) => t.path || t.link).map((t) => (t.link ? { name: t.name, link: t.link, yt: t.yt || undefined, list: t.list || undefined } : { name: t.name, path: t.path })) : undefined, idx: c.kind === 'music' ? (c.idx || 0) : undefined, loop: c.kind === 'music' ? c.loop !== false : undefined }));
     GS.save();
@@ -348,7 +348,7 @@
     A.channels.forEach((c) => { if (c.kind === 'sfx' && c.label === 'Efek & Muzik') c.label = 'Efek Bunyi'; });
     // jika ada deviceId tersimpan, cuba sambung senyap-senyap (hanya berjaya jika kebenaran pernah diberi)
     A.channels.forEach((c) => {
-      if (c.kind === 'input' && c.deviceId) A.connectDevice(c.id, c.deviceId, true);
+      if (c.kind === 'input' && c.deviceId && !c.off) A.connectDevice(c.id, c.deviceId, true);
     });
   };
 
@@ -567,6 +567,7 @@
         onContextmenu: (e) => { const nm = e.currentTarget.querySelector('.strip-name'); GS.ctxMenu(e, [{ label: 'Namakan semula', run: () => nm && GS.inlineEdit(nm, ch.label, (v) => A.rename(ch.id, v), () => A.renderMixer()) }].concat(ch.kind === 'music' ? [{ label: 'Tambah lagu', run: () => A.musicPick(ch.id) }] : []).concat(ch.kind !== 'sfx' ? ['-', { label: 'Buang saluran', danger: true, run: () => A.remove(ch.id) }] : [])); } },
         GS.h('div', { class: 'strip-head' },
           GS.h('span', { class: 'strip-name', title: GS.t('Klik dua kali atau klik kanan untuk namakan semula') + ': ' + ch.label, onDblclick: (e) => GS.inlineEdit(e.currentTarget, ch.label, (v) => A.rename(ch.id, v), () => A.renderMixer()) }, ch.label),
+          ch.kind === 'input' ? GS.h('button', { type: 'button', class: 'mic-sw ' + (ch.stream ? 'on' : 'off'), id: 'btnMicSw' + ch.id, title: ch.stream ? GS.t('Mikrofon HIDUP: klik untuk matikan (siaran dan bot tidak mendengar langsung)') : GS.t('Mikrofon MATI: klik untuk hidupkan'), onClick: () => A.toggleInput(ch.id) }, ch.stream ? GS.t('Suis hidup') : GS.t('Suis mati')) : null,
           GS.h('button', { class: 'icon-btn sm', title: GS.t('Buang saluran') + (ch.kind === 'input' && ch.deviceLabel ? ' · ' + GS.t('Mikrofon') + ': ' + ch.deviceLabel : ''), onClick: () => A.remove(ch.id), html: GS.icon('x', 14) })),
         ch.kind === 'input' && ch.stream ? GS.h('div', { class: 'strip-dev', title: ch.deviceLabel || '' }, GS.h('i', null), GS.h('span', null, ch.deviceLabel || GS.t('Mikrofon dipilih')), GS.h('b', null, GS.t('DIPILIH'))) : null,
         GS.h('div', { class: 'strip-body' },
@@ -612,6 +613,24 @@
     if (GS.voiceui) root.append(GS.voiceui.strip());
     root.append(GS.h('div', { class: 'mixer-add' },
       GS.h('button', { class: 'btn ghost', id: 'btnAudioAdd', onClick: (e) => A.openAddMenu(e.currentTarget), html: GS.icon('plus', 14) + ' ' + GS.t('Input') })));
+  };
+
+  /** Suis HIDUP/MATI mikrofon (atau input lain): MATI = peranti dilepaskan sepenuhnya, siaran dan bot tidak mendengar apa-apa (jimat kredit). */
+  A.toggleInput = async function (id) {
+    const ch = A.channels.find((c) => c.id === id);
+    if (!ch || ch.kind !== 'input') return;
+    if (ch.stream) {
+      try { ch.stream.getTracks().forEach((t) => t.stop()); } catch (e) { /* abaikan */ }
+      try { if (ch.node && ch.node.disconnect) ch.node.disconnect(); } catch (e) { /* abaikan */ }
+      (ch.chain || []).forEach((n) => { try { n.disconnect(); } catch (e) { /* abaikan */ } });
+      ch.chain = []; ch.node = null; ch.stream = null; ch.off = true;
+      persist(); GS.emit('audio:changed');
+      GS.toast(GS.t('{0} dimatikan: tiada bunyi dihantar ke siaran atau bot.', ch.label), 'info', 3500);
+      return;
+    }
+    ch.off = false; persist();
+    if (ch.deviceId) await A.connectDevice(id, ch.deviceId); else A.pickDevice(id);
+    GS.emit('audio:changed');
   };
 
   /** Kad Output: pilih pembesar suara streamer, hidup/mati, dan uji bunyi. */

@@ -587,6 +587,7 @@
     'Tarik pemisah antara panel (Scene, Sumber, Sifat, Audio Mixer, Template, panel kanan) untuk laras saiz, dan tarik tajuk panel untuk menukar kedudukannya. Panel kekal dalam app dan tidak boleh dikeluarkan atau dihilangkan. Klik dua kali pada pemisah untuk lalai.': 'Drag the dividers between panels (Scenes, Sources, Properties, Audio Mixer, Templates, right panel) to resize them, and drag a panel title to move it. Panels stay inside the app and cannot be removed or hidden. Double-click a divider for the default.',
     'Tetapkan semula susun atur panel': 'Reset the panel layout',
     'Ad Block': 'Ad Block',
+    "{0} dimatikan: tiada bunyi dihantar ke siaran atau bot.": "{0} is off: no sound is sent to the stream or the bot.", "Mikrofon HIDUP: klik untuk matikan (siaran dan bot tidak mendengar langsung)": "Microphone ON: click to turn off (the stream and the bot hear nothing)", "Mikrofon MATI: klik untuk hidupkan": "Microphone OFF: click to turn on",
     "Papar kata laluan": "Show password", "Log masuk…": "Signing in…", "Log masuk pemilik atau akaun yang dibenarkan": "Owner or allowed account sign-in",
     "Suara & Bot AI dikawal oleh pemilik. Log masuk dengan akaun admin atau akaun yang dibenarkan.": "Voice & AI Bot is controlled by the owner. Sign in with the admin account or an allowed account.",
     "Akaun disahkan. Suara & Bot dibuka.": "Account verified. Voice & Bot is open.",

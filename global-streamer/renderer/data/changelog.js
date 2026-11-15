@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Audio Mixer: suis HIDUP/MATI ditambah di sebelah nama Mikrofon (dan input lain). MATI melepaskan mikrofon sepenuhnya: siaran dan bot tidak mendengar apa-apa dan tiada kredit digunakan. Tetapan diingat selepas app dibuka semula.',
       'Kotak log masuk Suara & Bot direka semula: kad kemas dengan logo, emel lalai dan ikon mata untuk kata laluan.',
       'Ctrl + Shift + A tidak lagi memilih semua sumber secara tidak sengaja. Pilih semua kekal Ctrl + A.',
       'Tajuk panel Suara & Bot AI ditukar kepada "Setup AI brain and voice (Claude + ElevenLabs)" (tanpa nama bot).',
@@ -112,6 +113,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Audio Mixer: an ON/OFF switch was added next to the Microphone name (and other inputs). OFF fully releases the microphone: the stream and the bot hear nothing and no credit is used. The setting is remembered after the app reopens.',
       'The Voice & Bot sign-in box was redesigned: a neat card with the logo, a default email and an eye icon for the password.',
       'Ctrl + Shift + A no longer selects all sources by accident. Select all stays Ctrl + A.',
       'The Voice & AI Bot panel title was changed to "Setup AI brain and voice (Claude + ElevenLabs)" (without the bot name).',

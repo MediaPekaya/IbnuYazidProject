@@ -836,7 +836,7 @@
     const C = (V.cloud = makeCloud());
     const off = tapRaw(ch, (f) => C.feed(f));
     if (!off) { V.error = GS.t('Mikrofon tidak dapat dibuka. Benarkan kebenaran mikrofon untuk app ini.'); return false; }
-    V.taps.cloud = off;
+    V.taps.cloud = off; V.cloudNode = ch.node;
     V.info.mic = { culture: 'ms', name: V.sttKey() ? 'Groq Whisper' : 'ElevenLabs Scribe', input: 'cloud' };
     return true;
   }
@@ -925,6 +925,15 @@
   V.toggle = () => (V.running ? (V.stop(), Promise.resolve(false)) : V.start());
   /** Sambung semula saluran apabila input mixer bertukar (pengguna memilih peranti lain). */
   V.retap = function () {
+    if (V.running && V.engine === 'cloud' && V.cloud) {
+      // telinga awan: sambung semula apabila mikrofon dihidupkan semula (nod audio baharu); putus apabila mikrofon dimatikan
+      const ch = chFor('mic'), node = ch ? ch.node : null;
+      if (node === V.cloudNode) return;
+      if (V.taps.cloud) { V.taps.cloud(); delete V.taps.cloud; }
+      V.cloudNode = node;
+      if (ch) { const off = tapRaw(ch, (f) => V.cloud.feed(f)); if (off) V.taps.cloud = off; }
+      return;
+    }
     if (!V.running || V.engine !== 'windows') return;
     Object.values(V.taps).forEach((f) => f && f()); V.taps = {};
     ['mic', 'game'].forEach((src) => { if (!cfg()[src].on || !V.info[src]) return; const ch = chFor(src); const off = ch && tap(src, ch); if (off) V.taps[src] = off; });
