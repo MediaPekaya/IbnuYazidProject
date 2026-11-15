@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Audio Mixer (TikTok dan YouTube): setiap kad (Mikrofon, Efek Bunyi, Lagu, Output, Suara & Bot) boleh dialih kedudukannya dengan menyeret tajuk kad (kursor tangan). Susunan diingat.',
+      'Garis biru laras saiz antara paparan live dan Audio Mixer dalam mod TikTok kini berada di tempat yang betul (atas Audio Mixer); seret ke atas atau bawah untuk besar/kecilkan.',
+      'Pop-up Pemasa Spell musuh yang ditambah secara automatik kini sama di TikTok dan YouTube: diletakkan di ruang kosong atas kamera streamer, dan mengelak bertindih dengan bahagian lain.',
       'Mod TikTok (menegak): ruang Audio Mixer kini lebih tinggi secara lalai dan kad disusun kemas (bersambung ke baris baharu, tidak terpotong). Seret pemegang kecil di atas Audio Mixer ke atas atau bawah untuk besarkan atau kecilkan ruang; klik dua kali untuk saiz asal.',
       'Kira Detik: masa yang telah diedit dan disimpan kini kekal pada semua scene, template dan Peralihan (tidak kembali ke masa asal). Kira detik baharu atau template yang belum diedit tetap bermula pada 10 minit.',
       'Tab jenis template (Gaming, Formal, Sebentar Lagi, Pembentangan): bug penanda biru tersasar dibaiki. Penanda kini sentiasa tepat di bawah tab aktif dan dikira semula bila saiz berubah. Apabila app dibuka, tab sentiasa bermula pada Gaming.',
@@ -124,6 +127,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Audio Mixer (TikTok and YouTube): every card (Microphone, Sound Effects, Music, Output, Voice & Bot) can be moved by dragging its title (hand cursor). The order is remembered.',
+      'The blue resize line between the live view and the Audio Mixer in TikTok mode is now in the right place (above the Audio Mixer); drag it up or down to make it bigger or smaller.',
+      'The enemy Spell Timer pop-up that is added automatically is now the same on TikTok and YouTube: placed in the empty space above the streamer camera, avoiding overlap with other parts.',
       'TikTok mode (portrait): the Audio Mixer area is taller by default and the cards are arranged neatly (wrapping to new rows, not cut off). Drag the small handle above the Audio Mixer up or down to make the area bigger or smaller; double-click resets it.',
       'Countdown: a time you edited and saved now stays across all scenes, templates and Transition (it no longer goes back to the original time). A new countdown or an unedited template still starts at 10 minutes.',
       'Template type tabs (Gaming, Formal, Countdown, Presentation): fixed the blue indicator sitting in the wrong place. It now always sits under the active tab and is recalculated when the size changes. When the app opens, the tabs always start on Gaming.',

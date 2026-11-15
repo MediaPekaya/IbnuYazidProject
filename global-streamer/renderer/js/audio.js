@@ -598,6 +598,7 @@
               GS.h('button', { class: 'btn tiny', id: 'btnMusicLink' + ch.id, onClick: () => A.musicAddLink(ch.id) }, '+ ' + GS.t('Pelayar / link')))
           : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
       // pemegang saiz: seret di tepi kanan untuk melaraskan lebar; klik dua kali untuk lebar asal
+      strip.dataset.sid = ch.id;
       A.addGrip(strip, () => ch.w, (w) => { ch.w = w; }, persist);
       root.append(strip);
     });
@@ -605,7 +606,54 @@
     if (GS.voiceui) root.append(GS.voiceui.strip());
     root.append(GS.h('div', { class: 'mixer-add' },
       GS.h('button', { class: 'btn ghost', id: 'btnAudioAdd', onClick: (e) => A.openAddMenu(e.currentTarget), html: GS.icon('plus', 14) + ' ' + GS.t('Input') })));
+    A.applyOrder(root);
+    A.bindReorder(root);
   };
+
+  /* susunan kad mixer: pengguna boleh alih mana-mana kad (mikrofon, efek bunyi, lagu, output, suara bot) dengan menyeret tajuknya */
+  A.applyOrder = function (root) {
+    const order = GS.state.audio.order;
+    if (!Array.isArray(order) || !order.length) return;
+    const add = root.querySelector('.mixer-add');
+    const strips = [...root.querySelectorAll(':scope > .strip')];
+    const idx = (el) => { const i = order.indexOf(el.dataset.sid); return i < 0 ? 999 : i; };
+    strips.map((el, n) => [el, idx(el), n]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).forEach(([el]) => root.insertBefore(el, add));
+  };
+  A.bindReorder = function (root) {
+    if (root._reorderBound) return;
+    root._reorderBound = true;
+    root.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      const head = e.target.closest('.strip-head');
+      if (!head || e.target.closest('button, input, select, a, .strip-grip') || e.target.closest('[contenteditable]')) return;
+      const strip = head.closest('.strip');
+      if (!strip || strip.parentNode !== root) return;
+      const x0 = e.clientX, y0 = e.clientY;
+      let drag = false;
+      const move = (m) => {
+        if (!drag) {
+          if (Math.hypot(m.clientX - x0, m.clientY - y0) < 6) return;
+          drag = true; strip.classList.add('reordering'); root.classList.add('reordering'); document.body.style.cursor = 'grabbing';
+        }
+        const under = document.elementsFromPoint(m.clientX, m.clientY).map((n) => n.closest && n.closest('.strip')).find((n) => n && n !== strip && n.parentNode === root);
+        if (!under) return;
+        const r = under.getBoundingClientRect();
+        const before = (m.clientX - r.left) < r.width / 2 ? true : false;
+        const ref = before ? under : under.nextElementSibling;
+        if (ref !== strip && !(before && under.previousElementSibling === strip)) root.insertBefore(strip, ref);
+      };
+      const up = () => {
+        document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
+        document.body.style.cursor = '';
+        strip.classList.remove('reordering'); root.classList.remove('reordering');
+        if (!drag) return;
+        GS.state.audio.order = [...root.querySelectorAll(':scope > .strip')].map((el) => el.dataset.sid).filter(Boolean);
+        GS.save();
+      };
+      document.addEventListener('pointermove', move); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+    });
+  };
+
 
   /** Suis HIDUP/MATI mikrofon (atau input lain): MATI = peranti dilepaskan sepenuhnya, siaran dan bot tidak mendengar apa-apa (jimat kredit). */
   A.toggleInput = async function (id) {
@@ -646,7 +694,7 @@
     const on = outOn(), vol = GS.state.audio.outVol == null ? 1 : GS.state.audio.outVol;
     const name = (GS.state.audio.outId ? GS.state.audio.outLabel : '') || GS.t('Lalai sistem');
     const meter = GS.h('div', { class: 'meter' }, GS.h('i', { dataset: { meter: '__out' } }));
-    const strip = GS.h('div', { class: 'strip out-strip picked' + (on ? '' : ' muted') },
+    const strip = GS.h('div', { 'data-sid': '__out', class: 'strip out-strip picked' + (on ? '' : ' muted') },
       GS.h('div', { class: 'strip-head' },
         GS.h('span', { class: 'strip-name' }, GS.t('Output')),
         GS.h('button', { type: 'button', class: 'mic-sw ' + (on ? 'on' : 'off'), id: 'btnOutOn', title: on ? GS.t('Output HIDUP: klik untuk matikan') : GS.t('Output MATI: klik untuk hidupkan'), onClick: () => A.setOutputOn(!on) }, on ? GS.t('Suis hidup') : GS.t('Suis mati'))),

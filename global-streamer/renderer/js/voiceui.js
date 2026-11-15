@@ -25,14 +25,14 @@
   U.strip = function () {
     const v = V();
     if (v.comingSoon) {
-      return h('div', { class: 'strip voice-strip coming-soon', id: 'voiceStrip', 'aria-disabled': 'true' },
+      return h('div', { class: 'strip voice-strip coming-soon', id: 'voiceStrip', 'data-sid': '__voice', 'aria-disabled': 'true' },
         h('div', { class: 'strip-head' }, h('span', { class: 'strip-name' }, 'Suara & Bot')),
         h('div', { class: 'cs-bar', id: 'voiceComingSoon' }, 'AKAN DATANG'),
         h('button', { type: 'button', class: 'btn tiny', id: 'btnVoiceToggle', disabled: true }, 'Hidupkan bot'),
         h('button', { type: 'button', class: 'btn tiny ghost', id: 'btnVoiceOpen', disabled: true }, 'Atur…'));
     }
     const s = statusText();
-    return h('div', { class: 'strip voice-strip' + (v.running ? ' on' : ''), id: 'voiceStrip' },
+    return h('div', { class: 'strip voice-strip' + (v.running ? ' on' : ''), id: 'voiceStrip', 'data-sid': '__voice' },
       h('div', { class: 'strip-head' }, h('span', { class: 'strip-name', title: GS.t('Kawalan suara dan bot') }, 'Suara & Bot'), h('i', { class: 'voice-dot ' + (v.running ? 'on' : '') })),
       h('div', { class: 'strip-note voice-status ' + s.cls, id: 'voiceStripStatus', title: s.title || '' }, s.text),
       h('button', { type: 'button', class: 'btn tiny' + (v.running ? '' : ' primary'), id: 'btnVoiceToggle', onClick: async () => { const ok = await v.toggle(); if (!ok && v.error) GS.toast(v.error, 'warn'); } }, v.running ? 'Matikan bot' : 'Hidupkan bot'),

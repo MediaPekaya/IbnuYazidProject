@@ -736,3 +736,8 @@ html[data-appmode="formal-white"] .strip-dev span, html[data-appmode="formal-gra
 .strip-actions .btn { flex: 1 1 0; min-width: 0; padding-left: 4px; padding-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .strip-head { min-height: 24px; }
 .out-row { display: flex; align-items: center; gap: 8px; }
+/* alih kad mixer: tajuk kad menjadi pemegang (kursor tangan) */
+.dock-body.mixer .strip-head { cursor: grab; user-select: none; }
+.dock-body.mixer.reordering .strip-head, .dock-body.mixer.reordering { cursor: grabbing; }
+.strip.reordering { opacity: 0.85; box-shadow: 0 0 0 2px #2ea8ff, 0 8px 24px rgba(0, 0, 0, 0.45); transform: scale(1.02); z-index: 5; transition: none; }
+.dock-body.mixer .strip-head .strip-name { cursor: grab; }

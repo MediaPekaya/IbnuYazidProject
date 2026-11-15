@@ -259,8 +259,20 @@
   const ensureWidget = () => {
     const sc = GS.scenes && GS.scenes.program && GS.scenes.program();
     if (!sc || sc.sources.some((s) => s.type === 'widget' && s.props && s.props.widget === 'spelltimer')) return;
-    const W = GS.design.w, H = GS.design.h, w = 340, hh = 200;
-    sc.sources.push({ id: GS.uid('src'), type: 'widget', name: 'Pemasa Spell', visible: true, locked: false, x: W - w - 24, y: Math.round(H * 0.16), w, h: hh, fit: 'cover', props: { widget: 'spelltimer' } });
+    const W = GS.design.w, H = GS.design.h, w = 340, hh = 236;
+    // letak di ruang kosong ATAS kamera streamer (sama untuk TikTok dan YouTube); jika tiada ruang, di bawah atau tepi kamera; elak bertindih sumber lain
+    const vis = sc.sources.filter((x) => x.visible !== false && !(x.w * x.h > W * H * 0.55));
+    const cam = sc.sources.find((x) => x.type === 'video' && x.props && x.props.kind === 'camera' && x.visible !== false);
+    const hit = (c) => vis.some((o) => o !== cam && c.x < o.x + o.w && c.x + w > o.x && c.y < o.y + o.h && c.y + hh > o.y) || (cam && c.x < cam.x + cam.w && c.x + w > cam.x && c.y < cam.y + cam.h && c.y + hh > cam.y);
+    const inside = (c) => c.x >= 0 && c.y >= 0 && c.x + w <= W && c.y + hh <= H;
+    const cand = [];
+    if (cam) {
+      const rx = Math.min(W - w - 12, cam.x + cam.w - w);
+      cand.push({ x: rx, y: cam.y - hh - 8 }, { x: Math.max(12, Math.min(W - w - 12, cam.x)), y: cam.y - hh - 8 }, { x: rx, y: cam.y + cam.h + 8 }, { x: cam.x - w - 12, y: cam.y }, { x: cam.x + cam.w + 12, y: cam.y });
+    }
+    cand.push({ x: W - w - 24, y: Math.round(H * 0.16) }, { x: 24, y: Math.round(H * 0.16) });
+    const pos = cand.find((c) => inside(c) && !hit(c)) || cand.find(inside) || cand[cand.length - 1];
+    sc.sources.push({ id: GS.uid('src'), type: 'widget', name: 'Pemasa Spell', visible: true, locked: false, x: Math.round(pos.x), y: Math.round(pos.y), w, h: hh, fit: 'cover', props: { widget: 'spelltimer' } });
     GS.emit('sources:changed'); GS.emit('scenes:changed'); GS.save();
   };
   /** Mula pemasa spell untuk hero musuh. Baris digunakan semula untuk hero yang sama; jika tidak, baris kosong atau yang paling awal habis. */

@@ -93,7 +93,7 @@
         } else if (g.kind === 'footer-h') {
           const first = m === 'land' ? rect(L.order[0]) : rect('dockMixer');
           const mixer = rect('dockMixer'); const mm = rect('dockTemplates');
-          const top = Math.min(...[rect('dockScenes'), mixer, mm].filter(Boolean).map((q) => q.top));
+          const top = Math.min(...(m === 'port' ? [mixer, mm] : [rect('dockScenes'), mixer, mm]).filter(Boolean).map((q) => q.top));
           const left = m === 'land' ? (first ? first.left : 0) : (rect('dockMixer') || { left: 0 }).left;
           const right2 = Math.max(...[mixer, mm].filter(Boolean).map((q) => q.right));
           x = m === 'land' ? left : mixer ? mixer.left : 0; y = top - 9; w = right2 - x; hh = 8;
