@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Kira Detik: masa yang telah diedit dan disimpan kini kekal pada semua scene, template dan Peralihan (tidak kembali ke masa asal). Kira detik baharu atau template yang belum diedit tetap bermula pada 10 minit.',
       'Tab jenis template (Gaming, Formal, Sebentar Lagi, Pembentangan): bug penanda biru tersasar dibaiki. Penanda kini sentiasa tepat di bawah tab aktif dan dikira semula bila saiz berubah. Apabila app dibuka, tab sentiasa bermula pada Gaming.',
       'Audio Mixer: kad Output dan semua kad (mikrofon, lagu, input) boleh dilaraskan lebarnya dengan menyeret tepi kanan; klik dua kali untuk kembali ke saiz asal. Saiz diingat.',
       'Kira Detik: bila ditambah pada Sumber, popup tetapan masa keluar (jam, minit, saat; bukan hanya 10 minit). Tekan Simpan dan kira detik terus berubah. Butang Edit masa tersedia pada Sifat dan kotak PROGRAM.',
@@ -122,6 +123,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Countdown: a time you edited and saved now stays across all scenes, templates and Transition (it no longer goes back to the original time). A new countdown or an unedited template still starts at 10 minutes.',
       'Template type tabs (Gaming, Formal, Countdown, Presentation): fixed the blue indicator sitting in the wrong place. It now always sits under the active tab and is recalculated when the size changes. When the app opens, the tabs always start on Gaming.',
       'Audio Mixer: the Output card and every card (microphone, music, inputs) can be resized by dragging the right edge; double-click resets the size. The size is remembered.',
       'Countdown: when added to Sources, a time setup popup opens (hours, minutes, seconds; not just 10 minutes). Press Save and the countdown changes right away. An Edit time button is in Properties and the PROGRAM box.',

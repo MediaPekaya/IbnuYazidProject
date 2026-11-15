@@ -118,6 +118,7 @@
       if (i >= 0) { const o = pool.splice(i, 1)[0]; n.id = o.id; n.props = Object.assign({}, o.props); }
     });
     pool.forEach((o) => { if (!fresh.some((n) => n.id === o.id)) GS.media.close(o.id); });
+    S.carryCountdown(old, fresh);
     const before = sc ? Object.assign({}, sc) : null;   // keadaan lama (sumber + tema) untuk animasi peralihan
     if (!sc) { sc = { id: GS.uid('scene'), name: newName || 'Live · ' + tpl.name, sources: [] }; st().scenes.push(sc); }
     sc.sources = fresh;
@@ -192,6 +193,17 @@
     changed();
   };
 
+  /* masa kira detik yang telah DISIMPAN (Edit masa > Simpan) dibawa ke semua scene/template/peralihan; tidak kembali ke asal */
+  const CD_KEYS = ['hours', 'minutes', 'seconds', 'endAt', 'pausedMs', 'cdSaved'];
+  S.carryCountdown = function (fromSources, toSources) {
+    const from = (fromSources || []).filter((x) => x.type === 'widget' && x.props && x.props.widget === 'countdown' && x.props.cdSaved);
+    if (!from.length) return;
+    (toSources || []).filter((x) => x.type === 'widget' && x.props && x.props.widget === 'countdown').forEach((n, i) => {
+      const o = from.find((f) => f.id === n.id) || from[Math.min(i, from.length - 1)];
+      CD_KEYS.forEach((k) => { if (o.props[k] !== undefined) n.props[k] = o.props[k]; else delete n.props[k]; });
+    });
+  };
+
   S.doTransition = function () {
     if (st().mode !== 'studio') return;
     const draft = S.preview(), pg = S.program();
@@ -214,10 +226,12 @@
       if (prog && stg.transition !== 'cut') prog.startTransition(before, target, stg.transition, stg.transitionMs);
       // tukar tempat seperti OBS: apa yang tadi di Program kini di Pratonton, dan yang disunting kini di Program
       drafts[target.id] = Object.assign({}, before, { sources: GS.clone(before.sources) });
+      S.carryCountdown(target.sources, drafts[target.id].sources);
     } else {
       S.setProgram(target.id);
       // tukar tempat seperti OBS: scene yang tadi dilihat penonton kini di Pratonton (kiri), scene baharu di Program (kanan)
       st().previewId = oldProgramId;
+      try { const od = drafts[oldProgramId]; const op = byId(oldProgramId); S.carryCountdown(target.sources, od ? od.sources : null); if (op) S.carryCountdown(target.sources, op.sources); } catch (e) { /* abaikan */ }
     }
     selectedId = null;
     GS.toast(GS.t('Dialihkan ke Program.'), 'ok');
@@ -507,6 +521,7 @@
       sc.sources.unshift(src); selectedId = src.id; changed('sources:changed'); GS.emit('scenes:changed'); return;
     }
     const added = mk('widget', d[0], 120, 120, d[1], d[2], { widget: type, label: type === 'frame' ? '' : undefined });
+    if (type === 'countdown') { added.props.hours = 0; added.props.minutes = 10; added.props.seconds = 0; }
     addSource(added);
     if (type === 'countdown') setTimeout(() => S.cdSetup(added), 120);
   };
@@ -788,7 +803,7 @@
     let m;
     const save = h('button', { type: 'button', class: 'btn primary', id: 'btnCdSave', onClick: () => {
       p.hours = GS.clamp(Math.floor(Number(ih.value) || 0), 0, 99); p.minutes = GS.clamp(Math.floor(Number(im.value) || 0), 0, 999); p.seconds = GS.clamp(Math.floor(Number(is.value) || 0), 0, 59);
-      CD.reset(p); GS.save(); m.close(); changed('props:changed'); renderProps();
+      p.cdSaved = true; CD.reset(p); GS.save(); m.close(); changed('props:changed'); renderProps();
       GS.toast(GS.t('Masa kira detik disimpan.'), 'ok');
     } }, GS.t('Simpan'));
     m = GS.modal({
