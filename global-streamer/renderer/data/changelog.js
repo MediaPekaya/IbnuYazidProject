@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Audio Mixer: nama peranti yang dipilih (input dan output) kini ditandakan dengan kotak kuning dan penanda DIPILIH dalam senarai Pilih input / Pilih output. Kad Output sama bentuk dengan kad Mikrofon: nama kuning, meter, pelaras kelantangan, butang speaker, Tukar output dan Uji bunyi.',
+      'Semua kotak Audio Mixer kini sama lebar; nama peranti yang panjang dipotong dengan tanda ... supaya kotak Mikrofon tidak panjang.',
+      'Simpan automatik diperkuat: scene, template, sumber dan tetapan disimpan juga ke fail dalam folder data app pengguna sendiri, dengan salinan sandaran. Selepas kemas kini, tutup paksa atau buka semula, susunan terakhir kekal dan tidak kembali ke asal.',
       'Pop-up pemasa spell musuh direka semula dan sama di semua template: pil kecil di sebelah kanan dengan tajuk ENEMY SPELL, gambar hero, ikon spell, nama hero, nama spell dan masa. Masa bertukar merah pada 10 saat terakhir dan READY berdenyut hijau.',
       'Audio Mixer: suis HIDUP/MATI ditambah di sebelah nama Mikrofon (dan input lain). MATI melepaskan mikrofon sepenuhnya: siaran dan bot tidak mendengar apa-apa dan tiada kredit digunakan. Tetapan diingat selepas app dibuka semula.',
       'Kotak log masuk Suara & Bot direka semula: kad kemas dengan logo, emel lalai dan ikon mata untuk kata laluan.',
@@ -114,6 +117,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Audio Mixer: the chosen device (input and output) is now marked with a yellow box and a SELECTED tag in the Choose input / Choose output lists. The Output card matches the Microphone card: yellow name, meter, volume fader, speaker button, Change output and Test sound.',
+      'All Audio Mixer cards are now the same width; long device names are cut with ... so the Microphone card is no longer long.',
+      'Auto-save strengthened: scenes, templates, sources and settings are also saved to a file in each user\'s own app data folder, with a backup copy. After an update, force close or reopen, your last layout stays and does not revert.',
       'The enemy spell timer pop-up was redesigned and is the same in every template: small pills on the right with an ENEMY SPELL title, hero picture, spell icon, hero name, spell name and time. The time turns red in the last 10 seconds and READY pulses green.',
       'Audio Mixer: an ON/OFF switch was added next to the Microphone name (and other inputs). OFF fully releases the microphone: the stream and the bot hear nothing and no credit is used. The setting is remembered after the app reopens.',
       'The Voice & Bot sign-in box was redesigned: a neat card with the logo, a default email and an eye icon for the password.',

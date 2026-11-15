@@ -168,9 +168,15 @@
   function load() {
     const d = defaults();
     try {
-      const raw = localStorage.getItem(KEY);
-      if (!raw) return d;
-      const s = JSON.parse(raw);
+      let raw = null, rawFile = null;
+      try { raw = localStorage.getItem(KEY); } catch (e) { /* abaikan */ }
+      try { rawFile = window.gsNative && window.gsNative.state ? window.gsNative.state.load() : null; } catch (e) { /* abaikan */ }
+      let s = null, sf = null;
+      try { s = raw ? JSON.parse(raw) : null; } catch (e) { s = null; }
+      try { sf = rawFile ? JSON.parse(rawFile) : null; } catch (e) { sf = null; }
+      // guna salinan yang paling baharu (localStorage atau fail simpanan dalam folder data app)
+      if (sf && (!s || (sf._savedAt || 0) > (s._savedAt || 0))) s = sf;
+      if (!s) return d;
       const merged = Object.assign(d, s);
       merged.settings = Object.assign(defaults().settings, s.settings || {});
       merged.platforms = Object.assign(defaults().platforms, s.platforms || {});
@@ -213,7 +219,10 @@
   };
   GS.saveNow = function () {
     try {
-      localStorage.setItem(KEY, JSON.stringify(GS.state));
+      GS.state._savedAt = Date.now();
+      const json = JSON.stringify(GS.state);
+      try { if (window.gsNative && window.gsNative.state) window.gsNative.state.save(json); } catch (e) { /* abaikan */ }
+      localStorage.setItem(KEY, json);
     } catch (e) {
       console.warn('[GS] gagal simpan', e);
       GS.toast('Gagal simpan tetapan (storan penuh?). Cuba kecilkan imej logo.', 'warn');

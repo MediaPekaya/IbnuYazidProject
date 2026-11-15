@@ -26,6 +26,23 @@ process.on('unhandledRejection', (e) => { try { console.error('[GS] janji ditola
 let win = null;
 const engine = new StreamEngine((ev) => { if (win && !win.isDestroyed()) win.webContents.send('stream:event', ev); });
 
+/* ---------- simpanan keadaan app (scene, sumber, tetapan) dalam fail: kekal selepas kemas kini / tutup paksa ---------- */
+const stateFile = () => path.join(app.getPath('userData'), 'gs-state.json');
+ipcMain.on('state:load', (e) => { let out = ''; try { out = fs.readFileSync(stateFile(), 'utf8'); } catch (err) { try { out = fs.readFileSync(stateFile() + '.bak', 'utf8'); } catch (e2) { out = ''; } } e.returnValue = out; });
+ipcMain.on('state:save', (e, json) => {
+  let ok = false;
+  try {
+    if (typeof json === 'string' && json.length > 2 && json.length < 64 * 1024 * 1024) {
+      const f = stateFile(), tmp = f + '.tmp';
+      fs.writeFileSync(tmp, json);
+      try { if (fs.existsSync(f)) fs.copyFileSync(f, f + '.bak'); } catch (err) { /* abaikan */ }
+      fs.renameSync(tmp, f);
+      ok = true;
+    }
+  } catch (err) { console.warn('[GS] state:save', err.message); }
+  e.returnValue = ok;
+});
+
 /* ---------- simpanan key disulitkan (OS) ---------- */
 const vaultFile = () => path.join(app.getPath('userData'), 'vault.json');
 function readVault() { try { return JSON.parse(fs.readFileSync(vaultFile(), 'utf8')); } catch (e) { return {}; } }

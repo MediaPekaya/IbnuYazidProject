@@ -33,6 +33,7 @@
     // output streamer (monitor): semua yang streamer dengar melalui satu bus ini; pilih pembesar suara dan hidup/matikan dalam Audio Mixer
     A.monBus = A.ctx.createGain();
     A.monBus.connect(A.ctx.destination);
+    A.monAn = A.ctx.createAnalyser(); A.monAn.fftSize = 512; A.monBus.connect(A.monAn);   // meter output
     A.applyOutput();
     A.sfxBus = A.ctx.createGain();
     A.sfxBus.connect(A.monBus);
@@ -50,7 +51,7 @@
   /** Output streamer: pilih pembesar suara (speaker / fon kepala) dan hidup/matikan. Penonton tidak terjejas; ini hanya untuk streamer mendengar. */
   const outOn = () => GS.state.audio.outOn !== false;
   A.applyOutput = function () {
-    if (A.monBus) A.monBus.gain.value = outOn() ? 1 : 0;
+    if (A.monBus) A.monBus.gain.value = outOn() ? (GS.state.audio.outVol == null ? 1 : GS.state.audio.outVol) : 0;
     const id = GS.state.audio.outId || '';
     try { if (A.ctx && A.ctx.setSinkId) A.ctx.setSinkId(id === 'default' ? '' : id).catch(() => {}); } catch (e) { /* tidak disokong */ }
     // pemain YouTube / pelayar dalam app: ikut hidup/mati dan cuba ikut peranti (mengikut nama)
@@ -58,6 +59,7 @@
     GS.emit('audio:output');
   };
   A.setOutput = function (id, label) { GS.state.audio.outId = id; GS.state.audio.outLabel = label || ''; GS.save(); A.applyOutput(); };
+  A.setOutVol = function (v) { GS.state.audio.outVol = GS.clamp(v, 0, 1); GS.save(); A.applyOutput(); };
   A.setOutputOn = function (on) { GS.state.audio.outOn = !!on; GS.save(); A.applyOutput(); GS.emit('audio:changed'); };
   A.outputs = async function () {
     try { return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audiooutput'); } catch (e) { return []; }
@@ -493,6 +495,7 @@
       ch.level = Math.max(lvl, ch.level * 0.86);
     });
     A.sfxLevel = (A.sfxLevel || 0) * 0.9;
+    if (A.monAn) { A.monAn.getByteTimeDomainData(buf); let pk = 0; for (let i = 0; i < buf.length; i++) pk = Math.max(pk, Math.abs(buf[i] - 128)); A.outLevel = Math.max(pk / 128, (A.outLevel || 0) * 0.86); }
   };
 
   /* ---------- bunyi efek sintetik ---------- */
@@ -594,19 +597,8 @@
               GS.h('button', { class: 'btn tiny test', id: 'btnMusicTest' + ch.id, title: GS.t('Mainkan beberapa saat untuk menguji bunyi'), onClick: () => A.musicTest(ch.id) }, GS.t('Uji bunyi')),
               GS.h('button', { class: 'btn tiny', id: 'btnMusicLink' + ch.id, onClick: () => A.musicAddLink(ch.id) }, '+ ' + GS.t('Pelayar / link')))
           : GS.h('div', { class: 'strip-note' }, 'Skrin/Tab'));
-      // pemegang saiz: seret di tepi kanan untuk melaraskan lebar bahagian ini
-      if (ch.w) { strip.style.flex = '0 0 ' + ch.w + 'px'; strip.style.width = ch.w + 'px'; }
-      strip.style.position = 'relative';
-      const grip = GS.h('div', { class: 'strip-grip', title: GS.t('Seret untuk laras saiz') });
-      grip.addEventListener('pointerdown', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const x0 = e.clientX, w0 = strip.getBoundingClientRect().width;
-        const mv = (m) => { const nw = GS.clamp(Math.round(w0 + m.clientX - x0), 110, 640); ch.w = nw; strip.style.flex = '0 0 ' + nw + 'px'; strip.style.width = nw + 'px'; };
-        const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); persist(); };
-        document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
-      });
-      grip.addEventListener('dblclick', () => { ch.w = 0; persist(); A.renderMixer(); });
-      strip.append(grip);
+      // semua kotak sama lebar (lebar tersuai lama dibuang)
+      if (ch.w) ch.w = 0;
       root.append(strip);
     });
     root.append(A.outputStrip());
@@ -635,20 +627,32 @@
 
   /** Kad Output: pilih pembesar suara streamer, hidup/mati, dan uji bunyi. */
   A.outputStrip = function () {
-    const on = outOn();
-    const sel = GS.h('select', { class: 'out-sel', 'aria-label': GS.t('Pembesar suara output'), onChange: (e) => { const o = e.target.selectedOptions[0]; A.setOutput(e.target.value, o ? o.textContent : ''); } },
-      GS.h('option', { value: '' }, GS.t('Lalai sistem')));
-    A.outputs().then((ds) => {
-      ds.forEach((d, i) => { if (d.deviceId === 'default') return; sel.append(GS.h('option', { value: d.deviceId, selected: d.deviceId === GS.state.audio.outId }, (d.label || GS.t('Pembesar suara {0}', i + 1)).replace(/^Default - /, ''))); });
-      if (!GS.state.audio.outId) sel.value = '';
-    });
-    return GS.h('div', { class: 'strip out-strip' + (on ? ' picked' : ' muted') },
-      GS.h('div', { class: 'strip-head' }, GS.h('span', { class: 'strip-name' }, GS.t('Output'))),
-      GS.h('div', { class: 'strip-note' }, GS.t('Pembesar suara anda (bukan penonton)')),
-      sel,
-      GS.h('div', { class: 'music-ctl' },
-        GS.h('button', { class: 'btn tiny' + (on ? ' on' : ''), id: 'btnOutOn', onClick: () => A.setOutputOn(!on) }, on ? GS.t('Suis hidup') : GS.t('Suis mati')),
-        GS.h('button', { class: 'btn tiny test', id: 'btnOutTest', onClick: () => A.testTone() }, GS.t('Uji bunyi'))));
+    const on = outOn(), vol = GS.state.audio.outVol == null ? 1 : GS.state.audio.outVol;
+    const name = (GS.state.audio.outId ? GS.state.audio.outLabel : '') || GS.t('Lalai sistem');
+    const meter = GS.h('div', { class: 'meter' }, GS.h('i', { dataset: { meter: '__out' } }));
+    return GS.h('div', { class: 'strip out-strip picked' + (on ? '' : ' muted') },
+      GS.h('div', { class: 'strip-head' },
+        GS.h('span', { class: 'strip-name' }, GS.t('Output')),
+        GS.h('button', { type: 'button', class: 'mic-sw ' + (on ? 'on' : 'off'), id: 'btnOutOn', title: on ? GS.t('Output HIDUP: klik untuk matikan') : GS.t('Output MATI: klik untuk hidupkan'), onClick: () => A.setOutputOn(!on) }, on ? GS.t('Suis hidup') : GS.t('Suis mati'))),
+      GS.h('div', { class: 'strip-dev', title: name }, GS.h('i', null), GS.h('span', null, name), GS.h('b', null, GS.t('DIPILIH'))),
+      GS.h('div', { class: 'strip-body' },
+        meter,
+        GS.h('input', { type: 'range', min: 0, max: 100, value: Math.round(vol * 100), class: 'fader', 'aria-label': GS.t('Kelantangan output'), onInput: (e) => A.setOutVol(e.target.value / 100) }),
+        GS.h('button', { class: 'icon-btn' + (on ? '' : ' on'), title: on ? GS.t('Bisu output') : GS.t('Nyahbisu output'), onClick: () => A.setOutputOn(!on), html: GS.icon(on ? 'volume' : 'mute', 16) })),
+      GS.h('button', { class: 'btn tiny', id: 'btnOutPick', onClick: () => A.pickOutput() }, GS.t('Tukar output')),
+      GS.h('button', { class: 'btn tiny test', id: 'btnOutTest', onClick: () => A.testTone() }, GS.t('Uji bunyi')));
+  };
+  /** Senarai output (pembesar suara / fon kepala / peranti): yang digunakan ditanda titik kuning. */
+  A.pickOutput = async function () {
+    const devs = (await A.outputs()).filter((d) => d.deviceId !== 'default' && d.deviceId !== 'communications');
+    const cur = GS.state.audio.outId || '';
+    const items = [{ id: '', label: GS.t('Lalai sistem') }].concat(devs.map((d, i) => ({ id: d.deviceId, label: (d.label || GS.t('Pembesar suara {0}', i + 1)).replace(/^Default - /, '') })));
+    const list = GS.h('div', { class: 'device-list' }, items.map((d) => {
+      const sel = d.id === cur;
+      return GS.h('button', { class: 'device' + (sel ? ' sel' : ''), 'data-out': d.id, onClick: () => { m.close(); A.setOutput(d.id, d.id ? d.label : ''); A.renderMixer(); } },
+        GS.h('span', { html: GS.icon('volume', 16) }), GS.h('span', { class: 'dev-name' }, d.label), sel ? GS.h('span', { class: 'dev-sel' }, GS.h('i', null), GS.t('DIPILIH')) : null);
+    }));
+    const m = GS.modal({ title: GS.t('Pilih output audio'), body: list });
   };
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (GS.$('#mixer')) A.renderMixer(); });
 
@@ -662,9 +666,12 @@
     }
     const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
     if (!devs.length) { GS.toast('Tiada peranti audio dijumpai.', 'warn'); return; }
-    const list = GS.h('div', { class: 'device-list' }, devs.map((d, i) =>
-      GS.h('button', { class: 'device', onClick: async () => { m.close(); await A.connectDevice(id, d.deviceId); } },
-        GS.h('span', { html: GS.icon('mic', 16) }), GS.h('span', null, d.label || GS.t('Peranti audio {0}', i + 1)))));
+    const chNow = A.channels.find((c) => c.id === id);
+    const list = GS.h('div', { class: 'device-list' }, devs.map((d, i) => {
+      const sel = !!(chNow && chNow.stream && chNow.deviceId && chNow.deviceId === d.deviceId);
+      return GS.h('button', { class: 'device' + (sel ? ' sel' : ''), 'data-dev': d.deviceId, onClick: async () => { m.close(); await A.connectDevice(id, d.deviceId); } },
+        GS.h('span', { html: GS.icon('mic', 16) }), GS.h('span', { class: 'dev-name' }, d.label || GS.t('Peranti audio {0}', i + 1)), sel ? GS.h('span', { class: 'dev-sel' }, GS.h('i', null), GS.t('DIPILIH')) : null);
+    }));
     const m = GS.modal({ title: 'Pilih input audio', body: list });
   };
 
@@ -676,6 +683,7 @@
     if (now - last < 33) return;
     last = now;
     A.readLevels();
+    { const eo = GS.$('[data-meter="__out"]'); if (eo) eo.style.transform = 'scaleX(' + GS.clamp((A.outLevel || 0) * 1.6, 0, 1).toFixed(3) + ')'; }
     A.channels.forEach((ch) => {
       const el = GS.$('[data-meter="' + ch.id + '"]');
       if (el) el.style.transform = 'scaleX(' + GS.clamp(ch.level * 1.6, 0, 1).toFixed(3) + ')';

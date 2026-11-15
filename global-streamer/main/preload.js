@@ -5,6 +5,10 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('gsNative', {
   isNative: true,
   pathOf: (file) => { try { return webUtils.getPathForFile(file) || ''; } catch (e) { return ''; } },
+  state: {
+    load: () => { try { return ipcRenderer.sendSync('state:load') || ''; } catch (e) { return ''; } },
+    save: (json) => { try { return !!ipcRenderer.sendSync('state:save', json); } catch (e) { return false; } },
+  },
   vault: {
     get: (id) => ipcRenderer.invoke('vault:get', id),
     set: (id, value) => ipcRenderer.invoke('vault:set', id, value),
