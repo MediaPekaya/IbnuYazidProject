@@ -726,3 +726,14 @@ html[data-appmode="formal-white"] .strip-dev span, html[data-appmode="formal-gra
 .strip .strip-dev { max-width: 100%; box-sizing: border-box; overflow: hidden; }
 .mixer .strip, #mixerRow .strip, .dock .strip { flex-basis: 190px; width: 190px; max-width: 190px; }
 .strip .strip-dev b { display: none; }
+.cd-icons { gap: 10px; }
+.btn.cd-ic { width: 44px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.cd-sum { font-size: 22px; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+.cd-big { font-size: 22px; text-align: center; font-weight: 800; }
+/* kad mixer selari: kepala, nama peranti, meter, pelaras di baris yang sama; butang bawah sentiasa di dasar */
+.dock-body.mixer .strip { justify-content: flex-start; }
+.dock-body.mixer .strip > :last-child:not(.strip-head):not(.strip-grip) { margin-top: auto; }
+.strip-actions { display: flex; gap: 6px; margin-top: auto; }
+.strip-actions .btn { flex: 1 1 0; min-width: 0; padding-left: 4px; padding-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.strip-head { min-height: 24px; }
+.out-row { display: flex; align-items: center; gap: 8px; }

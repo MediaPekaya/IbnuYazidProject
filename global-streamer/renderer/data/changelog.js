@@ -2,6 +2,9 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Kira Detik: bila ditambah pada Sumber, popup tetapan masa keluar (jam, minit, saat; bukan hanya 10 minit). Tekan Simpan dan kira detik terus berubah. Butang Edit masa tersedia pada Sifat dan kotak PROGRAM.',
+      'Kira Detik: butang Mula/Sambung, Jeda dan Set semula kini ikon vektor (bukan tulisan).',
+      'Audio Mixer: kad Output disusun selari dengan kad Mikrofon (kepala, nama peranti, meter, pelaras, speaker dan butang bawah di baris yang sama). Butang uji bunyi menjadi ikon kecil di sebelah speaker.',
       'Audio Mixer: nama peranti yang dipilih (input dan output) kini ditandakan dengan kotak kuning dan penanda DIPILIH dalam senarai Pilih input / Pilih output. Kad Output sama bentuk dengan kad Mikrofon: nama kuning, meter, pelaras kelantangan, butang speaker, Tukar output dan Uji bunyi.',
       'Semua kotak Audio Mixer kini sama lebar; nama peranti yang panjang dipotong dengan tanda ... supaya kotak Mikrofon tidak panjang.',
       'Simpan automatik diperkuat: scene, template, sumber dan tetapan disimpan juga ke fail dalam folder data app pengguna sendiri, dengan salinan sandaran. Selepas kemas kini, tutup paksa atau buka semula, susunan terakhir kekal dan tidak kembali ke asal.',
@@ -117,6 +120,9 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Countdown: when added to Sources, a time setup popup opens (hours, minutes, seconds; not just 10 minutes). Press Save and the countdown changes right away. An Edit time button is in Properties and the PROGRAM box.',
+      'Countdown: the Start/Resume, Pause and Reset buttons are now vector icons (not text).',
+      'Audio Mixer: the Output card is aligned with the Microphone card (header, device name, meter, fader, speaker and bottom button on the same rows). The test sound button is a small icon beside the speaker.',
       'Audio Mixer: the chosen device (input and output) is now marked with a yellow box and a SELECTED tag in the Choose input / Choose output lists. The Output card matches the Microphone card: yellow name, meter, volume fader, speaker button, Change output and Test sound.',
       'All Audio Mixer cards are now the same width; long device names are cut with ... so the Microphone card is no longer long.',
       'Auto-save strengthened: scenes, templates, sources and settings are also saved to a file in each user\'s own app data folder, with a backup copy. After an update, force close or reopen, your last layout stays and does not revert.',

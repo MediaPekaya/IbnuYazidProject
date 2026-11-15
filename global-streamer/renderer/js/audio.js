@@ -638,9 +638,10 @@
       GS.h('div', { class: 'strip-body' },
         meter,
         GS.h('input', { type: 'range', min: 0, max: 100, value: Math.round(vol * 100), class: 'fader', 'aria-label': GS.t('Kelantangan output'), onInput: (e) => A.setOutVol(e.target.value / 100) }),
-        GS.h('button', { class: 'icon-btn' + (on ? '' : ' on'), title: on ? GS.t('Bisu output') : GS.t('Nyahbisu output'), onClick: () => A.setOutputOn(!on), html: GS.icon(on ? 'volume' : 'mute', 16) })),
-      GS.h('button', { class: 'btn tiny', id: 'btnOutPick', onClick: () => A.pickOutput() }, GS.t('Tukar output')),
-      GS.h('button', { class: 'btn tiny test', id: 'btnOutTest', onClick: () => A.testTone() }, GS.t('Uji bunyi')));
+        GS.h('div', { class: 'out-row' },
+        GS.h('button', { class: 'icon-btn' + (on ? '' : ' on'), title: on ? GS.t('Bisu output') : GS.t('Nyahbisu output'), onClick: () => A.setOutputOn(!on), html: GS.icon(on ? 'volume' : 'mute', 16) }),
+        GS.h('button', { class: 'icon-btn', id: 'btnOutTest', title: GS.t('Uji bunyi'), 'aria-label': GS.t('Uji bunyi'), onClick: () => A.testTone(), html: GS.icon('play', 14) }))),
+      GS.h('button', { class: 'btn tiny', id: 'btnOutPick', onClick: () => A.pickOutput() }, GS.t('Tukar output')));
   };
   /** Senarai output (pembesar suara / fon kepala / peranti): yang digunakan ditanda titik kuning. */
   A.pickOutput = async function () {

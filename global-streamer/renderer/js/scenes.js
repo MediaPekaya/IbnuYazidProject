@@ -506,7 +506,9 @@
       const src = mk('widget', d[0], 0, 0, GS.design.w, GS.design.h, { widget: 'bgfx', style: 'fire' });
       sc.sources.unshift(src); selectedId = src.id; changed('sources:changed'); GS.emit('scenes:changed'); return;
     }
-    addSource(mk('widget', d[0], 120, 120, d[1], d[2], { widget: type, label: type === 'frame' ? '' : undefined }));
+    const added = mk('widget', d[0], 120, 120, d[1], d[2], { widget: type, label: type === 'frame' ? '' : undefined });
+    addSource(added);
+    if (type === 'countdown') setTimeout(() => S.cdSetup(added), 120);
   };
 
   S.removeSource = function (id) {
@@ -764,6 +766,39 @@
   }
 
 
+  /* butang ikon vektor untuk kira detik: mula / sambung, jeda, set semula */
+  function cdIcon(name, title, onClick, cls, id) {
+    const b = h('button', { type: 'button', class: 'btn cd-ic ' + (cls || ''), title: GS.t(title), 'aria-label': GS.t(title), id: id || null, onClick });
+    b.innerHTML = GS.icon(name, 20);
+    return b;
+  }
+  function cdButtons(p, after, idp) {
+    const CD = GS.countdown;
+    const startBtn = cdIcon('play', CD.remaining(p) > 0 && p.pausedMs != null ? 'Sambung' : 'Mula', () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); after(); }, 'primary', idp + 'Start');
+    return h('div', { class: 'btn-row cd-icons' }, startBtn,
+      cdIcon('pause', 'Jeda', () => { CD.pause(p); GS.save(); after(); }, '', idp + 'Pause'),
+      cdIcon('reset', 'Set semula', () => { CD.reset(p); GS.save(); after(); }, 'ghost', idp + 'Reset'));
+  }
+  /* popup tetapan masa kira detik: tulis jam/minit/saat, tekan Simpan dan terus berubah */
+  S.cdSetup = function (src) {
+    if (!src || !src.props) return;
+    const p = src.props, CD = GS.countdown;
+    const mk2 = (v, max, label) => { const i = h('input', { type: 'number', min: 0, max, value: v || 0, class: 'cd-in cd-big', 'data-cd': label }); return [i, h('label', { class: 'field' }, h('span', null, GS.t(label)), i)]; };
+    const [ih, fh] = mk2(p.hours, 99, 'Jam'), [im, fm] = mk2(p.minutes, 999, 'Minit'), [is, fs2] = mk2(p.seconds, 59, 'Saat');
+    let m;
+    const save = h('button', { type: 'button', class: 'btn primary', id: 'btnCdSave', onClick: () => {
+      p.hours = GS.clamp(Math.floor(Number(ih.value) || 0), 0, 99); p.minutes = GS.clamp(Math.floor(Number(im.value) || 0), 0, 999); p.seconds = GS.clamp(Math.floor(Number(is.value) || 0), 0, 59);
+      CD.reset(p); GS.save(); m.close(); changed('props:changed'); renderProps();
+      GS.toast(GS.t('Masa kira detik disimpan.'), 'ok');
+    } }, GS.t('Simpan'));
+    m = GS.modal({
+      title: GS.t('Tetapkan masa kira detik'),
+      body: h('div', null, h('p', { class: 'muted note' }, GS.t('Tulis masa yang anda mahu (bukan hanya 10 minit). Tekan Simpan dan kira detik terus berubah.')), h('div', { class: 'grid3' }, fh, fm, fs2)),
+      footer: h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn ghost', onClick: () => m.close() }, GS.t('Batal')), save),
+    });
+    setTimeout(() => { try { im.focus(); im.select(); } catch (e) { /* abaikan */ } }, 80);
+  };
+
   /* kotak PROGRAM: mulakan kira detik yang sedang ditayangkan kepada penonton (Studio) */
   function programCountdownBox() {
     if (st().mode !== 'studio') return null;
@@ -776,10 +811,8 @@
       const upd = () => { const ms = CD.remaining(p), pt = CD.parts(ms); state.textContent = String(pt.h).padStart(2, '0') + ':' + String(pt.m).padStart(2, '0') + ':' + String(pt.s).padStart(2, '0') + (CD.running(p) ? ' ▶' : ''); };
       upd(); const iv = setInterval(() => { if (!state.isConnected) { clearInterval(iv); return; } upd(); }, 250);
       box.append(h('div', { class: 'prog-cd-row' }, h('b', null, (src.name || 'Kira Detik') + (cds.length > 1 ? ' ' + (i + 1) : '')), state),
-        h('div', { class: 'btn-row' },
-          h('button', { class: 'btn primary', id: 'btnProgCdStart' + i, onClick: () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); upd(); } }, 'Mula sekarang'),
-          h('button', { class: 'btn', onClick: () => { CD.pause(p); GS.save(); upd(); } }, 'Jeda'),
-          h('button', { class: 'btn ghost', onClick: () => { CD.reset(p); GS.save(); upd(); } }, 'Set semula')));
+        cdButtons(p, upd, 'btnProgCd' + i + '_'),
+        h('div', { class: 'btn-row' }, h('button', { class: 'btn ghost', onClick: () => S.cdSetup(src) }, GS.t('Edit masa'))));
     });
     return box;
   }
@@ -891,16 +924,13 @@
       }
       if (w === 'countdown') {
         const p = s.props, CD = GS.countdown;
-        const num = (key, label, max) => field(label, h('input', { type: 'number', min: 0, max, value: p[key] || 0, class: 'cd-in', 'data-k': 'cd-' + key, onChange: (e) => { p[key] = GS.clamp(Number(e.target.value) || 0, 0, max); if (!CD.running(p)) { p.pausedMs = null; p.endAt = 0; } GS.save(); } }));
-        root.append(h('div', { class: 'grid3' }, num('hours', 'Jam', 99), num('minutes', 'Minit', 59), num('seconds', 'Saat', 59)));
+        const two = (n) => String(n || 0).padStart(2, '0');
+        root.append(field('Masa kira detik', h('div', { class: 'btn-row' }, h('b', { class: 'cd-sum', id: 'cdSum' }, two(p.hours) + ':' + two(p.minutes) + ':' + two(p.seconds)), h('button', { class: 'btn primary', id: 'btnCdEdit', onClick: () => S.cdSetup(s) }, GS.t('Edit masa')))));
         root.append(h('div', { class: 'grid2' },
           field('Gaya nombor', h('select', { onChange: (e) => { p.numStyle = e.target.value; GS.save(); } }, CD.styles.map(([v, l]) => h('option', { value: v, selected: (p.numStyle || 'box') === v }, GS.t(l))))),
           h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!p.noPanel, onChange: (e) => { p.noPanel = e.target.checked; GS.save(); } }), h('span', null, 'Tanpa kotak latar'))));
         if (st().mode !== 'studio') {
-          root.append(h('div', { class: 'btn-row' },
-            h('button', { class: 'btn primary', id: 'btnCdStart', onClick: () => { if (!CD.start(p)) GS.toast(GS.t('Tetapkan jam, minit atau saat dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Mula'),
-            h('button', { class: 'btn', id: 'btnCdPause', onClick: () => { CD.pause(p); GS.save(); renderProps(); } }, 'Jeda'),
-            h('button', { class: 'btn ghost', id: 'btnCdReset', onClick: () => { CD.reset(p); GS.save(); renderProps(); } }, 'Set semula')));
+          root.append(cdButtons(p, renderProps, 'btnCd'));
         } else root.append(h('p', { class: 'muted note' }, 'Tetapkan masa di sini. Kira detik dimulakan dari kotak PROGRAM di bawah selepas scene ini berada di Program.'));
         const clock = h('input', { type: 'time', id: 'cdClock', class: 'cd-in' });
         root.append(field('Kira ke jam tertentu (cth 21:00)', h('div', { class: 'btn-row' }, clock, h('button', { class: 'btn', id: 'btnCdClock', onClick: () => { if (!CD.toClock(p, clock.value)) GS.toast(GS.t('Pilih jam dahulu.'), 'warn'); GS.save(); renderProps(); } }, 'Kira ke jam ini'))));
