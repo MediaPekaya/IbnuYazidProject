@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Mod TikTok (menegak): ruang Audio Mixer kini lebih tinggi secara lalai dan kad disusun kemas (bersambung ke baris baharu, tidak terpotong). Seret pemegang kecil di atas Audio Mixer ke atas atau bawah untuk besarkan atau kecilkan ruang; klik dua kali untuk saiz asal.',
       'Kira Detik: masa yang telah diedit dan disimpan kini kekal pada semua scene, template dan Peralihan (tidak kembali ke masa asal). Kira detik baharu atau template yang belum diedit tetap bermula pada 10 minit.',
       'Tab jenis template (Gaming, Formal, Sebentar Lagi, Pembentangan): bug penanda biru tersasar dibaiki. Penanda kini sentiasa tepat di bawah tab aktif dan dikira semula bila saiz berubah. Apabila app dibuka, tab sentiasa bermula pada Gaming.',
       'Audio Mixer: kad Output dan semua kad (mikrofon, lagu, input) boleh dilaraskan lebarnya dengan menyeret tepi kanan; klik dua kali untuk kembali ke saiz asal. Saiz diingat.',
@@ -123,6 +124,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'TikTok mode (portrait): the Audio Mixer area is taller by default and the cards are arranged neatly (wrapping to new rows, not cut off). Drag the small handle above the Audio Mixer up or down to make the area bigger or smaller; double-click resets it.',
       'Countdown: a time you edited and saved now stays across all scenes, templates and Transition (it no longer goes back to the original time). A new countdown or an unedited template still starts at 10 minutes.',
       'Template type tabs (Gaming, Formal, Countdown, Presentation): fixed the blue indicator sitting in the wrong place. It now always sits under the active tab and is recalculated when the size changes. When the app opens, the tabs always start on Gaming.',
       'Audio Mixer: the Output card and every card (microphone, music, inputs) can be resized by dragging the right edge; double-click resets the size. The size is remembered.',

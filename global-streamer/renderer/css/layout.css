@@ -79,7 +79,7 @@ body.ready #app { opacity: 1; transform: none; }
 #dockLeft { display: contents; }
 body.portrait #app {
   grid-template-columns: var(--left-w, 300px) minmax(0, 1fr) var(--right-w, clamp(300px, 23vw, 360px));
-  grid-template-rows: 62px minmax(0, 1fr) var(--dock-h, 176px);
+  grid-template-rows: 62px minmax(0, 1fr) var(--dock-h, clamp(280px, 36vh, 380px));
   grid-template-areas: 'top top top' 'left stage right' 'left mixer tpl';
 }
 body.portrait #topbar { grid-area: top; }
@@ -235,3 +235,9 @@ html.win-open .gutter, html.win-restore .gutter, html.win-closing .gutter, html.
 #dockTemplates .tpl-cats { flex: 1 1 100%; margin: 0; grid-template-columns: 1fr 1fr 1.6fr 1.7fr; }
 #dockTemplates #tplTabs { flex: 1 1 100%; display: flex; }
 #dockTemplates #tplTabs button { flex: 1; }
+/* pemegang tarik untuk besar/kecilkan ruang mixer sentiasa kelihatan */
+.gutter.h::after { content: ''; position: absolute; left: 50%; top: 50%; width: 46px; height: 4px; margin: -2px 0 0 -23px; border-radius: 4px; background: rgba(150, 190, 255, 0.45); transition: background 0.15s; pointer-events: none; }
+.gutter.h:hover::after, .gutter.h.drag::after { background: #fff; }
+/* mod TikTok (menegak): kad mixer disusun kemas, bersambung ke baris baharu dan tidak terpotong */
+body.portrait .dock-body.mixer { flex-wrap: wrap; align-content: flex-start; overflow-x: hidden; overflow-y: auto; }
+body.portrait .dock-body.mixer .strip { min-height: 150px; }
