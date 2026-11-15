@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Global Streamer Admin</title>
 <meta name="theme-color" content="#0b1020">
-<link rel="manifest" href="/admin/manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="../assets/favicon-32.png">
 <link rel="apple-touch-icon" href="../assets/logo-192.png">
 <style>
@@ -221,7 +221,7 @@
   $('install').onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; show('install', false); };
   window.addEventListener('appinstalled', () => show('install', false));
   if (DEMO) { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;padding:8px 14px;background:#ffc928;color:#1b1200;font-weight:800;text-align:center;font-size:13px;z-index:9'; d.textContent = 'MOD DEMO: data contoh dalam pelayar sahaja. Panel sebenar disambung ke Firebase.'; document.body.append(d); }
-  else if ('serviceWorker' in navigator) navigator.serviceWorker.register('/admin/sw.js').catch(() => {});
+  else if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 </script>
 </body>
 </html>
