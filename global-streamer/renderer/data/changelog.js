@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Kotak log masuk Suara & Bot direka semula: kad kemas dengan logo, emel lalai dan ikon mata untuk kata laluan.',
       'Ctrl + Shift + A tidak lagi memilih semua sumber secara tidak sengaja. Pilih semua kekal Ctrl + A.',
       'Tajuk panel Suara & Bot AI ditukar kepada "Setup AI brain and voice (Claude + ElevenLabs)" (tanpa nama bot).',
       'Suara & Bot AI kini hanya dibuka untuk akaun pemilik yang disahkan (log masuk pemilik tersembunyi). Akaun lain menunggu arahan pemilik. Tiada kunci API disertakan dalam app: setiap pengguna memasukkan kunci sendiri.',
@@ -111,6 +112,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'The Voice & Bot sign-in box was redesigned: a neat card with the logo, a default email and an eye icon for the password.',
       'Ctrl + Shift + A no longer selects all sources by accident. Select all stays Ctrl + A.',
       'The Voice & AI Bot panel title was changed to "Setup AI brain and voice (Claude + ElevenLabs)" (without the bot name).',
       'Voice & AI Bot is now open only to the verified owner account (hidden owner sign-in). Other accounts wait for the owner\'s instruction. No API key is included in the app: every user enters their own key.',

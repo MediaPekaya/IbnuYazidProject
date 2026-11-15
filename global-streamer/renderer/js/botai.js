@@ -82,29 +82,38 @@
     if (B.dlg && B.dlg.card && B.dlg.card.isConnected) return;
     const msg = h('div', { class: 'ba-out', id: 'owMsg' });
     const say = (t, cls) => { msg.className = 'ba-out ' + (cls || ''); msg.textContent = t; };
-    const email = h('input', { type: 'email', id: 'owEmail', autocomplete: 'email', placeholder: 'Emel' });
+    const email = h('input', { type: 'email', id: 'owEmail', autocomplete: 'email', placeholder: GS.t('Emel'), 'aria-label': GS.t('Emel') });
     const pass = h('input', { type: 'password', id: 'owPass', autocomplete: 'current-password', placeholder: GS.t('Kata laluan') });
     const run = async (fn) => {
       try { const x = await loadSdk(); return await fn(x); }
       catch (e) { say(e && e.code === 'auth/operation-not-allowed' ? GS.t('Log masuk emel belum dihidupkan di Firebase Console > Authentication > Sign-in method.') : e && (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') ? GS.t('Emel atau kata laluan salah (atau akaun belum didaftar).') : GS.t('Ralat: {0}', (e && (e.code || e.message)) || '?'), 'bad'); return null; }
     };
-    const btn = (id, label, cls, fn) => h('button', { type: 'button', class: 'btn ' + (cls || ''), id, onClick: fn }, label);
     const cur = sdk && sdk.inst.currentUser;
-    const body = h('div', { class: 'ba-panel' },
-      h('p', { class: 'muted note' }, GS.t('Suara & Bot AI dikawal oleh pemilik. Log masuk dengan akaun admin atau akaun yang dibenarkan.')),
-      cur ? h('p', { class: 'note' }, GS.t('Log masuk sebagai {0}', cur.email || '')) : null,
-      h('div', { class: 'grid2' }, email, pass),
-      h('div', { class: 'btn-row' },
-        btn('owLogin', GS.t('Log masuk'), 'primary', async () => {
-          const u = await run(async (x) => (await x.auth.signInWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user);
-          if (!u) return;
-          B.user = u; await B.fetchRemote();
-          say(V().comingSoon ? GS.t('Akaun ini tiada akses. Suara & Bot masih menunggu arahan pemilik.') : GS.t('Akaun disahkan. Suara & Bot dibuka.'), V().comingSoon ? 'bad' : 'ok');
-        }),
-        btn('owReset', GS.t('Lupa kata laluan'), 'ghost', async () => { if (!email.value.trim()) { say(GS.t('Masukkan emel dahulu.'), 'bad'); return; } const ok = await run(async (x) => { await x.auth.sendPasswordResetEmail(x.inst, email.value.trim()); return true; }); if (ok) say(GS.t('Emel tetapan semula kata laluan dihantar.'), 'ok'); }),
-        btn('owOut', GS.t('Log keluar'), 'ghost', async () => { await run(async (x) => { await x.auth.signOut(x.inst); return true; }); B.user = null; await applyAccess(); say(GS.t('Dilog keluar.'), 'ok'); })),
+    email.value = (cur && cur.email) || 'izzulmedia01@gmail.com';
+    const EYE_ON = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const EYE_OFF = '<svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+    const eye = h('button', { type: 'button', class: 'ow-eye', id: 'owEye', 'aria-label': GS.t('Papar kata laluan'), title: GS.t('Papar kata laluan'), html: EYE_ON, onClick: () => { const on = pass.type === 'password'; pass.type = on ? 'text' : 'password'; eye.innerHTML = on ? EYE_OFF : EYE_ON; pass.focus(); } });
+    const doLogin = async () => {
+      say(GS.t('Log masuk…'));
+      const u = await run(async (x) => (await x.auth.signInWithEmailAndPassword(x.inst, email.value.trim(), pass.value)).user);
+      if (!u) return;
+      B.user = u; await B.fetchRemote();
+      say(V().comingSoon ? GS.t('Akaun ini tiada akses. Suara & Bot masih menunggu arahan pemilik.') : GS.t('Akaun disahkan. Suara & Bot dibuka.'), V().comingSoon ? 'bad' : 'ok');
+      if (!V().comingSoon) setTimeout(() => { if (B.dlg && B.dlg.close) B.dlg.close(); }, 900);
+    };
+    pass.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+    const body = h('div', { class: 'ow-card' },
+      h('img', { class: 'ow-logo', src: 'assets/logo-96.png', alt: '', width: 56, height: 56 }),
+      h('b', { class: 'ow-title' }, 'GLOBAL STREAMER'),
+      h('small', { class: 'ow-sub' }, GS.t('Log masuk pemilik atau akaun yang dibenarkan')),
+      cur ? h('div', { class: 'ow-who' }, GS.t('Log masuk sebagai {0}', cur.email || '')) : null,
+      h('div', { class: 'ow-fields' }, email, h('div', { class: 'ow-pw' }, pass, eye)),
+      h('button', { type: 'button', class: 'btn primary ow-go', id: 'owLogin', onClick: doLogin }, GS.t('Log masuk')),
+      h('div', { class: 'ow-links' },
+        h('button', { type: 'button', class: 'ow-link', id: 'owReset', onClick: async () => { if (!email.value.trim()) { say(GS.t('Masukkan emel dahulu.'), 'bad'); return; } const ok = await run(async (x) => { await x.auth.sendPasswordResetEmail(x.inst, email.value.trim()); return true; }); if (ok) say(GS.t('Emel tetapan semula kata laluan dihantar.'), 'ok'); } }, GS.t('Lupa kata laluan')),
+        cur ? h('button', { type: 'button', class: 'ow-link', id: 'owOut', onClick: async () => { await run(async (x) => { await x.auth.signOut(x.inst); return true; }); B.user = null; await applyAccess(); say(GS.t('Dilog keluar.'), 'ok'); } }, GS.t('Log keluar')) : null),
       msg);
-    B.dlg = GS.modal({ title: GS.t('Log masuk'), body, onClose: () => { B.dlg = null; } });
+    B.dlg = GS.modal({ title: ' ', body, onClose: () => { B.dlg = null; } });
     run(async () => true);
   };
   window.addEventListener('keydown', (e) => {
