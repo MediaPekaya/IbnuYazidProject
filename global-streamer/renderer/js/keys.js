@@ -145,7 +145,7 @@
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (mod && key === 'z' && !e.shiftKey) { e.preventDefault(); K.undo(); return; }
     if (mod && (key === 'y' || (key === 'z' && e.shiftKey))) { e.preventDefault(); K.redo(); return; }
-    if (mod && key === 'a' && e.shiftKey && GS.botai && GS.botai.unlocked && GS.botai.unlocked()) return;   // Ctrl+Shift+A = analisis game (botai.js)
+    if (mod && key === 'a' && e.shiftKey) return;   // Ctrl+Shift+A = analisis game (botai.js, hanya jika dibuka); tidak lagi memilih semua sumber. Pilih semua: Ctrl+A sahaja
     if (mod && key === 'a') { e.preventDefault(); K.selectAll(); return; }
     if (mod && key === 'c') { if (String(window.getSelection && window.getSelection()) !== '') return; e.preventDefault(); K.copy(); return; }
     if (mod && key === 'v') { e.preventDefault(); K.paste(); return; }

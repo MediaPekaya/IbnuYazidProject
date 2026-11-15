@@ -2,6 +2,7 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Ctrl + Shift + A tidak lagi memilih semua sumber secara tidak sengaja. Pilih semua kekal Ctrl + A.',
       'Tajuk panel Suara & Bot AI ditukar kepada "Setup AI brain and voice (Claude + ElevenLabs)" (tanpa nama bot).',
       'Suara & Bot AI kini hanya dibuka untuk akaun pemilik yang disahkan (log masuk pemilik tersembunyi). Akaun lain menunggu arahan pemilik. Tiada kunci API disertakan dalam app: setiap pengguna memasukkan kunci sendiri.',
       'Suara & Bot AI (dalam Akan datang): paparan Setup AI baharu: otak Claude (kunci Anthropic) dan suara premium ElevenLabs, dengan Simpan, Semak key, Uji suara, Uji AI, kos penggunaan hari ini dan bulan ini, dan status mic. Soalan dan jawapan manual dibuang.',
@@ -110,6 +111,7 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Ctrl + Shift + A no longer selects all sources by accident. Select all stays Ctrl + A.',
       'The Voice & AI Bot panel title was changed to "Setup AI brain and voice (Claude + ElevenLabs)" (without the bot name).',
       'Voice & AI Bot is now open only to the verified owner account (hidden owner sign-in). Other accounts wait for the owner\'s instruction. No API key is included in the app: every user enters their own key.',
       'Voice & Bot AI (inside Coming soon): a new AI setup panel: Claude brain (Anthropic key) and ElevenLabs premium voice, with Save, Check key, Test voice, Test AI, today and this month usage cost, and mic status. Manual questions and answers were removed.',
