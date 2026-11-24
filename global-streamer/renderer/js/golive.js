@@ -186,7 +186,7 @@
     const mode = modeArg || R.mode();
     R.busy = true;
     try {
-      const wantMic = !(opts && opts.mic === 'off');
+      const wantMic = opts && opts.mic ? opts.mic !== 'off' : !GS.state.settings.recMicOff;
       if (opts && opts.mic && opts.mic !== 'off') R.micId = opts.mic;
       R.micLast = R.micId || (R.mics()[0] && R.mics()[0].id) || '';
       if (!wantMic) R.micId = '';
@@ -270,7 +270,7 @@
     const st = GS.state.settings;
     const pop = h('div', { class: 'popover rec-pop', role: 'menu' });
     // keep=true: menu kekal terbuka selepas klik (pilihan tick); selainnya menu tutup
-    const item = (label, sub, on, run, extra, keep) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : '') + (extra ? ' ' + extra : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { if (keep) { run(); sync(); } else { close(); run(); } } },
+    const item = (label, sub, on, run, extra, keep) => h('button', { type: 'button', class: 'pop-item' + (on ? ' on' : '') + (extra ? ' ' + extra : ''), role: 'menuitemradio', 'aria-checked': on ? 'true' : 'false', onClick: () => { if (keep) { run(); sync(); if (typeof syncMic === 'function') syncMic(); } else { close(); run(); } } },
       h('span', null, h('b', null, GS.t(label)), sub ? h('small', null, GS.t(sub)) : null));
     // semasa merakam: Pause/Resume dan Simpan rakaman terus daripada menu
     if (R.active) {
@@ -289,6 +289,38 @@
       st.recMode = m; GS.save(); render();
       R.begin(m);                                      // paparan pilihan dahulu, kemudian minta akses kepada apa yang mahu dirakam (skrin / tetingkap)
     })));
+    pop.append(h('hr'));
+    // mikrofon peribadi: hidup/mati + anak panah untuk memilih mikrofon yang disambung pada PC / laptop
+    const micName = () => { const c = GS.audio.channels.find((x) => x.id === R.micId); return (c && c.stream && c.deviceLabel) || (c && c.label) || ''; };
+    const micOnNow = () => !st.recMicOff;
+    const micRow = h('div', { class: 'rec-mic-row' });
+    const micItem = item('Rakam dengan mikrofon', 'Suara mikrofon anda masuk ke dalam rakaman. Tekan anak panah untuk memilih mikrofon.', micOnNow(), () => { st.recMicOff = false; GS.save(); }, 'rec-mic-main', true);
+    const micOff = item('Tanpa mikrofon', 'Rakaman tidak membawa suara mikrofon anda.', !micOnNow(), () => { st.recMicOff = true; GS.save(); }, 'rec-mic-off', true);
+    const arrow = h('button', { type: 'button', class: 'rec-mic-arrow', id: 'btnRecMicArrow', title: GS.t('Pilih mikrofon'), 'aria-label': GS.t('Pilih mikrofon'), 'aria-expanded': 'false', html: GS.icon('down', 16) });
+    const micCur = h('div', { class: 'rec-mic-cur' }, '');
+    const micList = h('div', { class: 'rec-mic-list', hidden: true });
+    const fillCur = () => { const n = micName(); micCur.textContent = n ? GS.t('Mikrofon dipilih') + ': ' + n : ''; micCur.style.display = n ? '' : 'none'; };
+    const loadMics = async () => {
+      micList.textContent = '';
+      try { const pr = await navigator.mediaDevices.getUserMedia({ audio: true }); pr.getTracks().forEach((t) => t.stop()); } catch (e) { micList.append(h('div', { class: 'rec-mic-empty' }, GS.t('Kebenaran mikrofon/audio ditolak atau tiada peranti.'))); return; }
+      const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput' && d.deviceId !== 'default' && d.deviceId !== 'communications');
+      if (!devs.length) { micList.append(h('div', { class: 'rec-mic-empty' }, GS.t('Tiada peranti audio dijumpai.'))); return; }
+      const chNow = GS.audio.channels.find((x) => x.id === R.micId);
+      devs.forEach((d, i) => {
+        const sel = !!(chNow && chNow.stream && chNow.deviceId === d.deviceId);
+        micList.append(h('button', { type: 'button', class: 'rec-mic-dev' + (sel ? ' sel' : ''), title: d.label, onClick: async () => {
+          const host = GS.audio.channels.find((x) => x.deviceId === d.deviceId && x.stream) || chNow || GS.audio.channels.find((x) => x.kind === 'input' && x.id !== 'ch_game');
+          if (!host) return;
+          if (host.deviceId !== d.deviceId || !host.stream) await GS.audio.connectDevice(host.id, d.deviceId);
+          R.micId = host.id; st.recMicOff = false; GS.save(); GS.audio.renderMixer(); syncMic(); loadMics();
+        } }, h('i', null), h('span', null, d.label || GS.t('Peranti audio {0}', i + 1)), sel ? h('b', null, GS.t('DIPILIH')) : null));
+      });
+    };
+    arrow.addEventListener('click', (e) => { e.stopPropagation(); const open = micList.hidden; micList.hidden = !open; arrow.setAttribute('aria-expanded', open ? 'true' : 'false'); arrow.classList.toggle('open', open); if (open) loadMics(); });
+    micRow.append(micItem, arrow);
+    pop.append(micRow, micCur, micList, micOff);
+    fillCur();
+    function syncMic() { const o = micOnNow(); micItem.classList.toggle('on', o); micItem.setAttribute('aria-checked', o ? 'true' : 'false'); micOff.classList.toggle('on', !o); micOff.setAttribute('aria-checked', !o ? 'true' : 'false'); fillCur(); }
     pop.append(h('hr'));
     pop.append(item('Rakam bunyi komputer', 'Bunyi daripada aplikasi lain turut masuk ke dalam rakaman. Pakai fon kepala supaya tiada dengung.', !!st.recSystemAudio, () => { st.recSystemAudio = true; GS.save(); }, '', true));
     pop.append(item('Tanpa bunyi komputer', 'Rakaman hanya membawa suara mikrofon dan campuran bunyi dalam app ini.', !st.recSystemAudio, () => { st.recSystemAudio = false; GS.save(); }, '', true));

@@ -743,3 +743,20 @@ html[data-appmode="formal-white"] .strip-dev span, html[data-appmode="formal-gra
 .dock-body.mixer { position: relative; }
 .dock-body.mixer .strip { transition: border-color 0.3s, opacity 0.3s; }
 .dock-body.mixer .strip-head .strip-name { cursor: grab; }
+/* menu REC: mikrofon peribadi + anak panah pilih mikrofon */
+.rec-mic-row { display: flex; align-items: flex-start; gap: 4px; }
+.rec-mic-row .rec-mic-main { flex: 1 1 auto; min-width: 0; }
+.rec-mic-arrow { flex: none; width: 36px; height: 36px; margin-top: 12px; border: 1px solid #d5dbe8; border-radius: 10px; background: #f3f6fc; color: #1b2a4a; display: grid; place-items: center; cursor: pointer; transition: background 0.2s, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+.rec-mic-arrow:hover { background: #e4ecfb; }
+.rec-mic-arrow.open { transform: rotate(180deg); background: #dce8ff; }
+.rec-mic-cur { margin: -2px 12px 6px 38px; font-size: 12px; font-weight: 700; color: #3a4a6b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-mic-list { margin: 2px 8px 8px 38px; display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+.rec-mic-list[hidden] { display: none; }
+.rec-mic-dev { display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid #d5dbe8; background: #fff; color: #000; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.18s; }
+.rec-mic-dev:hover { background: #eef3fd; }
+.rec-mic-dev i { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #9aa8c4; box-sizing: border-box; }
+.rec-mic-dev span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-mic-dev.sel { border-color: #ffc928; background: #fff8dc; }
+.rec-mic-dev.sel i { background: #ffc928; border-color: #ffc928; box-shadow: 0 0 6px #ffc928; }
+.rec-mic-dev b { flex: none; font-size: 9px; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 99px; background: #ffc928; color: #2a1d00; }
+.rec-mic-empty { padding: 8px 10px; font-size: 12px; color: #55627f; }
