@@ -1,6 +1,6 @@
 ---
 name: video-subtitle-style
-description: WAJIB untuk SEMUA video yang user edit/cipta (Hyperframes, Remotion, infografik, ffmpeg, apa-apa). Tetapan tetap gaya subtitle (teks yang user cakap): Poppins SemiBold, biru air cerah, perkataan Inggeris italic, teks Arab Traditional Arabic (tak bold, tak italic).
+description: WAJIB untuk SEMUA video yang user edit/cipta (Hyperframes, Remotion, infografik, ffmpeg, apa-apa). Tetapan tetap gaya subtitle (teks yang user cakap): Poppins SemiBold, biru air cerah, perkataan Inggeris italic, teks Arab Traditional Arabic (tak bold, tak italic), DAN animasi bingkai kaca perak (iOS glass) pada setiap perkataan yang sedang disebut, meluncur lancar ke tepi ke perkataan seterusnya.
 ---
 
 # Gaya subtitle tetap (jangan tukar kecuali user minta)
@@ -36,3 +36,24 @@ Guna komponen `templates/video/remotion/Subtitle.tsx` dan pemalar `subtitle` dal
 `Style: Sub,Poppins SemiBold,64,&H00F8BD38,&H00F8BD38,&H00201B0B,&H64000000,0,0,0,0,100,100,0,0,1,5,1,2,60,60,260,1`
 Perkataan Inggeris: bungkus dengan `{\i1}actually{\i0}`.
 Arab: `Style: Arab,Traditional Arabic,72,&H00F8BD38,&H00F8BD38,&H00201B0B,&H64000000,0,0,0,0,100,100,0,0,1,5,1,2,60,60,260,1` (Bold=0, Italic=0). (Warna ASS ialah BGR: `#38BDF8` = `&H00F8BD38`.)
+
+## Animasi perkataan: bingkai kaca perak (WAJIB, setiap edit)
+Setiap perkataan subtitle dapat **bingkai kaca** tepat pada saat user mula sebut perkataan itu (contoh: "Allah bagi kita nikmat" -> bila sebut *Allah*, bingkai pada **Allah** sahaja; bila sebut *bagi*, bingkai meluncur ke **bagi**).
+
+| Perkara | Tetapan |
+|---|---|
+| Skop | **Satu perkataan, satu bingkai.** Jangan bingkai seluruh baris/semua perkataan serentak |
+| Gerakan | Bingkai **meluncur ke tepi** dari perkataan sebelum ke perkataan semasa (x + lebar berubah serentak), licin macam gerakan iOS |
+| Easing | `expo.out` (GSAP) / spring `damping 20, stiffness 220, mass 0.6` (Remotion); tempoh 0.25-0.38 s, tak lebih dari jarak ke perkataan seterusnya |
+| Masuk baris | Bingkai muncul pada perkataan pertama: fade + scale 0.82 -> 1 (`back.out(1.6)`, 0.3 s) |
+| Rupa kaca (iOS system update) | latar `linear-gradient(135deg, rgba(255,255,255,.30), rgba(220,228,240,.12) 45%, rgba(255,255,255,.06))`; border **perak** `1.5px solid rgba(226,232,240,.90)`; `backdrop-filter: blur(12px) saturate(170%)`; radius 20 px; `box-shadow: inset 0 1.5px 0 rgba(255,255,255,.7), inset 0 -1px 0 rgba(255,255,255,.18), inset 0 0 14px rgba(255,255,255,.10), 0 8px 22px rgba(0,0,0,.32)` |
+| Padding | 16 px kiri/kanan, 8 px atas/bawah dari kotak perkataan |
+| Lapisan | Bingkai di BELAKANG teks (teks kekal biru `#38BDF8` + outline gelap, boleh baca) |
+| Arab | Frasa Arab = satu token, satu bingkai (RTL dikekalkan) |
+| Kelicinan | Render 30 fps minimum; 60 fps (`--fps 60`) bila mahu lebih licin "4K". Kedudukan perkataan mesti tetap (deterministik) |
+
+**Hyperframes:** ukur kotak setiap perkataan sekali dalam Chromium dengan font sebenar (`document.fonts.ready`, simpan `offsetLeft/Top/Width/Height` ke JSON), kemudian tulis nombor tetap ke dalam tween (`tl.to(pill,{x,width,duration,ease:"expo.out"}, masaPerkataan)`). Jangan guna nilai fungsi yang ukur layout semasa render (tak deterministik antara worker). Rujukan: `infografik/video-projects/bahasa-cinta-allah/tools/generate_index.py` + `tools/measure_words.cjs`.
+**Remotion:** `templates/video/remotion/Subtitle.tsx` (prop `glass`, default `true`).
+
+## Peraturan gaya edit: setiap video BERBEZA
+Gaya subtitle di atas kekal sama. Tetapi **gaya edit/infografik setiap video baru mesti lain daripada video sebelumnya** (palet, bentuk kad, jenis transition, susun atur). Semak `STYLE-LOG.md` dalam skill ini dulu, pilih arah baru, dan tambah entri selepas edit.
