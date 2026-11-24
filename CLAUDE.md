@@ -21,3 +21,6 @@ Every NEW repo must get these skills: run `.claude/scripts/sync-skills.sh <new-r
 
 ## Gaya subtitle tetap (semua video)
 Setiap video yang ada suara user bercakap (Hyperframes, Remotion, infografik, ffmpeg, apa-apa): subtitle ucapan = **Poppins SemiBold (600)**, warna **biru air cerah `#38BDF8`**, **perkataan Inggeris (contoh *actually*) dalam italic**, dan **teks Bahasa Arab dalam font Traditional Arabic (regular, tanpa bold/italic, warna sama `#38BDF8`)**. Setiap perkataan yang sedang disebut dapat **bingkai kaca perak (gaya iOS) satu perkataan satu bingkai, meluncur licin ke tepi** ke perkataan seterusnya. Ini hanya untuk subtitle ucapan, bukan font infografik. Gaya edit/infografik pula **mesti berbeza setiap video** (semak `STYLE-LOG.md`). Butiran: skill `video-subtitle-style`, komponen `templates/video/remotion/Subtitle.tsx`.
+
+## Gaya edit tetap: raw video + layer infografik
+Setiap edit video talking-head guna skill `video-raw-infographic-layer`: overlay infografik atas footage (count-up sisi, callout garis ikut objek/muka, kad kaca 30-40%, kinetic keyword) **berselang-seli dengan 2-4 babak infografik skrin penuh** (tiada muka, suara sahaja) yang bertindak balas dengan raw video (zoom+blur masuk/keluar, wipe geometri). Struktur ini kekal; rupa visual mesti lain setiap video (`STYLE-LOG.md`).

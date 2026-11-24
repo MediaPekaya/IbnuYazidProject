@@ -100,3 +100,4 @@ Templat tambahan: `templates/video/` (dokumen skrip/storyboard/senarai semak dan
 | `free-llm-apis` | Pick and configure free LLM API providers. |
 - Anthropic cloud skills: docs, docx, pdf, pptx, xlsx, google-workspace, import-memory, morning, setup-writing-style, skill-creator, session-start-hook.
 - video-subtitle-style: gaya tetap subtitle ucapan (Poppins SemiBold, biru air cerah, Inggeris italic, Arab = Traditional Arabic) + bingkai kaca perak per perkataan (iOS glass, meluncur ke tepi); gaya edit mesti berbeza setiap video (STYLE-LOG.md).
+- video-raw-infographic-layer: gaya edit tetap - raw video ditindih layer infografik (overlay atas footage + babak infografik skrin penuh yang bertindak balas dengan footage); rupa visual lain setiap video.
