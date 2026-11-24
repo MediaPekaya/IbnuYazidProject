@@ -2,6 +2,8 @@
 window.GS_CHANGELOG = {
   current: {
     ms: [
+      'Tangkapan suara mikrofon lebih jelas dan sekata: kawalan auto-volume pelayar (yang menyebabkan suara naik turun) dimatikan, pemampat suara dilembutkan dan tidak terlalu kuat, dan penapis bunyi latar rakaman tidak lagi menyenyapkan sepenuhnya antara perkataan (awal perkataan tidak terpotong).',
+      'Output speaker streamer kini lebih kuat (dua kali ganda) dengan had puncak supaya tidak retak. Tidak perlu lagi menguatkan speaker; pelaras Output dalam Audio Mixer masih boleh dikecilkan.',
       'Menu REC: pilihan baharu Rakam dengan mikrofon / Tanpa mikrofon. Anak panah di sebelahnya memaparkan mikrofon yang disambung pada PC atau laptop; pilihan ditandakan kuning DIPILIH, dan mikrofon itu turut menjadi mikrofon dalam Audio Mixer.',
       'Audio Mixer: bila kad dialih, kad terangkat dan mengikut tetikus dengan lembut, kad lain beralih licin memberi ruang, dan kad mendarat perlahan ke tempat baharu (gaya iOS). Kad tidak boleh keluar dari kawasan Audio Mixer. Sama di TikTok dan YouTube, mod Normal dan Studio.',
       'Peralihan scene lalai kini iOS lembut (zum dan pudar dengan lengkung perlahan di hujung, 760 ms); pilihan iOS lembut ditambah. Tetapan lama yang masih lalai ditukar sekali.',
@@ -131,6 +133,8 @@ window.GS_CHANGELOG = {
       'Pelbagai jenis fon ditambah untuk template Gaming, Formal dan Sebentar Lagi; fon boleh ditukar dalam Sifat setiap widget.',
     ],
     en: [
+      'Microphone capture is clearer and more even: the browser auto-volume control (which made the voice go up and down) is off, the voice compressor is gentler and no longer too loud, and the recording background-noise filter no longer silences completely between words (word starts are not cut).',
+      'The streamer speaker output is now louder (double) with a peak limiter so it does not crackle. You no longer need to turn the speaker up; the Output fader in the Audio Mixer can still be lowered.',
       'REC menu: new options Record with microphone / Without microphone. The arrow beside it lists the microphones connected to the PC or laptop; the chosen one is marked yellow SELECTED and also becomes the microphone in the Audio Mixer.',
       'Audio Mixer: when you move a card it lifts and follows the mouse smoothly, the other cards glide to make room, and the card lands softly in its new place (iOS style). A card cannot leave the Audio Mixer area. Same on TikTok and YouTube, in Normal and Studio mode.',
       'The default scene transition is now iOS smooth (zoom and fade with a slow ending curve, 760 ms); an iOS smooth option was added. Old settings that were still on the default are switched once.',

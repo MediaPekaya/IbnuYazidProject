@@ -32,7 +32,9 @@
     // bunyi efek (beep): streamer sahaja yang dengar; masuk siaran/rakaman hanya jika dihidupkan (supaya suara kekal jelas)
     // output streamer (monitor): semua yang streamer dengar melalui satu bus ini; pilih pembesar suara dan hidup/matikan dalam Audio Mixer
     A.monBus = A.ctx.createGain();
-    A.monBus.connect(A.ctx.destination);
+    A.monLim = A.ctx.createDynamicsCompressor();   // had puncak output: bunyi kuat tanpa retak
+    A.monLim.threshold.value = -2; A.monLim.knee.value = 0; A.monLim.ratio.value = 20; A.monLim.attack.value = 0.002; A.monLim.release.value = 0.1;
+    A.monBus.connect(A.monLim); A.monLim.connect(A.ctx.destination);
     A.monAn = A.ctx.createAnalyser(); A.monAn.fftSize = 512; A.monBus.connect(A.monAn);   // meter output
     A.applyOutput();
     A.sfxBus = A.ctx.createGain();
@@ -50,8 +52,9 @@
 
   /** Output streamer: pilih pembesar suara (speaker / fon kepala) dan hidup/matikan. Penonton tidak terjejas; ini hanya untuk streamer mendengar. */
   const outOn = () => GS.state.audio.outOn !== false;
+  A.OUT_BOOST = 2;
   A.applyOutput = function () {
-    if (A.monBus) A.monBus.gain.value = outOn() ? (GS.state.audio.outVol == null ? 1 : GS.state.audio.outVol) : 0;
+    if (A.monBus) A.monBus.gain.value = outOn() ? (GS.state.audio.outVol == null ? 1 : GS.state.audio.outVol) * A.OUT_BOOST : 0;   // penguat output: kuat tanpa perlu naikkan speaker
     const id = GS.state.audio.outId || '';
     try { if (A.ctx && A.ctx.setSinkId) A.ctx.setSinkId(id === 'default' ? '' : id).catch(() => {}); } catch (e) { /* tidak disokong */ }
     // pemain YouTube / pelayar dalam app: ikut hidup/mati dan cuba ikut peranti (mengikut nama)
@@ -366,7 +369,7 @@
       const voice = isVoice(ch);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: voice
-          ? { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }
+          ? { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: false, channelCount: 1 }
           : { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       ch.stream = stream;
@@ -378,8 +381,8 @@
         // penapis frekuensi rendah (dengung/hentakan meja) -> pemampat (suara sekata) -> penguat
         const hp = A.ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 90; hp.Q.value = 0.7;
         const lp = A.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 14000;
-        const comp = A.ctx.createDynamicsCompressor(); comp.threshold.value = -26; comp.knee.value = 18; comp.ratio.value = 3.5; comp.attack.value = 0.004; comp.release.value = 0.2;
-        const up = A.ctx.createGain(); up.gain.value = 1.9;
+        const comp = A.ctx.createDynamicsCompressor(); comp.threshold.value = -28; comp.knee.value = 24; comp.ratio.value = 3; comp.attack.value = 0.006; comp.release.value = 0.35;
+        const up = A.ctx.createGain(); up.gain.value = 1.6;
         ch.node.connect(hp); hp.connect(lp); lp.connect(comp); comp.connect(up); up.connect(ch.gain);
         ch.chain = [hp, lp, comp, up];
       } else {
