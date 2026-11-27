@@ -1,0 +1,140 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700;900&family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold: linear-gradient(135deg,#8a6512 0%,#f9e08b 22%,#d4a537 45%,#fff1b8 60%,#b8871f 80%,#f2cf6a 100%);
+  --panel: rgba(255,251,238,.96);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;background:transparent;overflow:hidden}
+body{position:relative;font-family:Poppins,sans-serif;color:#fff}
+body.preview{background:#555}
+.bgphoto{position:absolute;inset:0;display:none}
+body.preview .bgphoto{display:block}
+
+/* top shade so title reads over camera, fades out before face */
+.topshade{position:absolute;left:0;top:0;width:100%;height:560px;
+  background:linear-gradient(180deg,#f8d94b 0%,#f8d94b 38%,rgba(242,222,109,.96) 62%,rgba(243,238,206,.75) 82%,rgba(243,238,206,0) 100%)}
+
+.border{position:absolute;inset:0}
+
+/* HEADER */
+.header{position:absolute;top:268px;left:0;width:100%;text-align:center}
+.h1{font-family:Cinzel,serif;font-weight:900;font-size:76px;letter-spacing:8px;line-height:1;
+  color:#2a1d05;filter:drop-shadow(0 2px 0 rgba(255,255,255,.5))}
+.row2{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:14px}
+.h2{font-family:Anton,sans-serif;font-size:104px;line-height:1;letter-spacing:3px;color:#b8262b;
+  filter:drop-shadow(0 3px 0 rgba(255,255,255,.45))}
+.price{position:relative;transform:rotate(-7deg);padding:10px 26px 8px;border-radius:18px;
+  background:linear-gradient(160deg,#d63a3a,#a81f24);box-shadow:0 6px 16px rgba(120,20,20,.45), inset 0 0 0 3px #f9e08b}
+.price span{font-family:Poppins;font-style:italic;font-weight:800;font-size:78px;line-height:1;color:#fff;letter-spacing:-1px}
+.price small{position:absolute;top:-30px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font-family:Poppins;font-weight:700;font-size:20px;letter-spacing:3px;color:#7a1a1a}
+
+/* SIDE COLUMNS */
+.col{position:absolute;top:578px;width:262px}
+.col.left{left:40px}
+.col.right{right:40px}
+
+.photo{position:relative;border-radius:22px;padding:5px;background:var(--gold);
+  box-shadow:0 10px 24px rgba(0,0,0,.55);margin-bottom:16px}
+.photo img{display:block;width:100%;border-radius:17px;object-fit:cover}
+.tag{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);white-space:nowrap;
+  background:#c0302e;border:2px solid #f9e08b;border-radius:30px;padding:3px 14px;
+  font-weight:700;font-size:16px;letter-spacing:1.5px;color:#fff}
+
+.gap{border-radius:22px;padding:4px;background:var(--gold);box-shadow:0 10px 24px rgba(0,0,0,.55)}
+.gap .in{background:var(--panel);border-radius:18px;padding:20px 16px 18px;backdrop-filter:blur(2px)}
+.gap h3{font-family:Cinzel,serif;font-weight:900;text-align:center;line-height:1.1;color:#b8262b}
+.gap h3 .a{color:#2a1d05}
+.gap h3 .a{display:block;font-size:22px;letter-spacing:4px}
+.gap h3 .b{display:block;font-size:27px;letter-spacing:1px;white-space:nowrap;margin-top:4px}
+.gap .line{height:2px;margin:12px 10px 12px;background:linear-gradient(90deg,transparent,#e6bd4f,transparent)}
+.gap ul{list-style:none}
+.gap li{display:flex;align-items:flex-start;gap:9px;font-weight:600;color:#2a1d05;font-size:19px;line-height:1.22;margin:0 0 11px}
+.gap li:last-child{margin-bottom:0}
+.gap li i{flex:0 0 22px;height:22px;margin-top:1px;border-radius:50%;background:#c0302e;
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:14px;color:#fff}
+.gap li b{color:#b8262b;font-weight:700}
+
+.cta{margin-top:16px;text-align:center;border-radius:40px;padding:10px 8px;background:linear-gradient(160deg,#d63a3a,#a81f24);border:3px solid #f9e08b;
+  box-shadow:0 8px 18px rgba(0,0,0,.45);color:#fff;font-weight:800;font-size:18px;letter-spacing:.5px;line-height:1.15}
+.cta small{display:block;font-weight:600;font-size:14px;letter-spacing:0}
+
+/* safe-zone guide (preview only) */
+.guide{position:absolute;display:none;border:3px dashed rgba(255,80,80,.9);color:#ff8080;font:700 22px Poppins;
+  align-items:flex-start;justify-content:center;padding-top:8px}
+body.preview.guides .guide{display:flex}
+</style></head>
+<body class="__MODE__">
+<img class="bgphoto" src="__BG__" style="width:100%;height:100%;object-fit:cover">
+<div class="topshade"></div>
+
+<svg class="border" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6512"/><stop offset=".2" stop-color="#f9e08b"/>
+      <stop offset=".4" stop-color="#c9971f"/><stop offset=".55" stop-color="#fff1b8"/>
+      <stop offset=".75" stop-color="#b8871f"/><stop offset="1" stop-color="#f2cf6a"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#000" flood-opacity=".7"/></filter>
+    <g id="corner">
+      <path d="M0 120 V40 Q0 0 40 0 H120" fill="none" stroke="url(#g)" stroke-width="7"/>
+      <path d="M22 150 V52 Q22 22 52 22 H150" fill="none" stroke="url(#g)" stroke-width="2.5"/>
+      <rect x="28" y="28" width="30" height="30" transform="rotate(45 43 43)" fill="url(#g)"/>
+      <circle cx="150" cy="22" r="5" fill="url(#g)"/><circle cx="22" cy="150" r="5" fill="url(#g)"/>
+    </g>
+  </defs>
+  <g filter="url(#sh)">
+    <rect x="16" y="16" width="1048" height="1888" rx="44" fill="none" stroke="url(#g)" stroke-width="7"/>
+    <rect x="30" y="30" width="1020" height="1860" rx="34" fill="none" stroke="url(#g)" stroke-width="2"/>
+    <use href="#corner" transform="translate(16 16)"/>
+    <use href="#corner" transform="translate(1064 16) scale(-1 1)"/>
+    <use href="#corner" transform="translate(16 1904) scale(1 -1)"/>
+    <use href="#corner" transform="translate(1064 1904) scale(-1 -1)"/>
+    <!-- header divider ornament -->
+    <path d="M190 538 H470" stroke="#9c7416" stroke-width="3"/>
+    <path d="M610 538 H890" stroke="#9c7416" stroke-width="3"/>
+    <rect x="525" y="523" width="30" height="30" transform="rotate(45 540 538)" fill="url(#g)"/>
+    <circle cx="492" cy="538" r="6" fill="url(#g)"/><circle cx="588" cy="538" r="6" fill="url(#g)"/>
+  </g>
+</svg>
+
+<div class="header">
+  <div class="h1">SIMPAN EMAS</div>
+  <div class="row2">
+    <div class="h2">SERENDAH</div>
+    <div class="price"><small>MULA DARI</small><span>RM100</span></div>
+  </div>
+</div>
+
+<div class="col left">
+  <div class="photo"><img src="__P2__" style="height:300px"><div class="tag">EMAS 999.9</div></div>
+  <div class="photo" style="margin-top:26px"><img src="__P3__" style="height:250px"><div class="tag">BAR &amp; DINAR</div></div>
+</div>
+
+<div class="col right">
+  <div class="gap"><div class="in">
+    <h3><span class="a">AKAUN GAP</span><span class="b">PUBLIC GOLD</span></h3>
+    <div class="line"></div>
+    <ul>
+      <li><i>✓</i><span>Pendaftaran <b>PERCUMA</b></span></li>
+      <li><i>✓</i><span>Tiada Tarikh Luput</span></li>
+      <li><i>✓</i><span>Tiada Had Pembelian</span></li>
+      <li><i>✓</i><span>Boleh Keluarkan Emas Fizikal</span></li>
+      <li><i>✓</i><span>Tiada Komitmen Bulanan</span></li>
+      <li><i>✓</i><span>Boleh Diwarisi</span></li>
+      <li><i>✓</i><span>Fungsi Auto Debit</span></li>
+    </ul>
+  </div></div>
+  <div class="photo" style="margin-top:16px;margin-bottom:0"><img src="__P1__" style="height:118px"></div>
+  <div class="cta">DAFTAR SEKARANG<small>Tanya saya di ruangan komen 👇</small></div>
+</div>
+
+<!-- guides: approximate TikTok LIVE viewer UI zones -->
+<div class="guide" style="left:0;top:0;width:1080px;height:250px">UI TikTok (profil / penonton)</div>
+<div class="guide" style="left:0;top:1180px;width:740px;height:560px">Komen penonton</div>
+<div class="guide" style="left:0;top:1750px;width:1080px;height:170px">Butang TikTok (komen / hadiah)</div>
+<div class="guide" style="left:330px;top:580px;width:420px;height:560px;border-color:rgba(80,255,120,.9);color:#7dff9a">Ruang muka (kosong)</div>
+</body></html>
